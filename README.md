@@ -23,8 +23,6 @@ In the mandatory part, we start the server by reading a [configuration file](htt
 
 - [Article about HTTP Server on C](https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa)
 
-- [Notion](https://earthy-mandarin-bcd.notion.site/Webserv-8e45bd5fd3ab42889566c11cfe18a89c)
-
 ---
 
 - [Playlist](https://www.youtube.com/watch?v=Kc1kwm1WyVM&list=PLPUbh_UILtZW1spXkwszDBN9YhtB0tFKC&ab_channel=SloanKelly)
