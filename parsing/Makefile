@@ -1,6 +1,7 @@
 NAME = Webserv
 
 SRC = main.cpp \
+	parsing.cpp \
 
 OBJ = $(SRC:.cpp=.o)
 
