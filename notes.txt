@@ -1,0 +1,32 @@
+Network Programming = Socket Programming
+
+* Network Programming :
+
+    * Also known as Socker programming because the network programming 
+    itself is based on sockets.
+
+    * Definition :
+        building a program that receives and transmits data between two or more
+        computers by means of network.
+
+* A simple under of Sockets :
+
+    * Provided by the operating system within devices.
+    * Sockets provides a high level of abstraction for programmers so that we dont have to worry about underlaying physical and software details of networking.
+
+* The 5 "Must-know" fundamental details of socket programming :
+
+1. Socket :
+
+    * Creating a socket (A socket descriptor)
+        * TCP Socket can be compared to a phone -> We need a device to call someone or accept their phone call, right ?
+        * To perform network I/O, the first thing a process must do is, call the socket function to create a specific type of socket by specifying the type of communication protocol desired, protocol family, etc.
+
+        ```
+        #include <sys/socket.h>
+        
+        int socket(int domain, int type, int protocol);
+        ```
+        -> Creating a socket descriptor.
+
+
