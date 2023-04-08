@@ -40,7 +40,7 @@ int main(int argc, char **argv)
         }
         if (n < 0)
             err_n_die("read error");
-        snprintf((char *) buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\nHello");
+        snprintf((char *) buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n<html><body><h1>Hello World!</h1></body></html>\r\n");
 
         write(connfd, (char *) buff, strlen((char *) buff));
         close(connfd);

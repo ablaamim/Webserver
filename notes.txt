@@ -122,3 +122,7 @@ Network Programming :
     -> Making a connection request.
 
 ---------------------------------------------------------------------------------------------------------
+
+--> Creating A simple client/Server code base : SEE  /SocketProgramming/tcpServer.c && /SocketProgramming/TcpClient.c
+
+---------------------------------------------------------------------------------------------------------
