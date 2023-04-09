@@ -1,5 +1,8 @@
 #include "common.h"
 
+// Socket Programming in C / IPC
+
+// THIS IS THE WEB CLIENT PART
 
 int main(int argc, char **argv)
 {

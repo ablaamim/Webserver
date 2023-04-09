@@ -1,7 +1,7 @@
-NAME = Webserv
+NAME = Parsing
 
 SRC = main.cpp \
-	parsing.cpp \
+	ConfigurationParser.cpp
 
 OBJ = $(SRC:.cpp=.o)
 

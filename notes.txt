@@ -2,6 +2,7 @@
 
 Abstract :
             Network Programming AKA Socket Programming in c++.
+            IPC also is equivalent to InterProcess Communication.
 
 Network Programming :
 

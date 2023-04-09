@@ -22,7 +22,7 @@
 #include <sys/select.h>
 #include <sys/uio.h>
 
-/* Preprocessor macros for readability*/
+/* Preprocessor macros for readability */
 
 // Standard HTTP port
 #define SERVER_PORT 18000
