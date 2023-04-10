@@ -1,7 +1,8 @@
 NAME = Parsing
 
 SRC = main.cpp \
-	ConfigurationParser.cpp
+	ConfigurationParser.cpp \
+	debug.cpp
 
 OBJ = $(SRC:.cpp=.o)
 

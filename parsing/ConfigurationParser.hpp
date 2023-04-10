@@ -1,6 +1,7 @@
 #ifndef CONFIGURATION_PARSER_HPP
 # define CONFIGURATION_PARSER_HPP
 
+# include "../MainInc/main.hpp"
 # include <iostream>
 # include <string>
 # include <vector>
@@ -18,6 +19,7 @@ class configurationSA
 {
     // I will use two inner structs named 'Location' && 'Server'
     public :
+        // Location struct will contain a map of none unique keys and a map of unique keys
         struct location
         {
             std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey;
@@ -36,11 +38,12 @@ class configurationSA
                     insertUniqueKey(it->second, NoneUniqueKey[it->first]);
             }
         };
+        // Server struct will contain a map of locations and a set of server names and a map of listen ports
         struct Server
         {
             std::map<std::string, std::set<std::string> > listen;
-            std::set<std::string>                        server_name;
-            std::map<std::string, location>              location;
+            std::set<std::string>                         server_name;
+            std::map<std::string, location>               location;
         };
         struct conf
         {
@@ -73,6 +76,6 @@ class configurationSA
         //~configurationSA();
 
         // GETTERS AND SETTERSls
-        //std::vector<Server>         getData() const;
+       // std::vector<Server>         getData() const;
 };
 #endif
