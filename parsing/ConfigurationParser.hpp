@@ -13,8 +13,18 @@
 # include <set>
 # include <stdlib.h>
 
-// Configuration file Syntax analysis class
+// ALL TYPEDEFS NEEDED TO MAKE THE CODE MORE READABLE :
 
+typedef std::string::iterator                             line_iterator;
+typedef std::vector<std::string>::iterator                file_iterator;
+typedef std::pair<line_iterator, file_iterator>           line_range_type;
+typedef std::pair<std::string, std::vector<std::string> > key_value_type;
+
+typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
+typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
+
+
+// Configuration file Syntax analysis class
 class configurationSA
 {
     // I will use two inner structs named 'Location' && 'Server'
@@ -22,19 +32,18 @@ class configurationSA
         // Location struct will contain a map of none unique keys and a map of unique keys
         struct location
         {
-            std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey;
-            std::map<std::string, std::vector<std::string> >                        UniqueKey;
-            
-            static void insertUniqueKey(const std::map<std::string, std::vector<std::string> > &a, std::map<std::string, std::vector<std::string> > &b)
+            UniqueKey_t     UniqueKey;
+            NoneUniqueKey_t NoneUniqueKey;     
+            static void insertUniqueKey(const UniqueKey_t &a, UniqueKey_t &b)
             {
-                for (std::map<std::string, std::vector<std::string> >::const_iterator it = a.begin(); it != a.end(); it++)
+                for (UniqueKey_t::const_iterator it = a.begin(); it != a.end(); it++)
                     b.insert(*it);
             }
 
             void insert(const location &otherInsert)
             {
                 insertUniqueKey(otherInsert.UniqueKey, UniqueKey);
-                for (std::map<std::string, std::map<std::string, std::vector<std::string> > > ::const_iterator it = otherInsert.NoneUniqueKey.begin(); it != otherInsert.NoneUniqueKey.end(); it++)
+                for (NoneUniqueKey_t::const_iterator it = otherInsert.NoneUniqueKey.begin(); it != otherInsert.NoneUniqueKey.end(); it++)
                     insertUniqueKey(it->second, NoneUniqueKey[it->first]);
             }
         };
@@ -58,6 +67,7 @@ class configurationSA
             {
                 KEYTYPE keyType;
             };
+            //rawCong(KEYTPE key);
             std::map<std::string, rawConf> data;
             //static void                           init_data(void);
         };
@@ -73,7 +83,7 @@ class configurationSA
         std::vector<std::string>    server;
         configurationSA();
         configurationSA(char *config_file);
-        //~configurationSA();
+        ~configurationSA();
 
         // GETTERS AND SETTERSls
        // std::vector<Server>         getData() const;
