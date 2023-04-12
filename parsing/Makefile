@@ -10,7 +10,7 @@ all: $(NAME)
 
 CC = clang++
 
-CFLAGS = #-Wall -Wextra -Werror
+CFLAGS = -fsanitize=address -g3 #-std=c++11 #-Wall -Wextra -Werror
 
 $(NAME): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
