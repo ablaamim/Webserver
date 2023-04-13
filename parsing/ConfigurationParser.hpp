@@ -2,6 +2,7 @@
 # define CONFIGURATION_PARSER_HPP
 
 # include "../MainInc/main.hpp"
+# include "debug.hpp"
 # include <iostream>
 # include <string>
 # include <vector>
@@ -17,6 +18,7 @@
 
 #define UNLIMITED_PARAMS 0
 #define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
+#define DEFAULT_LISTEN "80"
 
 typedef std::string::iterator                             line_iterator;
 typedef std::vector<std::string>::iterator                file_iterator;
@@ -34,12 +36,14 @@ typedef std::map<std::string, std::set<std::string> > typeListen; // key = IP ad
 typedef std::set<std::string>                         typeServerName_t;
 
 // Configuration file Syntax analysis class
-class configurationSA
+
+class configurationSA   // BEGIN OF CONFIGURATIONSA
 {
     // I will use two inner structs named 'Location' && 'Server'
     public :
+
         // Location struct will contain a map of none unique keys and a map of unique keys
-        struct location
+        struct location // BEGIN OF LOCATION STRUCT
         {
             UniqueKey_t     UniqueKey;
             NoneUniqueKey_t NoneUniqueKey;
@@ -56,21 +60,24 @@ class configurationSA
                 for (NoneUniqueKey_t::const_iterator it = otherInsert.NoneUniqueKey.begin(); it != otherInsert.NoneUniqueKey.end(); it++)
                     insertUniqueKey(it->second, NoneUniqueKey[it->first]);
             }
-        };
+        }; // END OF LOCATION STRUCT
         
         typedef std::map<std::string, location>               typeLocation;
+        
         // Server struct will contain a map of locations and a set of server 
         // names and a map of listen ports.
-        struct Server
+        struct Server // BEGIN OF SERVER STRUCT
         {
             typeListen        Listen;
             typeServerName_t  ServerName;
             typeLocation      Location;
             
-        };
+        }; // END OF SERVER STRUCT
+        
     private :
+
         // Configuration struct :
-        struct conf
+        struct conf // BEGIN OF CONF STRUCT
         {
             enum KEYTYPE
             {
@@ -87,7 +94,6 @@ class configurationSA
                     void    (               *func)(key_value_type &, int &start_last_line, std::string &line);
                     int                     max_Parameters;
                     std::set<std::string>   validParametters;
-
                     rawConf(void){};
                     rawConf(const KEYTYPE &keytype, void (*func)(key_value_type &, int &start_last_line, std::string &line), int maxParameters, std::string validParameterstab[], int validParamettersSize)
                     {
@@ -104,7 +110,36 @@ class configurationSA
                     };
                 };
                 typedef std::map<std::string, rawConf> data_type;
-                
+
+////////////////////////////////////////   DEBUG SECTION  ////////////////////////////////////////
+
+                static void printMap(data_type mapofConfs)
+                {
+                    for (auto const& [key, rawConf] : mapofConfs)
+                    {
+                        std::cout << "Key : " << key << std::endl;
+                        std::cout << "  KeyType          : " << rawConf.keyType << std::endl;
+                        std::cout << "  max_Parameters   : " << rawConf.max_Parameters << std::endl;
+                        std::cout << "  validParametters : ";
+                        for (const auto& param : rawConf.validParametters)
+                            std::cout << param << " ";
+                        std::cout << std::endl;
+                    }
+                };
+
+                static void printKeyVal(std::pair<std::string, std::vector<std::string> > kvp)
+                {
+                    std::cout << "Key: " << kvp.first << std::endl;
+                    std::cout << "Values: ";
+                    for (const auto& value : kvp.second)
+                    {
+                        std::cout << value << " ";
+                    }
+                    std::cout << std::endl;
+                };
+
+//////////////////////////////////////// END DEBUG SECTION ////////////////////////////////////////
+
                 static  data_type                      _data;
                 static void                            init_data(void);
                 static void                            print_data();
@@ -118,9 +153,8 @@ class configurationSA
                 {
                     return (_data.count(key) ? _data[key].keyType : NONE_KEYTYPE);
                 }
-                */
-                
-        };
+                */    
+        }; // END OF CONF STRUCT
 
     public :
 
@@ -132,7 +166,9 @@ class configurationSA
         data_type                                       _data;
 
         // PARSING FUNCTIONS LOGIC :
-        void _listenFormat(key_value_type &key_value, int &start_last_line, std::string &line);
+        static void _listenFormat(key_value_type &key_value, int &start_last_line, std::string &line);
+        static void _checkPort(std::string str, int &start_last_line, std::string &line);
+        static void _checkroot(key_value_type &key_values, int &start_last_line, std::string &line);
 
     public :
     
@@ -140,7 +176,9 @@ class configurationSA
         configurationSA(char *config_file);
         ~configurationSA();
 
-        // GETTERS AND SETTERSls
+        // GETTERS AND SETTERS :
+
         // const data_type &getData() const;
-};
+
+}; // END OF CONFIGURATIONSA
 #endif

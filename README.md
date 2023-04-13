@@ -1,10 +1,11 @@
-# Webserv :
+### Webserv :
 
 ---
 
 This project is about writing a [HTTP server](https://en.wikipedia.org/wiki/Web_server), your own version of [Nginx](https://www.nginx.com/), [Apache](https://apache.org/) or [Lighttpd](https://www.lighttpd.net/).
 
 ### What is Webserv ?
+
 Webserv is a group project at 1337 which requires us to build a [HTTP server](https://en.wikipedia.org/wiki/Web_server) using [I/O Multiplexing](https://notes.shichao.io/unp/ch6/) built on top of a [event loop](https://en.wikipedia.org/wiki/Event_loop#:~:text=In%20computer%20science%2C%20the%20event,or%20messages%20in%20a%20program.).
 
 In the mandatory part, we start the server by reading a [configuration file](https://docs.nginx.com/nginx/admin-guide/basic-functionality/managing-configuration-files/) that can be based on [Nginx](https://www.nginx.com/), containing information like hostname(ip/port), servername, index file, directory listing, URL redirect, location(vhost path) and some other settings. It is forbidden to use [fork](https://man7.org/linux/man-pages/man2/fork.2.html) to create new [non-CGI](https://en.wikipedia.org/wiki/Common_Gateway_Interface) processes or spawn [threads](https://en.wikipedia.org/wiki/Thread_(computing)) (threads are not available in [C++98](https://cplusplus.com/reference/)).
@@ -29,7 +30,7 @@ In the mandatory part, we start the server by reading a [configuration file](htt
 
 ---
 
-## General instructions ##
+### General instructions ##
 
 * Your program must not crash under any circumstances (even if it runs out of memory) and must not terminate unexpectedly. If this happens, your project will be considered non-functional and your score will be 0.
 * You must include a Makefile that will compile your source files. It should not re-link.
@@ -135,7 +136,7 @@ We have shared with you a small tester. It is not necessary to go through it if 
 
 > Don't test with just one program. Write tests in a more convenient language like Python or Golang etc. Even in C or C++ if you want.
 
-## Bonus part ##
+### Bonus part ##
 
 Here are additional features you can add:
 * Support for `cookies` and `session_management` files (prepare short examples).
@@ -143,3 +144,15 @@ Here are additional features you can add:
 
 > The bonus part will only be evaluated if the required part is "EXCELLENT". Perfect means that the required part has been fully completed and is running smoothly. If you have not met ALL of the mandatory requirements, your bonus portion will not be evaluated at all.
 </details>
+
+---
+
+### :repeat: Parsing Logic : DOCUMENTATION !
+
+---
+
+* Author : ablaamim
+
+> Parsing configuration file :
+
+---

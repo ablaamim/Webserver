@@ -4,7 +4,7 @@ int main(int argc, char **argv, char **env)
 {
     if (argc != 2)
     {
-        std::cout << "Usage: ./Parsing <config_file>" << std::endl;
+        std::cerr << "Invalid number of arguments : Usage ./Parsing <configuration file>" << std::endl;
         return (EXIT_FAILURE);
     }
     else
