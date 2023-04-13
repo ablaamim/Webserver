@@ -3,6 +3,7 @@
 
 # include "../MainInc/main.hpp"
 # include "debug.hpp"
+# include "libcpp.hpp"
 # include <iostream>
 # include <string>
 # include <vector>
@@ -18,7 +19,8 @@
 
 #define UNLIMITED_PARAMS 0
 #define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
-#define DEFAULT_LISTEN "80"
+#define DEFAULT_LISTEN_INTERF "0.0.0.0"
+#define DEFAULT_LISTEN_PORT "8080"
 
 typedef std::string::iterator                             line_iterator;
 typedef std::vector<std::string>::iterator                file_iterator;
@@ -61,11 +63,14 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                     insertUniqueKey(it->second, NoneUniqueKey[it->first]);
             }
         }; // END OF LOCATION STRUCT
-        
+
+        // map of locations, key = location path, value = location struct :
+
         typedef std::map<std::string, location>               typeLocation;
         
         // Server struct will contain a map of locations and a set of server 
         // names and a map of listen ports.
+
         struct Server // BEGIN OF SERVER STRUCT
         {
             typeListen        Listen;
@@ -73,7 +78,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             typeLocation      Location;
             
         }; // END OF SERVER STRUCT
-        
+
     private :
 
         // Configuration struct :
@@ -88,6 +93,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             };
                 // sub struct it contains information about each defined key 
                 // in the configuration file.
+
                 struct rawConf // FINAL CONTAINER
                 {
                     KEYTYPE keyType;
@@ -109,6 +115,8 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                         max_Parameters = maxParameters;
                     };
                 };
+
+                // map of rawConf, key = key name, value = rawConf struct :
                 typedef std::map<std::string, rawConf> data_type;
 
 ////////////////////////////////////////   DEBUG SECTION  ////////////////////////////////////////
@@ -139,7 +147,9 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 };
 
 //////////////////////////////////////// END DEBUG SECTION ////////////////////////////////////////
-
+                
+                // map of rawConf, key = key name, value = rawConf struct :
+                //typedef std::map<std::string, rawConf> data_type;
                 static  data_type                      _data;
                 static void                            init_data(void);
                 static void                            print_data();
@@ -165,10 +175,15 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
 
         data_type                                       _data;
 
-        // PARSING FUNCTIONS LOGIC :
-        static void _listenFormat(key_value_type &key_value, int &start_last_line, std::string &line);
-        static void _checkPort(std::string str, int &start_last_line, std::string &line);
-        static void _checkroot(key_value_type &key_values, int &start_last_line, std::string &line);
+/////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
+
+    static void _listenFormat(key_value_type &key_value, int &start_last_line, std::string &line);
+    static void _checkPort(std::string str, int &start_last_line, std::string &line);
+    static void _checkroot(key_value_type &key_values, int &start_last_line, std::string &line);
+    static void _checkIp(std::vector<std::string> ip, int &start_last_line, std::string &line);
+    static void _checkCgi(key_value_type &key_value, int &start_last_line, std::string &line);
+
+///////////////////////////////// END PARSING FUNCTIONS LOGIC : /////////////////////////////////////
 
     public :
     
@@ -178,7 +193,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
 
         // GETTERS AND SETTERS :
 
-        // const data_type &getData() const;
+        data_type getData(void);
 
 }; // END OF CONFIGURATIONSA
 #endif

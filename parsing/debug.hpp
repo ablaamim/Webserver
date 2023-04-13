@@ -9,5 +9,4 @@
 
 void printVector(std::vector<std::string> &vec);
 
-
 #endif

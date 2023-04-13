@@ -11,6 +11,8 @@ int main(int argc, char **argv, char **env)
     {
         //std::cout << "Parsing config file: " << argv[1] << "..." << std::endl
         configurationSA config(argv[1]);
+        
+        //config.print_data();
     }
     return (EXIT_SUCCESS);
 }
