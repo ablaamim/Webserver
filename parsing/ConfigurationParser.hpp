@@ -24,13 +24,9 @@
 
 typedef std::string::iterator                             line_iterator;
 typedef std::vector<std::string>::iterator                file_iterator;
-typedef std::pair<line_iterator, file_iterator>           line_range_type;
+typedef std::pair<line_iterator, line_iterator>           line_range_type;
 typedef std::pair<file_iterator, file_iterator>           file_range_type;
 typedef std::pair<std::string, std::vector<std::string> > key_value_type;
-
-// Key type typedefs :
-typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
-typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
 
 // Server type typedefs :
 
@@ -47,6 +43,9 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
         // Location struct will contain a map of none unique keys and a map of unique keys
         struct location // BEGIN OF LOCATION STRUCT
         {
+            typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
+            typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
+            
             UniqueKey_t     UniqueKey;
             NoneUniqueKey_t NoneUniqueKey;
 
@@ -151,19 +150,24 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 // map of rawConf, key = key name, value = rawConf struct :
                 //typedef std::map<std::string, rawConf> data_type;
                 static  data_type                      _data;
+                static location                        _defaultVals;
+
+                static void  printDefaultVal(location _defaultVals);
+
+
                 static void                            init_data(void);
+                static void                            initDefaultVals(void);
                 static void                            print_data();
-                static location                        _defaultValues;
+             
                 const static std::string               _whiteSpacesSet;
                 const static std::string               _LineBeakSet;
                 const static std::string               _CommentSet;
                 const static std::string               _ScopeSet;
-                /*
+
                 static KEYTYPE                        getKeyType(const std::string &key)
                 {
                     return (_data.count(key) ? _data[key].keyType : NONE_KEYTYPE);
                 }
-                */    
         }; // END OF CONF STRUCT
 
     public :
@@ -177,11 +181,37 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
 
 /////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
 
-    static void _listenFormat(key_value_type &key_value, int &start_last_line, std::string &line);
-    static void _checkPort(std::string str, int &start_last_line, std::string &line);
-    static void _checkroot(key_value_type &key_values, int &start_last_line, std::string &line);
-    static void _checkIp(std::vector<std::string> ip, int &start_last_line, std::string &line);
-    static void _checkCgi(key_value_type &key_value, int &start_last_line, std::string &line);
+    static void     _listenFormat(key_value_type &key_value, int &start_last_line, std::string &line);
+    static void     _checkPort(std::string str, int &start_last_line, std::string &line);
+    static void     _checkroot(key_value_type &key_values, int &start_last_line, std::string &line);
+    static void     _checkIp(std::vector<std::string> ip, int &start_last_line, std::string &line);
+    static void     _checkCgi(key_value_type &key_value, int &start_last_line, std::string &line);
+    static void     _checkBodySize(key_value_type &key_value, int &start_last_line, std::string &line);
+
+    std::string     getWord(line_range_type &line_range);
+
+    void            goToNExtWordInFile(line_range_type &line_range, file_range_type &file_range);
+    void            skipCharSet(line_range_type &line_range, const std::string &charSet);
+    std::string     _getWord_skip_space(line_range_type &line_range);
+
+    bool            _isServerContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range);
+    
+    key_value_type  _getKeyValue(line_range_type &line_range);
+
+    bool            _isLocationContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, int start_last_line);
+
+    bool            checkDuplicatedParametters(std::vector<std::string> parameters, int start_last_line, std::string &line);
+
+    bool            CheckValidParametters(std::vector<std::string> parameters, std::set<std::string> validParamters, int start_last_line, std::string &line);
+    
+    void            insertKeyValLocation(location &location, key_value_type key_value, int start_last_line, std::string &line);
+    void            checkKeyValues(key_value_type &keyVals, const conf::rawConf &keyConfig, int start_last_line,std::string &line);
+    location        NewLocationCreation(line_range_type &line_range, file_range_type &file_range);
+    void            insertKeyValServer(Server &server, key_value_type key_value, int start_last_line, std::string &line); 
+    Server          NewServerCreation(line_range_type &line_range, file_range_type &file_range);
+
+    void            printServers(const std::vector<Server>& servers);
+
 
 ///////////////////////////////// END PARSING FUNCTIONS LOGIC : /////////////////////////////////////
 
@@ -190,6 +220,26 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
         configurationSA();
         configurationSA(char *config_file);
         ~configurationSA();
+
+        class ParsingErr : public std::exception
+        {
+            private :
+                std::string word;
+                std::string err;
+            public :
+                ParsingErr(const std::string &err, const std::string &word = std::string()) : word(word), err(err) {};
+                
+                virtual ~ParsingErr(void) throw() {};
+                
+                virtual const char* what() const throw()
+                {
+                    return (std::string("Parsing error : " + word + " " + err).c_str());
+                }
+                std::string _word(void)
+                {
+                    return (word);
+                }
+        };
 
         // GETTERS AND SETTERS :
 
