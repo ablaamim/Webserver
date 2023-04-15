@@ -34,3 +34,11 @@ std::vector<std::string> split(std::string str, std::string delim)
     	list.push_back(str);
     return (list);
 }
+
+std::string to_string(int nbr)
+{
+    std::ostringstream    stream;
+
+    stream << nbr;
+    return (stream.str());
+}

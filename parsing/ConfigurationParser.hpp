@@ -1,6 +1,7 @@
 #ifndef CONFIGURATION_PARSER_HPP
 # define CONFIGURATION_PARSER_HPP
 
+# include <exception>
 # include "../MainInc/main.hpp"
 # include "debug.hpp"
 # include "libcpp.hpp"
@@ -14,29 +15,20 @@
 # include <iterator>
 # include <set>
 # include <stdlib.h>
-
-// All the typedefs necessary for the configuration file parsing :
-
 #define UNLIMITED_PARAMS 0
 #define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
 #define DEFAULT_LISTEN_INTERF "0.0.0.0"
 #define DEFAULT_LISTEN_PORT "8080"
 
-typedef std::string::iterator                             line_iterator;
-typedef std::vector<std::string>::iterator                file_iterator;
-typedef std::pair<line_iterator, line_iterator>           line_range_type;
-typedef std::pair<file_iterator, file_iterator>           file_range_type;
-typedef std::pair<std::string, std::vector<std::string> > key_value_type;
-
-// Server type typedefs :
-
-typedef std::map<std::string, std::set<std::string> > typeListen; // key = IP address, value = set of ports
-typedef std::set<std::string>                         typeServerName_t;
-
-// Configuration file Syntax analysis class
-
 class configurationSA   // BEGIN OF CONFIGURATIONSA
 {
+    private :
+        typedef std::string::iterator                             line_iterator;
+        typedef std::vector<std::string>::iterator                file_iterator;
+        typedef std::pair<line_iterator, line_iterator>           line_range_type;
+        typedef std::pair<file_iterator, file_iterator>           file_range_type;
+        typedef std::pair<std::string, std::vector<std::string> > key_value_type;
+    
     // I will use two inner structs named 'Location' && 'Server'
     public :
 
@@ -62,17 +54,18 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                     insertUniqueKey(it->second, NoneUniqueKey[it->first]);
             }
         }; // END OF LOCATION STRUCT
-
-        // map of locations, key = location path, value = location struct :
-
-        typedef std::map<std::string, location>               typeLocation;
         
         // Server struct will contain a map of locations and a set of server 
         // names and a map of listen ports.
 
         struct Server // BEGIN OF SERVER STRUCT
         {
-            typeListen        Listen;
+            typedef std::map<std::string, location>               typeLocation;
+            typedef std::map<std::string, std::set<std::string> > typeListen;
+            typedef std::set<std::string>                         typeServerName_t;
+
+
+            typeListen        Listen; // map of listen ports and interfaces (ip, set<port>)
             typeServerName_t  ServerName;
             typeLocation      Location;
             
@@ -86,9 +79,9 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             enum KEYTYPE
             {
                 NONE_KEYTYPE,
+                SERVER_KEYTYPE,
                 UNIQUE_KEYTYPE,
-                NONE_UNIQUE_KEYTYPE,
-                SERVER_KEYTYPE
+                NONE_UNIQUE_KEYTYPE
             };
                 // sub struct it contains information about each defined key 
                 // in the configuration file.
@@ -96,17 +89,17 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 struct rawConf // FINAL CONTAINER
                 {
                     KEYTYPE keyType;
-                    void    (               *func)(key_value_type &, int &start_last_line, std::string &line);
+
+                    void                    (*func)(key_value_type &, int &start_last_line, std::string &line);
                     int                     max_Parameters;
                     std::set<std::string>   validParametters;
+
                     rawConf(void){};
+                    
                     rawConf(const KEYTYPE &keytype, void (*func)(key_value_type &, int &start_last_line, std::string &line), int maxParameters, std::string validParameterstab[], int validParamettersSize)
-                    {
-                        keyType = keytype;
-                        func = func;
-                        max_Parameters = maxParameters;
-                        validParametters = std::set<std::string>(validParameterstab, validParameterstab + validParamettersSize);
-                    };
+                    : keyType(keytype), func(func), max_Parameters(maxParameters), validParametters(validParameterstab, validParameterstab + validParamettersSize)
+                    {};
+                    
                     rawConf(const KEYTYPE &keytype, void (*func)(key_value_type &, int &start_last_line, std::string &line), int maxParameters)
                     {
                         keyType = keytype;
@@ -153,8 +146,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 static location                        _defaultVals;
 
                 static void  printDefaultVal(location _defaultVals);
-
-
                 static void                            init_data(void);
                 static void                            initDefaultVals(void);
                 static void                            print_data();
@@ -172,8 +163,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
 
     public :
 
-        typedef std::vector<Server>                               data_type;
-        typedef std::map<std::string, std::vector<std::string> >  TypeOfMap;
+        typedef std::vector<Server>                               data_type;    
     
     private :
 
@@ -210,22 +200,23 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
     void            insertKeyValServer(Server &server, key_value_type key_value, int start_last_line, std::string &line); 
     Server          NewServerCreation(line_range_type &line_range, file_range_type &file_range);
 
-    void            printServers(const std::vector<Server>& servers);
-
-
 ///////////////////////////////// END PARSING FUNCTIONS LOGIC : /////////////////////////////////////
 
     public :
-    
-        configurationSA();
+        // CONSTRUCTORS AND DESTRUCTORS :
+        //configurationSA();
+        
         configurationSA(char *config_file);
+        
         ~configurationSA();
 
+        // EXCEPTIONS :
         class ParsingErr : public std::exception
         {
             private :
                 std::string word;
                 std::string err;
+            
             public :
                 ParsingErr(const std::string &err, const std::string &word = std::string()) : word(word), err(err) {};
                 
@@ -233,14 +224,15 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 
                 virtual const char* what() const throw()
                 {
-                    return (std::string("Parsing error : " + word + " " + err).c_str());
+                    return (err.c_str());
                 }
+
                 std::string _word(void)
                 {
                     return (word);
                 }
         };
-
+        
         // GETTERS AND SETTERS :
 
         data_type getData(void);

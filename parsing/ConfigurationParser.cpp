@@ -1,14 +1,17 @@
 #include "ConfigurationParser.hpp"
 
+/*
 configurationSA::configurationSA()
 {
     //std::cout << "Configuration constructor" << std::endl;
 }
+*/
 
 configurationSA::~configurationSA()
 {
     //std::cout << "Configuration destructor" << std::endl;
 }
+
 
 ///////////////////////////////////////// CHECKERS : //////////////////////////////////////////
 
@@ -22,25 +25,18 @@ void configurationSA::_checkIp(std::vector<std::string> ip, int &start_last_line
         {
             if (it != ip.begin())
             {
-                std::cout << "Error : Invalid IP address at line " << start_last_line << std::endl;
-                std::cout << "Line : " << line << std::endl;
-                exit(EXIT_FAILURE);
+                throw configurationSA::ParsingErr("Listen, up needs to be 4 octets separated by a dot.");
             }
         }
         for (std::vector<std::string>::iterator it = ip.begin(); it != ip.end(); it++)
         {
             if (!isDigit(*it))
             {
-                std::cerr << "Error : Invalid IP address at line " << start_last_line << std::endl;
-                std::cerr << "Line : " << line << std::endl;
-                exit(EXIT_FAILURE);
+                throw configurationSA::ParsingErr("Listen, ip split by dot needs to be a digit.");
             }
-            int octet = atoi(it->c_str());
-            if (octet < 0 || octet > 255)
+            if (atoi(it->c_str()) < 0 || atoi(it->c_str()) > 255)
             {
-                std::cerr << "Error : Invalid IP address at line " << start_last_line << std::endl;
-                std::cerr << "Line : " << line << std::endl;
-                exit(EXIT_FAILURE);
+                throw configurationSA::ParsingErr("Listen, ip split by dot needs to be between 0 and 255.");
             }
         }
     }
@@ -55,16 +51,12 @@ void configurationSA::_checkPort(std::string str, int &start_last_line, std::str
     //std::cout << "Port: " << str << std::endl;
     if (!isDigit(str))
     {
-        std::cerr << "Error : Invalid port number at line " << start_last_line << std::endl;
-        std::cerr << "Line : " << line << std::endl;
-        exit(EXIT_FAILURE);
+        throw configurationSA::ParsingErr("Listen, port needs to be a digit.");
     }
     port = atoi(str.c_str());
     if (port < 0 || port > 65535)
     {
-        std::cerr << "Error : Invalid port number at line " << start_last_line << std::endl;
-        std::cerr << "Line : " << line << std::endl;
-        exit(EXIT_FAILURE);
+       throw configurationSA::ParsingErr("Listen, port needs to be between 0 and 65535.");
     }
     //std::cout << "End of port check !" << std::endl;
 }
@@ -116,32 +108,18 @@ void configurationSA::_checkroot(key_value_type &key_values, int &start_last_lin
     // check if the root path is valid (no //, no / at the end)
     if (key_values.second[0].find("../") != std::string::npos)
     {
-        std::cerr << "Error : Invalid root path at line " << start_last_line << std::endl;
-        std::cerr << "Line : " << line << std::endl;
-        exit(EXIT_FAILURE);
+        int tmp = key_values.second[0].find("../");
+        while (tmp != std::string::npos)
+        {
+            tmp = key_values.second[0].find("../", tmp);
+        }
+        throw configurationSA::ParsingErr("Root, path cannot contain ../");
     }
-    
     // Check if the root path is absolute or not (must start with '/')
-    if (key_values.second[0][0] != '/')
-    {
-        std::cerr << "Error : Invalid root path at line " << start_last_line << std::endl;
-        std::cerr << "Line : " << line << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    
-    // Check if the root path contains a double slash (//)
-    if (key_values.second[0].find("//") != std::string::npos)
-    {
-        std::cerr << "Error : Invalid root path at line " << start_last_line << std::endl;
-        std::cerr << "Line: " << line << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    
-    // Check if the root path ends with a slash (/)
     if (key_values.second[0][key_values.second[0].size() - 1] == '/')
     {
-        key_values.second[0].erase(key_values.second[0].size() - 1);
-    }   
+        key_values.second[0].erase(key_values.second[0].end() - 1);
+    }
 }
 
 void configurationSA::_checkCgi(key_value_type &key_values, int &start_last_line, std::string &line)
@@ -151,58 +129,41 @@ void configurationSA::_checkCgi(key_value_type &key_values, int &start_last_line
     // check if the cgi path is valid (no //, no / at the end)
     if (key_values.first.rfind('.') != 0)
     {
-        std::cerr << "Error : Cgi First param should start with '.' " << start_last_line << std::endl;
-        std::cerr << "Line: " << line << std::endl;
-        exit(EXIT_FAILURE);
+       throw configurationSA::ParsingErr("Cgi, key should start with a dot.");
     }
     if (key_values.first.size() < 2)
     {
-        std::cerr << "Error : Cgi first param should be at least 2 characters long " << start_last_line << std::endl;
-        std::cerr << "Line: " << line << std::endl;
-        exit(EXIT_FAILURE);
+        throw configurationSA::ParsingErr("Cgi, key should be at least 2 characters long.");
     }
     if (key_values.second[0].size() < 2)
     {
-        std::cerr << "Error : Second param should be at least 2 characters long " << start_last_line << std::endl;
-        std::cerr << "Line: " << line << std::endl;
-        exit(EXIT_FAILURE);
+        throw configurationSA::ParsingErr("Cgi, value should be at least 2 characters long.");
     }
     if (key_values.second[0][key_values.second[0].size() - 1] == '/')
     {
         start_last_line += key_values.second[0].size() - 1;
-        std::cerr << "Error : Cgi path should not end with a slash " << start_last_line << std::endl;
-    }
-    if (key_values.second[0].find("//") != std::string::npos)
-    {
-        std::cerr << "Error : Cgi path should not contain a double slash " << start_last_line << std::endl;
-        std::cerr << "Line: " << line << std::endl;
-        exit(EXIT_FAILURE);
+        throw configurationSA::ParsingErr("Cgi, value should not end with a slash.");
     }
     if (key_values.second[0].find("../") != std::string::npos)
     {
-        std::cerr << "Error : Cgi path should not contain a double slash " << start_last_line << std::endl;
-        std::cerr << "Line: " << line << std::endl;
-        exit(EXIT_FAILURE);
+        throw configurationSA::ParsingErr("Cgi, value should not contain ../");
     }
 }
 
 void configurationSA::_checkBodySize(key_value_type &key_values, int &start_last_line, std::string &line)
 {
-    std::cout << "Body size checker..." << std::endl;
+    //std::cout << "Body size checker..." << std::endl;
 
     if (!isDigit(key_values.second[0]))
     {
-        std::cerr << "Error : Body size should be a number " << start_last_line << std::endl;
-        std::cerr << "Line : " << line << std::endl;
-        exit(EXIT_FAILURE);
+       throw configurationSA::ParsingErr("Body size, value should be a digit.");
     }
+    
     if (atoi(key_values.second[0].c_str()) <= 0)
     {
-        std::cerr << "Error : Body size should be a positive number " << start_last_line << std::endl;
-        std::cerr << "Line : " << line << std::endl;
-        exit(EXIT_FAILURE);
+        throw configurationSA::ParsingErr("Body size, value should be greater than 0.");
     }
-    std::cout << "Body size checker... OK" << std::endl;
+    //std::cout << "Body size checker... OK" << std::endl;
 }
 
 /////////////////////////////////////////// END CHECKERS ///////////////////////////////////////////
@@ -211,54 +172,71 @@ void configurationSA::_checkBodySize(key_value_type &key_values, int &start_last
 
 void configurationSA::skipCharSet(line_range_type &line_range, const std::string &charSet)
 {
+    //std::cout << "Skipping char set..." << std::endl;
+    //std::cout << "Char set: |" << charSet << "|" << std::endl;
+   
     while (line_range.first != line_range.second && charSet.find(*line_range.first) != std::string::npos)
         line_range.first++;
+    
     if (line_range.first != line_range.second && conf::_CommentSet.find(*line_range.first) != std::string::npos)
         line_range.first = line_range.second;
+
+    //std::cout << "End of skipping char set: " << *line_range.first << std::endl;
 }
 
 
 void configurationSA::goToNExtWordInFile(line_range_type &line_range, file_range_type &file_range)
 {
-    std::cout << "Going to next word..." << std::endl;
-    if (line_range.first == line_range.second)
+    //std::cout << "Going to next word in file..." << std::endl;
+    
+    if (file_range.first == file_range.second)
         return ;
+    
     skipCharSet(line_range, conf::_whiteSpacesSet + conf::_LineBeakSet);
-    std::cout << "End of Next word: " << *line_range.first << std::endl;
+    
+    while (file_range.first != file_range.second && line_range.first == line_range.second)
+    {
+        file_range.first++;
+        if (file_range.first == file_range.second)
+            break ;
+        line_range.first = file_range.first->begin();
+        line_range.second = file_range.first->end();
+        skipCharSet(line_range, conf::_whiteSpacesSet + conf::_LineBeakSet);
+    }
+    //std::cout << "End of Next word: " << *line_range.first << std::endl;
 }
 
 std::string     configurationSA::getWord(line_range_type &line_range)
 {
     std::string result;
     
-    std::cout << "Getting word..." << std::endl;
+    //std::cout << "Getting word..." << std::endl;
     
     //std::cout << "SEGV: " << *line_range.first << std::endl;
     //exit(1);
-    
     while (line_range.first != line_range.second && (conf::_whiteSpacesSet + conf::_LineBeakSet + conf::_CommentSet + conf::_ScopeSet).find(*line_range.first) == std::string::npos)
     {
         if (*line_range.first == '\\')
             line_range.first++;
         if (line_range.first == line_range.second)
         {
-            std::cerr << "Error : Unexpected end of line" << std::endl;
-            exit(EXIT_FAILURE);            
+           throw configurationSA::ParsingErr("Unexpected end of line.");         
         }
         result.push_back(*line_range.first++);
     }
-    std::cout << "End of get word: " << result << std::endl;
+    //std::cout << "End of get word: " << result << std::endl;
     return result;
 }
 
 
 std::string     configurationSA::_getWord_skip_space(line_range_type &line_range)
 {
-    std::cout << "Getting word skip space..." << std::endl;
+    //std::cout << "Getting word skip space..." << std::endl;
 
     skipCharSet(line_range, conf::_whiteSpacesSet);
     //std::cout << "End of skip space :  SEGV" << *line_range.first << std::endl;
     //exit(1);
+    
     std::string word = getWord(line_range);
     
     //std::cout << "End of get word : SEGV" << *line_range.first << std::endl;
@@ -271,31 +249,36 @@ std::string     configurationSA::_getWord_skip_space(line_range_type &line_range
     return word;
 }
 
-key_value_type configurationSA::_getKeyValue(line_range_type &line_range)
+configurationSA::key_value_type configurationSA::_getKeyValue(line_range_type &line_range)
 {
-    std::cout << "Getting key value..." << std::endl;
+    //std::cout << "Getting key value..." << std::endl;
+    
     std::string key = _getWord_skip_space(line_range);
     //std::cout << "Key: " << key << std::endl;
+    
     std::vector<std::string> values;
     //std::cout << "Getting values..." << std::endl;
+    
     std::string word = _getWord_skip_space(line_range);
     //std::cout << "Word AFTER GETWORDSKIPSPACE : " << word << std::endl;
+    
     while (!word.empty())
     {
         values.push_back(word);
-        if (line_range.first == line_range.second)
-            break;
         word = _getWord_skip_space(line_range);
         //std::cout << "Word: " << word << std::endl;
     }
-    std::cout << "End of get key value..." << std::endl;
+    //std::cout << "End of get key value..." << std::endl;
     return (std::make_pair(key, values));
 }
 
 bool configurationSA::_isServerContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range)
 {
-    //std::cout << "Checking server context..." << std::endl;
-    std::cout << "Key: " << key_value.first << std::endl;
+    //std::cout << "Checking server context..." << std::endl << std::endl;
+    
+    //std::cout << "Key  : " << key_value.first << std::endl;
+    
+    //std::cout << "Value: " << key_value.second[0] << std::endl;
     /*
     if (key_value.first.empty())
     {
@@ -303,47 +286,84 @@ bool configurationSA::_isServerContext(key_value_type key_value, line_range_type
         return (false);
     }
     */
+
+    // CHECK : server context
+
     if (key_value.first != "server")
     {
-        std::cout << "Server context not found" << std::endl;
+        //std::cout << "Server context not found" << std::endl;
         //exit(1);
         return (false);
     }
+    /*
+    std::cout << "Values : " << std::endl;
+
+    std::cout << *line_range.first << std::endl;
+    std::cout << *line_range.second << std::endl;
+    
+    std::cout << *file_range.first << std::endl;
+    std::cout << *file_range.second << std::endl;
+    */
+    
     goToNExtWordInFile(line_range, file_range);
-    if (key_value.second.size() != 0)
+
+    if (!key_value.second.empty())
     {
-        std::cerr << "Error : Server context should not have any value" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Does' take parameters");
+        //std::cerr << "Error : Server context should not have any value" << std::endl;
+        //exit(EXIT_FAILURE);
     }
     if (line_range.first != line_range.second && *line_range.first != '{')
     {
-        std::cerr << "Error : Server context should be followed by a '{'" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Server context should be followed by a '{'");
+        //std::cerr << "Error : Server context should be followed by a '{'" << std::endl;
+        //exit(EXIT_FAILURE);
     }
     return (true);
 }
 
 bool configurationSA::_isLocationContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, int start_last_line)
 {
-    //std::cout << "Location context checker..." << std::endl;
+    std::cout << "Location context checker..." << std::endl;
+    
     line_range_type line_range_copy = line_range;
     file_range_type file_range_copy = file_range;
+    
+
+    std::cout << "Key  : " << key_value.first << std::endl;
 
     if (key_value.first != "location")
     {
         //std::cout << "Location context not found" << std::endl;
         return (false);
     }
+    
     goToNExtWordInFile(line_range, file_range);
-    if (key_value.second.size() != 1)
+    
+    try
     {
-        std::cerr << "Error : Location context should have one parameter" << std::endl;
-        exit(EXIT_FAILURE);
+        if (key_value.second.size() != 1)
+        {
+            throw ParsingErr("Error : Location context should have one parameter");
+            //std::cerr << "Error : Location context should have one parameter" << std::endl;
+            //exit(EXIT_FAILURE);
+        }
+        if (!key_value.second[0].empty() && key_value.second[0][0] != '/')
+        {
+            throw ParsingErr("Error : Location context should start with a '/'");
+            //std::cerr << "Error : Location context should start with a '/'" << std::endl;
+            //exit(EXIT_FAILURE);
+        }
+        if (*line_range.first != '{')
+        {
+            throw ParsingErr("Error : Location context should be followed by a '{'");
+            //std::cerr << "Error : Location context should be followed by a '{'" << std::endl;
+            //exit(EXIT_FAILURE);
+        }
     }
-    if (!key_value.second[0].empty() && key_value.second[0][0] != '/')
+    catch (ParsingErr &e)
     {
-        std::cerr << "Error : Location context should start with a '/'" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr(e.what());
     }
     return (true);
 }
@@ -356,15 +376,26 @@ void    configurationSA::insertKeyValLocation(location &Location, key_value_type
     conf::rawConf keyConfig = conf::_data[key_value.first];
     location::UniqueKey_t &insertPoint = (keyConfig.keyType == conf::UNIQUE_KEYTYPE) ? Location.UniqueKey : Location.NoneUniqueKey[key_value.first];
 
+    // Set subkey if needed
     if (keyConfig.keyType == conf::UNIQUE_KEYTYPE && !key_value.second.empty())
     {
         key_value.first = key_value.second[0];
         key_value.second.erase(key_value.second.begin());
     }
+
     if (insertPoint.count(key_value.first))
     {
-        std::cerr << "Error : Key " << keyValueFirstCopy << " already exists" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Key " + keyValueFirstCopy + " already exists");
+        //std::cerr << "Error : Key " << keyValueFirstCopy << " already exists" << std::endl;
+        //exit(EXIT_FAILURE);
+    }
+    try
+    {
+        checkKeyValues(key_value, keyConfig ,start_last_line, line);
+    }
+    catch (ParsingErr &e)
+    {
+        throw ParsingErr(keyValueFirstCopy + " : " + e.what());
     }
     insertPoint[key_value.first] = key_value.second;
 }
@@ -375,9 +406,9 @@ bool configurationSA::CheckValidParametters(std::vector<std::string> parameters,
 
     for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); it++)
     {
-        if (validParamters.count(*it) == 0)
+        if (!validParamters.count(*it))
         {
-            std::cerr << "Error : Invalid parameter " << *it << " for key " << line << std::endl;
+            //std::cerr << "Error : Invalid parameter " << *it << " for key " << line << std::endl;
             errStatus = true;
         }
     }
@@ -394,8 +425,8 @@ bool    configurationSA::checkDuplicatedParametters(std::vector<std::string> par
             s.insert(*it);
         else
         {
-            std::cerr << "Error : Duplicated parameter " << *it << " for key " << line << std::endl;
-            return (true);
+            //std::cerr << "Error : Duplicated parameter " << *it << " for key " << line << std::endl;
+            //return (true);
         }
     }
     return (s.size() != parameters.size());
@@ -406,32 +437,35 @@ void configurationSA::checkKeyValues(key_value_type &keyVals, const conf::rawCon
     std::set<std::string> sParameters(keyVals.second.begin(), keyVals.second.end());
     if (keyVals.second.empty())
     {
-        std::cerr << "Error : Not enough Parameters for key " << keyVals.first << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Not enough parameters for key " + keyVals.first);
     }
     if (!keyConfig.validParametters.empty())
     {
         if (keyConfig.keyType == conf::UNIQUE_KEYTYPE && CheckValidParametters(keyVals.second, keyConfig.validParametters, start_last_line, line))
         {
-            std::cerr << "Error : Invalid parameters for key " << keyVals.first << std::endl;
-            exit(EXIT_FAILURE);
+            throw ParsingErr("Error : Invalid parameters for key " + keyVals.first);
         }
         else if (keyConfig.keyType == conf::NONE_UNIQUE_KEYTYPE && !keyConfig.validParametters.count(keyVals.first))
         {
-            std::cerr << "Error : Invalid parameters for key " << keyVals.first << std::endl;
-            exit(EXIT_FAILURE);
+            throw ParsingErr("Error : Invalid parameters for key " + keyVals.first);
+            //std::cerr << "Error : Invalid parameters for key " << keyVals.first << std::endl;
+            //exit(EXIT_FAILURE);
         }
     }
     if (checkDuplicatedParametters(keyVals.second, start_last_line, line))
     {
-        std::cerr << "Error : Duplicated parameters for key " << keyVals.first << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Duplicated parameters for key " + keyVals.first);
+        //std::cerr << "Error : Duplicated parameters for key " << keyVals.first << std::endl;
+        //exit(EXIT_FAILURE);
     }
     if (keyConfig.max_Parameters && sParameters.size() > keyConfig.max_Parameters)
     {
-        std::cerr << "Error : Too many parameters for key " << keyVals.first << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Too many parameters for key " + keyVals.first);
+        //std::cerr << "Error : Too many parameters for key " << keyVals.first << std::endl;
+        //exit(EXIT_FAILURE);
     }
+    
+    // if check is ok, call the function
     if (keyConfig.func)
     {
         keyConfig.func(keyVals, start_last_line, line);
@@ -442,10 +476,12 @@ void  configurationSA::insertKeyValServer(Server &result, key_value_type key_val
 {
     const conf::rawConf keyConfig = conf::_data.find(key_value.first)->second;
     checkKeyValues(key_value, keyConfig, start_last_line, line);
-    if (key_value.first == "listen" && !result.Listen.empty())
+    
+    if (key_value.first == "listen" && !result.Listen[key_value.second[0]].insert(key_value.second[1]).second)
     {
-        std::cerr << "Error : Key listen already exists" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Key listen already exists");
+        //std::cerr << "Error : Key listen already exists" << std::endl;
+        //exit(EXIT_FAILURE);
     }
     else if (key_value.first == "server_name")
     {
@@ -453,8 +489,9 @@ void  configurationSA::insertKeyValServer(Server &result, key_value_type key_val
         result.ServerName.insert(key_value.second.begin(), key_value.second.end());
         if (result.ServerName.size() != old_size + key_value.second.size())
         {
-            std::cerr << "Error : Duplicated server_name" << std::endl;
-            exit(EXIT_FAILURE);
+            throw ParsingErr("Error : Duplicated server_name");
+            //std::cerr << "Error : Duplicated server_name" << std::endl;
+            //exit(EXIT_FAILURE);
         }
     }
 }
@@ -464,7 +501,8 @@ configurationSA::location configurationSA::NewLocationCreation(line_range_type &
     location result;
 
     goToNExtWordInFile(line_range, file_range);
-    int start_last_line = line_range.first - line_range.second;
+    
+    int start_last_line = line_range.first - file_range.first->begin();
     key_value_type key_value = _getKeyValue(line_range);
     while (file_range.first != file_range.second && !key_value.first.empty())
     {
@@ -475,29 +513,36 @@ configurationSA::location configurationSA::NewLocationCreation(line_range_type &
         }
         else if (conf::getKeyType(key_value.first) == conf::SERVER_KEYTYPE)
         {
-            std::cerr << "Error : Server context should not be in a location context" << std::endl;
-            exit(EXIT_FAILURE);
+            throw ParsingErr("Error : Server context should not be in a location context");
+            //std::cerr << "Error : Server context should not be in a location context" << std::endl;
+            //exit(EXIT_FAILURE);
         }
         else
         {
+            throw ParsingErr("Error : Unknown key " + key_value.first);
             //std::cout << "HERE???" << std::endl;
-            std::cerr << "Error : Unknown key " << key_value.first << std::endl;
-            exit(EXIT_FAILURE);
+            //std::cerr << "Error : Unknown key " << key_value.first << std::endl;
+            //exit(EXIT_FAILURE);
         }
         goToNExtWordInFile(line_range, file_range);
-        start_last_line = line_range.first - line_range.second;
+        start_last_line = line_range.first - file_range.first->begin();
         key_value = _getKeyValue(line_range);
     }
+    /*
     if (*line_range.first == '{')
     {
-        std::cerr << "Error : Location context should not be followed by a '{'" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Location context should not be followed by a '{'");
+        //std::cerr << "Error : Location context should not be followed by a '{'" << std::endl;
+        //exit(EXIT_FAILURE);
     }
+    */
     if (file_range.first == file_range.second)
     {
-        std::cerr << "Error : Location context should be closed by a '}'" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Location context should be closed by a '}'");
+        //std::cerr << "Error : Location context should be closed by a '}'" << std::endl;
+        //exit(EXIT_FAILURE);
     }
+
     line_range.first++;
     goToNExtWordInFile(line_range, file_range);
     
@@ -510,7 +555,7 @@ configurationSA::Server  configurationSA::NewServerCreation(line_range_type &lin
     location ServerLocationConf;
     Server   result;
 
-    std::cout << std::endl << std::endl << "New server creation..." << std::endl << std::endl << std::endl;
+    //std::cout << std::endl << std::endl << "New server creation..." << std::endl << std::endl << std::endl;
     
     goToNExtWordInFile(line_range, file_range);
     
@@ -533,17 +578,19 @@ configurationSA::Server  configurationSA::NewServerCreation(line_range_type &lin
     
     while (file_range.first != file_range.second && !key_value.first.empty())
     {
-        std::cout << "Parsing location" << std::endl << std::endl << std::endl;
+        //std::cout << "Parsing location" << std::endl << std::endl << std::endl;
 
         if (_isLocationContext(key_value, line_range, file_range, start_last_line))
         {
            if (result.Location.count(key_value.second[0]))
             {
-               std::cerr << "Error : Location context already exists" << std::endl;
-               exit(EXIT_FAILURE);
+                throw ParsingErr("Error : Location context already exists");
+               //std::cerr << "Error : Location context already exists" << std::endl;
+               //exit(EXIT_FAILURE);
            }
            
            goToNExtWordInFile(line_range, file_range);
+
            line_range.first++;
            
            if (key_value.second[0].size() > 1 && key_value.second[0][key_value.second[0].size() - 1] == '/')
@@ -569,40 +616,47 @@ configurationSA::Server  configurationSA::NewServerCreation(line_range_type &lin
             {
                 insertKeyValServer(result, key_value, start_last_line, *file_range.first);
             }
+            /*
             else
             {
+                std::cout << "THIS EXCEPTION SHOULD NEVER BE RAISED" << std::endl;
+                throw ParsingErr("Error : Unknown key '" + key_value.first + "'");
                 //std::cout << "HERE ???" << std::endl;
                 //exit(1);
                 //std::cout << "|" << key_value.first << "|" << std::endl;
                 //std::cout << "HERE ???" << std::endl;
                 //throw ParsingErr("Error : Unknown key '" + key_value.first + "'" + key_value.first);
                 
-                std::cerr << "Error : Unknown key " << key_value.first << std::endl;
-                exit(EXIT_FAILURE);
+                //std::cerr << "Error : Unknown key " << key_value.first << std::endl;
+                //exit(EXIT_FAILURE);
             }
+            */
         }
         goToNExtWordInFile(line_range, file_range);
         start_last_line = line_range.first - file_range.first->begin();
         key_value = _getKeyValue(line_range);
     }
-
+    /*
     if (*line_range.first == '{')
     {
-        std::cerr << "Error : Server context should not be followed by a '{'" << std::endl;
-        exit(EXIT_FAILURE);
+        //std::cout << "HERE ???" << std::endl;
+        throw ParsingErr("Error : Server context should not be followed by a '{'");
+        //std::cerr << "Error : Server context should not be followed by a '{'" << std::endl;
+        //exit(EXIT_FAILURE);
     }
-
+    */
     if (file_range.first == file_range.second)
     {
-        std::cerr << "Error : Server context should be closed by a '}'" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParsingErr("Error : Server context should be closed by a '}'");
+        //std::cerr << "Error : Server context should be closed by a '}'" << std::endl;
+        //exit(EXIT_FAILURE);
     }
 
     line_range.first++;
     result.Location["/"].insert(ServerLocationConf);
     result.Location["/"].insert(conf::_defaultVals);
     
-    std::cout << "Server created" << std::endl;
+    //std::cout << "Server created" << std::endl;
     return (result);
 }
 
@@ -615,7 +669,7 @@ configurationSA::conf::data_type configurationSA::conf::_data = configurationSA:
 
 void configurationSA::conf::init_data(void)
 {
-    //std::cout << "\n\nInitializing data..." << std::endl << std::endl << std::endl;
+    //std::cout << "\n\n Initializing data..." << std::endl << std::endl << std::endl;
     
     if (!_data.empty())
        return ;
@@ -633,31 +687,31 @@ void configurationSA::conf::init_data(void)
     std::pair<std::string, rawConf> data[] =
     {
         // MAKE PAIR FOR SERVER KEY TYPE.
-        std::make_pair("server_name", rawConf(SERVER_KEYTYPE, 0x0, UNLIMITED_PARAMS)), // SERVER NAME
+        std::make_pair("server_name", rawConf(SERVER_KEYTYPE, 0, UNLIMITED_PARAMS)), // SERVER NAME DOES NOT TAKE A PARAMETER
        
         // MAKE PAIR FOR LISTEN KEY TYPE.
         std::make_pair("listen", rawConf(SERVER_KEYTYPE, &_listenFormat, 2)), // LISTEN PORT
        
         // MAKE PAIR FOR LOCATION KEY TYPE.
-        std::make_pair("root",   rawConf(UNIQUE_KEYTYPE, &_checkroot, 0x1)), // ROOT
+        std::make_pair("root",   rawConf(UNIQUE_KEYTYPE, &_checkroot, 1)), // ROOT
        
         // MAKE PAIR FOR RETURN KEY TYPE.
-        std::make_pair("return", rawConf(NONE_UNIQUE_KEYTYPE, 0x0, 0x1, returnCode, SIZEOF(returnCode))), // RETURN CODE
+        std::make_pair("return", rawConf(NONE_UNIQUE_KEYTYPE, 0, 1, returnCode, SIZEOF(returnCode))), // RETURN CODE
        
         // MAKE PAIR FOR ERROR PAGE KEY TYPE.
-        std::make_pair("error_page", rawConf(NONE_UNIQUE_KEYTYPE, 0x0, 0x1, ErrorPages, SIZEOF(ErrorPages))), // ERROR PAGE
+        std::make_pair("error_page", rawConf(NONE_UNIQUE_KEYTYPE, 0, 1, ErrorPages, SIZEOF(ErrorPages))), // ERROR PAGE
        
         // MAKE PAIR FOR INDEX KEY TYPE.
-        std::make_pair("index", rawConf(UNIQUE_KEYTYPE, 0x0, UNLIMITED_PARAMS)), // INDEX
+        std::make_pair("index", rawConf(UNIQUE_KEYTYPE, 0, UNLIMITED_PARAMS)), // INDEX
        
         // MAKE PAIR FOR CGI KEY TYPE.
-        std::make_pair("cgi", rawConf(UNIQUE_KEYTYPE, &_checkCgi, UNLIMITED_PARAMS)), // CGI = OMMON GATEWAY INTERFACE
+        std::make_pair("cgi", rawConf(NONE_UNIQUE_KEYTYPE, &_checkCgi, 1)), // CGI = OMMON GATEWAY INTERFACE
 
          // MAKE PAIR FOR AUTOINDEX KEY TYPE.
-        std::make_pair("autoindex", rawConf(UNIQUE_KEYTYPE, 0x0, 0x1, autoindex, SIZEOF(autoindex))), // AUTOINDEX
+        std::make_pair("autoindex", rawConf(UNIQUE_KEYTYPE, 0, 1, autoindex, SIZEOF(autoindex))), // AUTOINDEX
 
         // MAKE PAIR FOR METHODS KEY TYPE.
-        std::make_pair("allow_methods", rawConf(UNIQUE_KEYTYPE, 0x0, UNLIMITED_PARAMS, allowedMethods, SIZEOF(allowedMethods))), // METHODS
+        std::make_pair("allow_methods", rawConf(UNIQUE_KEYTYPE, 0, 3, allowedMethods, SIZEOF(allowedMethods))), // METHODS
 
         // MAKE PAIR FOR CLIENT BODY SIZE KEY TYPE.
         std::make_pair("body_size", rawConf(UNIQUE_KEYTYPE, &_checkBodySize, 0x1)), // CLIENT BODY SIZE
@@ -669,10 +723,18 @@ void configurationSA::conf::init_data(void)
     // insert data into _data map.
     _data.insert(data, data + SIZEOF(data));
     
+    // check if _data is empty.
+    if (_data.empty())
+    {
+        std::cerr << "Error : _data is empty" << std::endl;
+        //exit(EXIT_FAILURE);
+    }
+
     // loop through _data and print out key-value pairs
     //print_data();
     //printMap(_data);
     //std::cout << std::endl << std::endl << std::endl;
+    //printServers(_data);
 }
 
 ////////////////////////////// INIT DEFAULT VALUES ///////////////////////////////////////
@@ -736,6 +798,13 @@ void configurationSA::conf::initDefaultVals(void)
         std::make_pair("allowed_methods", std::vector<std::string>(allow_methods, allow_methods + SIZEOF(allow_methods))),
     };
     _defaultVals.UniqueKey.insert(uniqueKey, uniqueKey + SIZEOF(uniqueKey));
+
+    // CHECKERS FOR DEFAULT VALUES.
+    if (_defaultVals.UniqueKey.empty())
+    {
+        std::cout << "Unique key is empty" << std::endl;
+    }
+    
     //printDefaultVal(_defaultVals);
     //std::cout << "End of default values..." << std::endl;
 }
@@ -755,70 +824,6 @@ configurationSA::data_type configurationSA::getData(void)
     return (_data);
 }
 
-void configurationSA::printServers(const std::vector<Server>& servers)
-{
-    // Loop through each server in the vector
-    for (std::vector<Server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
-    {
-        // Print the Listen member
-        std::cout << "Listen: " << std::endl;
-        for (typeListen::const_iterator listen_it = it->Listen.begin(); listen_it != it->Listen.end(); ++listen_it)
-        {
-            std::cout << listen_it->first << " -> [";
-            for (std::set<std::string>::const_iterator set_it = listen_it->second.begin(); set_it != listen_it->second.end(); ++set_it)
-            {
-                std::cout << *set_it << ",";
-            }
-            std::cout << "]" << std::endl;
-        }
-        
-        // Print the ServerName member
-        std::cout << "ServerName: [";
-        for (typeServerName_t::const_iterator name_it = it->ServerName.begin(); name_it != it->ServerName.end(); ++name_it)
-        {
-            std::cout << *name_it << ",";
-        }
-        std::cout << "]" << std::endl;
-        
-        // Print the Location member
-        std::cout << "Location: " << std::endl;
-        for (typeLocation::const_iterator loc_it = it->Location.begin(); loc_it != it->Location.end(); ++loc_it)
-        {
-            std::cout << loc_it->first << ": " << std::endl;
-            
-            // Print the UniqueKey member
-            std::cout << "  UniqueKey: " << std::endl;
-            for (location::UniqueKey_t::const_iterator uniq_it = loc_it->second.UniqueKey.begin(); uniq_it != loc_it->second.UniqueKey.end(); ++uniq_it)
-            {
-                std::cout << "    " << uniq_it->first << ": [";
-                for (std::vector<std::string>::const_iterator vec_it = uniq_it->second.begin(); vec_it != uniq_it->second.end(); ++vec_it)
-                {
-                    std::cout << *vec_it << ",";
-                }
-                std::cout << "]" << std::endl;
-            }
-            
-            // Print the NoneUniqueKey member
-            std::cout << "  NoneUniqueKey: " << std::endl;
-            for (location::NoneUniqueKey_t::const_iterator none_uniq_it = loc_it->second.NoneUniqueKey.begin(); none_uniq_it != loc_it->second.NoneUniqueKey.end(); ++none_uniq_it)
-            {
-                std::cout << "    " << none_uniq_it->first << ": " << std::endl;
-                for (std::map<std::string, std::vector<std::string> >::const_iterator map_it = none_uniq_it->second.begin(); map_it != none_uniq_it->second.end(); ++map_it)
-                {
-                    std::cout << "      " << map_it->first << ": [";
-                    for (std::vector<std::string>::const_iterator vec_it = map_it->second.begin(); vec_it != map_it->second.end(); ++vec_it)
-                    {
-                        std::cout << *vec_it << ",";
-                    }
-                    std::cout << "]" << std::endl;
-                }
-            }
-        }
-    }
-}
-
-
-
 ///////////////////////  CONSTUCTORS : ///////////////////////
 
 configurationSA::configurationSA(char *config_file)
@@ -831,21 +836,22 @@ configurationSA::configurationSA(char *config_file)
     // init default values.
     conf::initDefaultVals();
 
-    std::ifstream input(config_file);
+    std::ifstream            input(config_file);
     std::vector<std::string> fullFile;
 
     // open file and check if it is open.
 
     if (!input.is_open())
     {
-        std::cerr << "Error: Could not open file : " << config_file << std::endl;
-        return ;
+       throw ParsingErr("Error: File is not open : " + std::string(config_file));
     }
     // Read file line by line.
 
-    for (std::string line; getline(input, line);)
+    for (std::string line; !input.eof();)
+    {
+        std::getline(input, line);
         fullFile.push_back(line);
-
+    }
     // Check if file is empty.
 
     if (fullFile.empty())
@@ -854,49 +860,77 @@ configurationSA::configurationSA(char *config_file)
         return ;
     }
     //printVector(fullFile);
-
+    
+    //exit(124);
+    
     line_range_type lineRange(fullFile.begin()->begin(), fullFile.begin()->end());
     file_range_type fileRange(fullFile.begin(), fullFile.end());
+
+    std::cout << "Start parsing..." << std::endl;
     
+    //std::cout << fullFile.size() << std::endl;
+    //std::cout << "lineRange.first : |" << *lineRange.first << "|" << std::endl;
+    //std::cout << "lineRange.second : |" << *lineRange.second << "|" << std::endl;
+    //std::cout << "fileRange.first : |" << *fileRange.first << "|" << std::endl;
+
+    //exit(255);
+
     try
     {
         while (fileRange.first != fileRange.second)
         {
             //std::cout << "-----------------" << std::endl;
-            //std::cout << "lineRange.first: " << *lineRange.first << std::endl;
+            //std::cout << "lineRange.first: |" << *lineRange.first << "|" << std::endl;
+            //std::cout << "lineRange.second: |" << *lineRange.second << "|" << std::endl;
+            
             goToNExtWordInFile(lineRange, fileRange);
+            
+            //exit(555);
+            
+            //std::cout << "LINE => lineRange.first: |" << *lineRange.first << "|" << std::endl;
+            std::cout << "FILE => fileRange.first: |" << *fileRange.first << "|" << std::endl;
+            
             if(_isServerContext(_getKeyValue(lineRange), lineRange, fileRange))
             {
                 lineRange.first++;
+                //std::cout << "IS SERVER LOOP : lineRange.first: " << *lineRange.first << std::endl;
+                //std::cout << "lineRange.second: " << *lineRange.second << std::endl;
+                
                 goToNExtWordInFile(lineRange, fileRange);
-            
+                
+                //std::cout << "lineRange.first: " << *lineRange.first << std::endl;
+                //std::cout << "lineRange.second: " << *lineRange.second << std::endl;
                 try
                 {
+                    //std::cout << "-----------------" << std::endl;
                     _data.push_back(NewServerCreation(lineRange, fileRange));
+                    //std::cout << "-----------------" << std::endl;
                     //printServers(_data);
 
                     // insert new server in the data.
                 }
                 catch (ParsingErr &e)
                 {
-                    throw ParsingErr(e.what());
+                    throw ParsingErr("Server " + std::to_string(_data.size()) + " : " + e.what()); 
                 }
             }
-            else if (fileRange.first == fileRange.second)
+            else if (fileRange.first != fileRange.second)
             {
-                throw ParsingErr("No server context found in config file : " + std::string(config_file));
+                //std::cout << "lineRange.first: |" << *lineRange.first << "|" << std::endl;
+                //std::cout << "lineRange.second: |" << *lineRange.second << "|" << std::endl;
+                //throw ParsingErr("Wrong server context");
                 //std::cerr << "Error: No server context found in config file : " << config_file << std::endl;
-                //return ;
+                return ;
             }
             goToNExtWordInFile(lineRange, fileRange);
         }
     }
     catch (ParsingErr &e)
     {
-        throw ParsingErr(e.what());
+        throw ParsingErr(std::string(e.what()) + " :\n" + "line " + std::to_string(fullFile.size() - (fileRange.second - fileRange.first) + 1) + " : " + \
+        ((fileRange.first == fileRange.second) ? *(fileRange.first - 1) : *fileRange.first));
     }
-    //printVector(fullFile);
     //printData(_data);
-    std::cout << "End of parsing config file: " << config_file << "..." << std::endl;
+    //std::cout << "End of parsing config file: " << config_file << "..." << std::endl;
     input.close();
 }

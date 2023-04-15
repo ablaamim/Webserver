@@ -4,6 +4,7 @@ SRC = main.cpp \
 	ConfigurationParser.cpp \
 	debug.cpp \
 	libcpp.cpp \
+	../Servers/Servers.cpp \
 
 OBJ = $(SRC:.cpp=.o)
 
