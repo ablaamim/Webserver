@@ -192,14 +192,14 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
 
     bool            _isLocationContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, int start_last_line);
 
-    bool            checkDuplicatedParametters(std::vector<std::string> parameters, int start_last_line, std::string &line);
+    bool            checkDuplicatedParametters(std::vector<std::string> parameters, int &start_last_line, std::string &line);
 
-    bool            CheckValidParametters(std::vector<std::string> parameters, std::set<std::string> validParamters, int start_last_line, std::string &line);
+    bool            CheckValidParametters(std::vector<std::string> parameters, std::set<std::string> validParamters, int &start_last_line, std::string &line);
     
-    void            insertKeyValLocation(location &location, key_value_type key_value, int start_last_line, std::string &line);
+    void            insertKeyValLocation(location &location, key_value_type &key_value, int &start_last_line, std::string &line);
     void            checkKeyValues(key_value_type &keyVals, const conf::rawConf &keyConfig, int start_last_line,std::string &line);
     location        NewLocationCreation(line_range_type &line_range, file_range_type &file_range);
-    void            insertKeyValServer(Server &server, key_value_type key_value, int start_last_line, std::string &line); 
+    void            insertKeyValServer(Server &server, key_value_type &key_value, int &start_last_line, std::string &line); 
     Server          NewServerCreation(line_range_type &line_range, file_range_type &file_range);
 
 ///////////////////////////////// END PARSING FUNCTIONS LOGIC : /////////////////////////////////////

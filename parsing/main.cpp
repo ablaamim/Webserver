@@ -13,7 +13,6 @@ int main(int argc, char **argv, char **env)
         //std::cout << "Parsing config file: " << argv[1] << "..." << std::endl
         configurationSA config(argv[1]);
         Servers server(config);
-        
         //config.print_data();
     }
     catch (std::exception &e)
