@@ -8,7 +8,7 @@ int main(int argc, char **argv, char **env)
         std::cerr << "Invalid number of arguments : Usage ./Parsing <configuration file>" << std::endl;
         return (EXIT_FAILURE);
     }
-    else
+    try
     {
         //std::cout << "Parsing config file: " << argv[1] << "..." << std::endl
         configurationSA config(argv[1]);
@@ -16,5 +16,12 @@ int main(int argc, char **argv, char **env)
         
         //config.print_data();
     }
+    catch (std::exception &e)
+    {
+        std::cerr << "Failed to init, error : " << e.what() << std::endl;
+        return (EXIT_FAILURE);
+    }
+
+    std::cout << "~ B y e ~" << std::endl;
     return (EXIT_SUCCESS);
 }

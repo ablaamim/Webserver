@@ -1,4 +1,4 @@
-#ifndef CONFIGURATION_PARSER_HPP
+#ifndef CONFIGURATION_PARSER_HPP // BEGIN OF CONFIGURATION_PARSER_HPP
 # define CONFIGURATION_PARSER_HPP
 
 # include <exception>
@@ -15,6 +15,7 @@
 # include <iterator>
 # include <set>
 # include <stdlib.h>
+
 #define UNLIMITED_PARAMS 0
 #define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
 #define DEFAULT_LISTEN_INTERF "0.0.0.0"
@@ -23,35 +24,39 @@
 class configurationSA   // BEGIN OF CONFIGURATIONSA
 {
     private :
-        typedef std::string::iterator                             line_iterator;
-        typedef std::vector<std::string>::iterator                file_iterator;
-        typedef std::pair<line_iterator, line_iterator>           line_range_type;
-        typedef std::pair<file_iterator, file_iterator>           file_range_type;
-        typedef std::pair<std::string, std::vector<std::string> > key_value_type;
+        typedef std::string::iterator                             line_iterator;   // iterator for a line in configuration file
+        typedef std::vector<std::string>::iterator                file_iterator;   // iterator for a file in configuration file
+        typedef std::pair<line_iterator, line_iterator>           line_range_type; // pair of iterators for a line in configuration file
+        typedef std::pair<file_iterator, file_iterator>           file_range_type; // pair of iterators for a file in configuration file
+        typedef std::pair<std::string, std::vector<std::string> > key_value_type;  // pair of key and value in configuration file
     
     // I will use two inner structs named 'Location' && 'Server'
     public :
 
         // Location struct will contain a map of none unique keys and a map of unique keys
-        struct location // BEGIN OF LOCATION STRUCT
+        struct location // BEGININING OF LOCATION STRUCT
         {
+            
             typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
             typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
             
             UniqueKey_t     UniqueKey;
             NoneUniqueKey_t NoneUniqueKey;
 
-            static void insertUniqueKey(const UniqueKey_t &a, UniqueKey_t &b)
+            // Insert a unique key in the location struct
+            static void insertUniqueKey(const UniqueKey_t &lval, UniqueKey_t &rval)
             {
-                for (UniqueKey_t::const_iterator it = a.begin(); it != a.end(); it++)
-                    b.insert(*it);
+                for (UniqueKey_t::const_iterator it = lval.begin(); it != lval.end(); it++)
+                    rval.insert(*it);
             }
 
+            // Insert a none unique key in the location struct
             void insert(const location &otherInsert)
             {
                 insertUniqueKey(otherInsert.UniqueKey, UniqueKey);
-                for (NoneUniqueKey_t::const_iterator it = otherInsert.NoneUniqueKey.begin(); it != otherInsert.NoneUniqueKey.end(); it++)
-                    insertUniqueKey(it->second, NoneUniqueKey[it->first]);
+                // Insert none unique keys in the location struct
+                for (NoneUniqueKey_t::const_iterator iter = otherInsert.NoneUniqueKey.begin(); iter != otherInsert.NoneUniqueKey.end(); iter++)
+                    insertUniqueKey(iter->second, NoneUniqueKey[iter->first]);
             }
         }; // END OF LOCATION STRUCT
         
@@ -60,15 +65,15 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
 
         struct Server // BEGIN OF SERVER STRUCT
         {
-            typedef std::map<std::string, location>               typeLocation;
-            typedef std::map<std::string, std::set<std::string> > typeListen;
-            typedef std::set<std::string>                         typeServerName_t;
+            typedef std::map<std::string, location>               typeLocation;     // map of locations
+            typedef std::map<std::string, std::set<std::string> > typeListen;       // map of listen ports and interfaces (ip, set<port>)
+            typedef std::set<std::string>                         typeServerName_t; // set of server names
 
 
-            typeListen        Listen; // map of listen ports and interfaces (ip, set<port>)
-            typeServerName_t  ServerName;
-            typeLocation      Location;
-            
+            typeListen        Listen;      // map of listen ports and interfaces (ip, set<port>)
+            typeServerName_t  ServerName;  // set of server names
+            typeLocation      Location;    // map of locations
+             
         }; // END OF SERVER STRUCT
 
     private :
@@ -85,7 +90,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             };
                 // sub struct it contains information about each defined key 
                 // in the configuration file.
-
                 struct rawConf // FINAL CONTAINER
                 {
                     KEYTYPE keyType;
@@ -101,10 +105,8 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                     {};
                     
                     rawConf(const KEYTYPE &keytype, void (*func)(key_value_type &, int &start_last_line, std::string &line), int maxParameters)
+                    : keyType(keytype), func(func), max_Parameters(maxParameters)
                     {
-                        keyType = keytype;
-                        func = func;
-                        max_Parameters = maxParameters;
                     };
                 };
 
@@ -209,33 +211,33 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
         configurationSA(char *config_file);
         
         ~configurationSA();
+                
+        // GETTERS AND SETTERS :
+
+        data_type getData(void);
 
         // EXCEPTIONS :
         class ParsingErr : public std::exception
         {
             private :
-                std::string word;
-                std::string err;
+                std::string _word;
+                std::string _err;
             
             public :
-                ParsingErr(const std::string &err, const std::string &word = std::string()) : word(word), err(err) {};
+                ParsingErr(const std::string &err, const std::string &word = std::string()) : _word(word), _err(err) {};
                 
                 virtual ~ParsingErr(void) throw() {};
                 
-                virtual const char* what() const throw()
+                virtual const char *what() const throw()
                 {
-                    return (err.c_str());
+                    return (_err.c_str());
                 }
 
-                std::string _word(void)
+                std::string word(void)
                 {
-                    return (word);
+                    return (_word);
                 }
         };
-        
-        // GETTERS AND SETTERS :
-
-        data_type getData(void);
-
 }; // END OF CONFIGURATIONSA
-#endif
+
+#endif // CONFIGURATIONSA_HPP

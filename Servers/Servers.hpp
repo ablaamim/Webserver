@@ -28,6 +28,7 @@ class Servers
             std::string ip;
             int         port;
         };
+    
     typedef std::map<int, socket_t> socket_map_t;
 
     private :
@@ -37,5 +38,4 @@ class Servers
         Servers(configurationSA &config);
         ~Servers();
 };
-
 #endif
