@@ -186,9 +186,10 @@ void configurationSA::_checkCgi(key_value_type &key_values, size_t &start_last_l
         throw configurationSA::ParsingErr("Cgi, value should be at least 2 characters long.");
     
     if (key_values.second[0][key_values.second[0].size() - 1] == '/')
+    {
         start_last_line += key_values.second[0].size() - 1;
-         throw configurationSA::ParsingErr("Cgi, value should not end with a slash.");
-    
+        throw configurationSA::ParsingErr("Cgi, value should not end with a slash.");
+    }
     if (key_values.second[0].find("../") != std::string::npos)
         throw configurationSA::ParsingErr("Cgi, value should not contain ../");
 }
@@ -342,7 +343,7 @@ void    configurationSA::insertKeyValLocation(location &Location, key_value_type
     configuration::raw_configuration         keyConfig = configuration::_data[key_value.first];
     location::UniqueKey_t                    &insertPoint = (keyConfig.keyType == configuration::UNIQUE_KEYTYPE) ? Location.UniqueKey : Location.NoneUniqueKey[key_value.first];
 
-    if (keyConfig.keyType == configuration::UNIQUE_KEYTYPE && !key_value.second.empty())
+    if (keyConfig.keyType == configuration::NONE_UNIQUE_KEYTYPE && !key_value.second.empty())
     {
         key_value.first = key_value.second[0];
         key_value.second.erase(key_value.second.begin());
@@ -384,7 +385,7 @@ configurationSA::location configurationSA::NewLocationCreation(line_range_type &
             throw ParsingErr("Error : Unknown key " + key_value.first);
 
         goToNExtWordInFile(line_range, file_range);
-        start_last_line = (int) (line_range.first - file_range.first->begin());
+        start_last_line = (size_t) (line_range.first - file_range.first->begin());
         key_value = _getKeyValue(line_range);
     }
     if (*line_range.first == '{')
@@ -393,6 +394,7 @@ configurationSA::location configurationSA::NewLocationCreation(line_range_type &
         throw ParsingErr("Error : Location context should be closed by a '}'");
 
     line_range.first++;
+    
     goToNExtWordInFile(line_range, file_range);
     
     return (result);
@@ -409,7 +411,7 @@ void  configurationSA::insertKeyValServer(Server &result, key_value_type &key_va
     
     else if (key_value.first == "server_name")
     {
-        int old_size = result.ServerName.size();
+        size_t old_size = result.ServerName.size();
         
         result.ServerName.insert(key_value.second.begin(), key_value.second.end());
         
