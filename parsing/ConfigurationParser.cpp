@@ -1,10 +1,7 @@
 #include "ConfigurationParser.hpp"
 
 /*
-configurationSA::configurationSA()
-{
-    //std::cout << "Configuration constructor" << std::endl;
-}
+* default constructor : this function is used to initialize the configuration class.
 */
 
 configurationSA::~configurationSA()
@@ -12,63 +9,84 @@ configurationSA::~configurationSA()
     //std::cout << "Configuration destructor" << std::endl;
 }
 
-///////////////////////////////////////// INIT DATA : //////////////////////////////////////////
+///////////////////////////////////////// INITIALIZE DATA : //////////////////////////////////////////
 
-configurationSA::conf::data_type configurationSA::conf::_data = configurationSA::conf::data_type();
+/*
+* configuration::initialize_data() : this function initializes a collection of configuration data that is used by configurationSA
+* class to parse server configuration file, The method first checks if the data collection is empty, and if not, it returns immediately.
+* Otherwise, it initializes the data collection by creating an array of key-value pairs. Each key is a string that represents a 
+* configuration option, and each value is an instance of the raw_configuration class. The raw class is a container for configuration 
+* values, and it contains a function pointer to a function that validates the configuration value.
+* After creating the array of key-value pairs, the method inserts them into the _data collection, which is a member variable of the Configuration class. The _data collection is a map that maps a string key to a raw_configuration value.
+*/
 
-void configurationSA::conf::init_data(void)
+/*
+* std::make_pair : is a utility function that creates a std::pair object with the specified values. In the init_data function, std::make_pair is used to create pairs of values that represent configuration data.
+* std::make_pair takes two arguments, which are used to construct the pair. The first argument is the value for the first element of the pair, and the second argument is the value for the second element of the pair. 
+* The function returns a std::pair object initialized with the specified values.
+* Using std::make_pair instead of constructing a std::pair directly using the pair constructor can make the code more concise and 
+* easier to read. Additionally, it ensures that the pair is constructed in a consistent manner, using the same syntax throughout the codebase.
+*/
+
+configurationSA::configuration::data_type configurationSA::configuration::_data = configurationSA::configuration::data_type();
+
+// _data is a map that maps a string key to a raw_configuration value.
+
+void configurationSA::configuration::initialize_data(void)
 {
-    //std::cout << "\n\n Initializing data..." << std::endl << std::endl << std::endl;
-    
+    // Check if data is already initialized, if so, return immediately.    
     if (!_data.empty())
        return ;
+
+    // Initialize data collection.    
     std::string allowedMethods[] = {"GET", "POST", "DELETE"};
     std::string autoindex[] = {"on", "off"};
     std::string ErrorPages[] = {"403", "404", "405", "413", "500"}; 
     std::string returnCode[] = {"200", "403", "404" ,"405", "413", "500"};
     
     /*
-
      ERROR PAGES : 403 = Forbidden, 404 = Not Found, 405 = Method Not Allowed, 413 = Request Entity Too Large, 500 = Internal Server Error
      RETURN CODE : 200 = OK, 403 = Forbidden, 404 = Not Found, 405 = Method Not Allowed, 413 = Request Entity Too Large, 500 = Internal Server Error
-    
     */
 
-    std::pair<std::string, rawConf> data[] =
+    // Pair of key and value, key is a string that represents a configuration option, and value is an instance of the raw_configuration class.
+    std::pair<std::string, raw_configuration> data[] =
     {
-        std::make_pair("server_name", rawConf(SERVER_KEYTYPE, 0, UNLIMITED_PARAMS)), // SERVER NAME DOES NOT TAKE A PARAMETER
-        std::make_pair("listen", rawConf(SERVER_KEYTYPE, &_listenFormat, 2)), // LISTEN PORT
-        std::make_pair("return", rawConf(NONE_UNIQUE_KEYTYPE, 0, 1, returnCode, SIZEOF(returnCode))), // RETURN CODE
-        std::make_pair("error_page", rawConf(NONE_UNIQUE_KEYTYPE, 0, 1, ErrorPages, SIZEOF(ErrorPages))), // ERROR PAGE
-        std::make_pair("cgi", rawConf(NONE_UNIQUE_KEYTYPE, &_checkCgi, 1)), // CGI = OMMON GATEWAY INTERFACE
-        std::make_pair("autoindex", rawConf(UNIQUE_KEYTYPE, 0, 1, autoindex, SIZEOF(autoindex))), // AUTOINDEX
-        std::make_pair("upload", rawConf(UNIQUE_KEYTYPE, 0, 1)), // UPLOAD
-        std::make_pair("index", rawConf(UNIQUE_KEYTYPE, 0, UNLIMITED_PARAMS)), // INDEX
-        std::make_pair("root",   rawConf(UNIQUE_KEYTYPE, &_checkroot, 1)), // ROOT
-        std::make_pair("allow_methods", rawConf(UNIQUE_KEYTYPE, 0, 3, allowedMethods, SIZEOF(allowedMethods))), // METHODS
-        std::make_pair("body_size", rawConf(UNIQUE_KEYTYPE, &_checkBodySize, 1)), // CLIENT BODY SIZE
+        std::make_pair("server_name", raw_configuration(SERVER_KEYTYPE, NULL, UNLIMITED_PARAMS)), // SERVER NAME DOES NOT TAKE A PARAMETER
+        std::make_pair("listen", raw_configuration(SERVER_KEYTYPE, &_listenFormat, 2)), // LISTEN PORT
+        std::make_pair("return", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, returnCode, SIZEOF(returnCode))), // RETURN CODE
+        std::make_pair("error_page", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, ErrorPages, SIZEOF(ErrorPages))), // ERROR PAGE
+        std::make_pair("cgi", raw_configuration(NONE_UNIQUE_KEYTYPE, &_checkCgi, 1)), // CGI = OMMON GATEWAY INTERFACE
+        std::make_pair("auto_index", raw_configuration(UNIQUE_KEYTYPE, NULL, 1, autoindex, SIZEOF(autoindex))), // AUTOINDEX
+        std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)), // UPLOAD
+        std::make_pair("index", raw_configuration(UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)), // INDEX
+        std::make_pair("root",   raw_configuration(UNIQUE_KEYTYPE, &_checkroot, 1)), // ROOT
+        std::make_pair("allow_methods", raw_configuration(UNIQUE_KEYTYPE, NULL, 3, allowedMethods, SIZEOF(allowedMethods))), // METHODS
+        std::make_pair("body_size", raw_configuration(UNIQUE_KEYTYPE, &_checkBodySize, 1)), // CLIENT BODY SIZE
 
     };
+    // Insert data into the data collection.
     _data.insert(data, data + SIZEOF(data));
 }
 
                                 // INIT DEFAULT VALUES :
 
-configurationSA::location configurationSA::conf::_defaultVals = configurationSA::location();
+configurationSA::location configurationSA::configuration::_defaultVals = configurationSA::location();
 
 
-void configurationSA::conf::initDefaultVals(void)
+void configurationSA::configuration::initialize_default_values(void)
 {    
     if (!_defaultVals.NoneUniqueKey.empty() && !_defaultVals.UniqueKey.empty())
         return ;
+    
     std::pair<std::string, std::vector<std::string> > returTab[] =
     {
         std::make_pair("200", std::vector<std::string>(1, "OK")),
         std::make_pair("403", std::vector<std::string>(1, "Forbidden")),
-        std::make_pair("404", std::vector<std::string>(1, "Not found")),
-        std::make_pair("405", std::vector<std::string>(1, "Method not allowed")),
-        std::make_pair("413", std::vector<std::string>(1, "Request entity too large")),
-        std::make_pair("500", std::vector<std::string>(1, "Internal server error")),
+        std::make_pair("404", std::vector<std::string>(1, "Not Found")),
+        std::make_pair("405", std::vector<std::string>(1, "Method Not Allowed")),
+        std::make_pair("413", std::vector<std::string>(1, "Request Entity Too Large")),
+        std::make_pair("500", std::vector<std::string>(1, "Internal Server Error")),
     };
 
     std::pair<std::string, std::map<std::string, std::vector<std::string> > > noneUniqueKey[] =
@@ -86,33 +104,34 @@ void configurationSA::conf::initDefaultVals(void)
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "of")),
         std::make_pair("body_size", std::vector<std::string>(1, "2000000")),
-        std::make_pair("allowed_methods", std::vector<std::string>(allow_methods, allow_methods + SIZEOF(allow_methods))),
+        std::make_pair("allow_methods", std::vector<std::string>(allow_methods, allow_methods + SIZEOF(allow_methods))),
     };
     _defaultVals.UniqueKey.insert(uniqueKey, uniqueKey + SIZEOF(uniqueKey));
 }
 
 /////////////////////////////////////// END OF INITIALIZATION : //////////////////////////////////////
 
-const std::string configurationSA::conf::_whiteSpacesSet = "\t ";
-const std::string configurationSA::conf::_CommentSet = "#";
-const std::string configurationSA::conf::_LineBeakSet = ";";
-const std::string configurationSA::conf::_ScopeSet = "{}";
+const std::string configurationSA::configuration::is_white_space = "\t ";
+const std::string configurationSA::configuration::is_comment = "#";
+const std::string configurationSA::configuration::is_line_break = ";";
+const std::string configurationSA::configuration::is_scope = "{}";
 
 ///////////////////////////////////////////// CHECKERS : /////////////////////////////////////////////
 
-void configurationSA::_checkPort(std::string str, int &start_last_line, std::string &line)
+void configurationSA::_checkPort(std::string str, size_t &start_last_line, std::string &line)
 {
     int port;
+
     if (!isDigit(str))
         throw configurationSA::ParsingErr("Error : Listen port needs to be a digit.");
     
     port = atoi(str.c_str());
     
-    if (port < 0 || port > 65535)
+    if (port < 0 || port > PORT_MAX)
        throw configurationSA::ParsingErr("Listen, port needs to be between 0 and 65535.");
 }
 
-void configurationSA::_checkIp(std::vector<std::string> ip, int &start_last_line, std::string &line)
+void configurationSA::_checkIp(std::vector<std::string> ip, size_t &start_last_line, std::string &line)
 {
     if (ip.size() != 4)
     {
@@ -129,7 +148,7 @@ void configurationSA::_checkIp(std::vector<std::string> ip, int &start_last_line
 //std::cout << "End of IP address check !" << std::endl;
 
 
-void configurationSA::_listenFormat(key_value_type &key_values, int &start_last_line, std::string &line)
+void configurationSA::_listenFormat(key_value_type &key_values, size_t &start_last_line, std::string &line)
 {
     if (isDigit(key_values.second[0]))
     {       
@@ -155,7 +174,7 @@ void configurationSA::_listenFormat(key_value_type &key_values, int &start_last_
     }
 }
 
-void configurationSA::_checkCgi(key_value_type &key_values, int &start_last_line, std::string &line)
+void configurationSA::_checkCgi(key_value_type &key_values, size_t &start_last_line, std::string &line)
 {
     if (key_values.first.rfind('.') != 0)
        throw configurationSA::ParsingErr("Cgi, key should start with a dot.");
@@ -174,7 +193,7 @@ void configurationSA::_checkCgi(key_value_type &key_values, int &start_last_line
         throw configurationSA::ParsingErr("Cgi, value should not contain ../");
 }
 
-void configurationSA::_checkroot(key_value_type &key_values, int &start_last_line, std::string &line)
+void configurationSA::_checkroot(key_value_type &key_values, size_t &start_last_line, std::string &line)
 {
     if (key_values.second[0].find("../") != std::string::npos)
     {
@@ -190,7 +209,7 @@ void configurationSA::_checkroot(key_value_type &key_values, int &start_last_lin
         key_values.second[0].erase(key_values.second[0].end() - 1);
 }
 
-void configurationSA::_checkBodySize(key_value_type &key_values, int &start_last_line, std::string &line)
+void configurationSA::_checkBodySize(key_value_type &key_values, size_t &start_last_line, std::string &line)
 {
     if (!isDigit(key_values.second[0]))
     {
@@ -199,7 +218,7 @@ void configurationSA::_checkBodySize(key_value_type &key_values, int &start_last
     
     if (atoi(key_values.second[0].c_str()) <= 0)
     {
-        throw configurationSA::ParsingErr("Body size, value should be greater than 0." + to_string(INT_MAX));
+        throw configurationSA::ParsingErr("Body size overflow, max value : " + to_string(INT_MAX));
     }}
 
 /////////////////////////////////////////// END CHECKERS ///////////////////////////////////////////
@@ -216,12 +235,14 @@ bool configurationSA::_isServerContext(key_value_type key_value, line_range_type
 
     if (!key_value.second.empty())
         throw ParsingErr("Error : Does' take parameters");
+    
     if (line_range.first != line_range.second && *line_range.first != '{')
         throw ParsingErr("Error : Server context should be followed by a '{'");
+    
     return (true);
 }
 
-bool configurationSA::_isLocationContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, int start_last_line)
+bool configurationSA::_isLocationContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, size_t start_last_line)
 {    
     line_range_type line_range_copy = line_range;
     file_range_type file_range_copy = file_range;
@@ -229,15 +250,17 @@ bool configurationSA::_isLocationContext(key_value_type key_value, line_range_ty
     if (key_value.first != "location")
         return (false);
     
-    goToNExtWordInFile(line_range, file_range);
+    goToNExtWordInFile(line_range_copy, file_range_copy);
 
     try
     {
         if (key_value.second.size() != 1)
             throw ParsingErr("Error : Location context should have one parameter");
+        
         if (!key_value.second[0].empty() && key_value.second[0][0] != '/')
             throw ParsingErr("Error : Location context should start with a '/'");
-        if (*line_range.first != '{')
+        
+        if (*line_range_copy.first != '{')
             throw ParsingErr("Error : Location context should be followed by a '{'");
     }
     catch (ParsingErr &e)
@@ -264,7 +287,7 @@ configurationSA::key_value_type configurationSA::_getKeyValue(line_range_type &l
     return (std::make_pair(key, values));
 }
 
-bool    configurationSA::checkDuplicatedParametters(std::vector<std::string> parameters, int &start_last_line, std::string &line)
+bool    configurationSA::checkDuplicatedParametters(std::vector<std::string> parameters, size_t &start_last_line, std::string &line)
 {
     std::set<std::string> s;
 
@@ -276,7 +299,7 @@ bool    configurationSA::checkDuplicatedParametters(std::vector<std::string> par
     return (s.size() != parameters.size());
 }
 
-bool configurationSA::CheckValidParametters(std::vector<std::string> parameters, std::set<std::string> validParamters, int &start_last_line, std::string &line)
+bool configurationSA::CheckValidParametters(std::vector<std::string> parameters, std::set<std::string> validParamters, size_t &start_last_line, std::string &line)
 {
     bool errStatus = false;
 
@@ -288,7 +311,7 @@ bool configurationSA::CheckValidParametters(std::vector<std::string> parameters,
     return (errStatus);
 }
 
-void configurationSA::checkKeyValues(key_value_type &keyVals, const conf::rawConf &keyConfig, int start_last_line,std::string &line)
+void configurationSA::checkKeyValues(key_value_type &keyVals, const configuration::raw_configuration &keyConfig, size_t start_last_line,std::string &line)
 {
     std::set<std::string> sParameters(keyVals.second.begin(), keyVals.second.end());
     
@@ -297,9 +320,9 @@ void configurationSA::checkKeyValues(key_value_type &keyVals, const conf::rawCon
     
     if (!keyConfig.validParametters.empty())
     {
-        if (keyConfig.keyType == conf::UNIQUE_KEYTYPE && CheckValidParametters(keyVals.second, keyConfig.validParametters, start_last_line, line))
+        if (keyConfig.keyType == configuration::UNIQUE_KEYTYPE && CheckValidParametters(keyVals.second, keyConfig.validParametters, start_last_line, line))
             throw ParsingErr("Unknown Parameter");
-        else if (keyConfig.keyType == conf::NONE_UNIQUE_KEYTYPE && !keyConfig.validParametters.count(keyVals.first))
+        else if (keyConfig.keyType == configuration::NONE_UNIQUE_KEYTYPE && !keyConfig.validParametters.count(keyVals.first))
             throw ParsingErr("Unknown Parameter");
     }
 
@@ -313,13 +336,13 @@ void configurationSA::checkKeyValues(key_value_type &keyVals, const conf::rawCon
         keyConfig.func(keyVals, start_last_line, line);
 }
 
-void    configurationSA::insertKeyValLocation(location &Location, key_value_type &key_value, int &start_last_line, std::string &line)
+void    configurationSA::insertKeyValLocation(location &Location, key_value_type &key_value, size_t &start_last_line, std::string &line)
 {
-    std::string           keyValueFirstCopy = key_value.first;
-    conf::rawConf         keyConfig = conf::_data[key_value.first];
-    location::UniqueKey_t &insertPoint = (keyConfig.keyType == conf::UNIQUE_KEYTYPE) ? Location.UniqueKey : Location.NoneUniqueKey[key_value.first];
+    std::string                              keyValueFirstCopy = key_value.first;
+    configuration::raw_configuration         keyConfig = configuration::_data[key_value.first];
+    location::UniqueKey_t                    &insertPoint = (keyConfig.keyType == configuration::UNIQUE_KEYTYPE) ? Location.UniqueKey : Location.NoneUniqueKey[key_value.first];
 
-    if (keyConfig.keyType == conf::UNIQUE_KEYTYPE && !key_value.second.empty())
+    if (keyConfig.keyType == configuration::UNIQUE_KEYTYPE && !key_value.second.empty())
     {
         key_value.first = key_value.second[0];
         key_value.second.erase(key_value.second.begin());
@@ -345,16 +368,16 @@ configurationSA::location configurationSA::NewLocationCreation(line_range_type &
 
     goToNExtWordInFile(line_range, file_range);
     
-    int start_last_line = (int) (line_range.first - file_range.first->begin());
+    size_t start_last_line = (size_t) (line_range.first - file_range.first->begin());
     key_value_type key_value = _getKeyValue(line_range);
     
     while (file_range.first != file_range.second && !key_value.first.empty())
     {
-        if (conf::getKeyType(key_value.first) == conf::UNIQUE_KEYTYPE || conf::getKeyType(key_value.first) == conf::NONE_UNIQUE_KEYTYPE)
+        if (configuration::getKeyType(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::getKeyType(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
 
             insertKeyValLocation(result, key_value, start_last_line, *file_range.first);
 
-        else if (conf::getKeyType(key_value.first) == conf::SERVER_KEYTYPE)
+        else if (configuration::getKeyType(key_value.first) == configuration::SERVER_KEYTYPE)
             throw ParsingErr("Error : Server context should not be in a location context");
         
         else
@@ -375,18 +398,21 @@ configurationSA::location configurationSA::NewLocationCreation(line_range_type &
     return (result);
 }
 
-void  configurationSA::insertKeyValServer(Server &result, key_value_type &key_value, int &start_last_line, std::string &line)
+void  configurationSA::insertKeyValServer(Server &result, key_value_type &key_value, size_t &start_last_line, std::string &line)
 {
-    const conf::rawConf keyConfig = conf::_data.find(key_value.first)->second;
+    const configuration::raw_configuration keyConfig = configuration::_data.find(key_value.first)->second;
+    
     checkKeyValues(key_value, keyConfig, start_last_line, line);
     
     if (key_value.first == "listen" && !result.Listen[key_value.second[0]].insert(key_value.second[1]).second)
-        throw ParsingErr("Error : Key listen already exists");
+        throw ParsingErr("Error : Key listen already exists" + key_value.second[0] + " " + key_value.second[1]);
     
     else if (key_value.first == "server_name")
     {
         int old_size = result.ServerName.size();
+        
         result.ServerName.insert(key_value.second.begin(), key_value.second.end());
+        
         if (result.ServerName.size() != old_size + key_value.second.size())
             throw ParsingErr("Error : Duplicated server_name");
     }
@@ -394,12 +420,12 @@ void  configurationSA::insertKeyValServer(Server &result, key_value_type &key_va
 
 configurationSA::Server  configurationSA::NewServerCreation(line_range_type &line_range, file_range_type &file_range)
 {
-    location ServerLocationConf;
+    location server_location_config;
     Server   result;
     
     goToNExtWordInFile(line_range, file_range);
     
-    int start_last_line = (int) (line_range.first - file_range.first->begin());
+    size_t start_last_line = (size_t) (line_range.first - file_range.first->begin());
     
     key_value_type key_value = _getKeyValue(line_range);
     
@@ -429,9 +455,9 @@ configurationSA::Server  configurationSA::NewServerCreation(line_range_type &lin
         }
         else
         {
-            if (conf::getKeyType(key_value.first) == conf::UNIQUE_KEYTYPE || conf::getKeyType(key_value.first) == conf::NONE_UNIQUE_KEYTYPE)
-                insertKeyValLocation(ServerLocationConf, key_value, start_last_line, *file_range.first);
-            else if (conf::getKeyType(key_value.first) == conf::SERVER_KEYTYPE)
+            if (configuration::getKeyType(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::getKeyType(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
+                insertKeyValLocation(server_location_config, key_value, start_last_line, *file_range.first);
+            else if (configuration::getKeyType(key_value.first) == configuration::SERVER_KEYTYPE)
                 insertKeyValServer(result, key_value, start_last_line, *file_range.first);
             else
                 throw ParsingErr("Error : Unknown key '" + key_value.first + "'");
@@ -449,8 +475,8 @@ configurationSA::Server  configurationSA::NewServerCreation(line_range_type &lin
         throw ParsingErr("Error : Server context should be closed by a '}'");
 
     line_range.first++;
-    result.Location["/"].insert(ServerLocationConf);
-    result.Location["/"].insert(conf::_defaultVals);
+    result.Location["/"].insert(server_location_config);
+    result.Location["/"].insert(configuration::_defaultVals);
     return (result);
 }
 
@@ -459,7 +485,7 @@ void configurationSA::skipCharSet(line_range_type &line_range, const std::string
     while (line_range.first != line_range.second && charSet.find(*line_range.first) != std::string::npos)
         line_range.first++;
     
-    if (line_range.first != line_range.second && conf::_CommentSet.find(*line_range.first) != std::string::npos)
+    if (line_range.first != line_range.second && configuration::is_comment.find(*line_range.first) != std::string::npos)
         line_range.first = line_range.second;
 }
 
@@ -469,7 +495,7 @@ void configurationSA::goToNExtWordInFile(line_range_type &line_range, file_range
     if (file_range.first == file_range.second)
         return ;
     
-    skipCharSet(line_range, conf::_whiteSpacesSet + conf::_LineBeakSet);
+    skipCharSet(line_range, configuration::is_white_space + configuration::is_line_break);
     
     while (file_range.first != file_range.second && line_range.first == line_range.second)
     {
@@ -478,7 +504,7 @@ void configurationSA::goToNExtWordInFile(line_range_type &line_range, file_range
             break ;
         line_range.first = file_range.first->begin();
         line_range.second = file_range.first->end();
-        skipCharSet(line_range, conf::_whiteSpacesSet + conf::_LineBeakSet);
+        skipCharSet(line_range, configuration::is_white_space + configuration::is_line_break);
     }
 }
 
@@ -486,7 +512,8 @@ std::string     configurationSA::getWord(line_range_type &line_range)
 {
     std::string result;
     
-    while (line_range.first != line_range.second && (conf::_whiteSpacesSet + conf::_LineBeakSet + conf::_CommentSet + conf::_ScopeSet).find(*line_range.first) == std::string::npos)
+    while (line_range.first != line_range.second && (configuration::is_white_space + configuration::is_line_break \
+    + configuration::is_comment + configuration::is_scope).find(*line_range.first) == std::string::npos)
     {
         if (*line_range.first == '\\')
             line_range.first++;
@@ -500,18 +527,18 @@ std::string     configurationSA::getWord(line_range_type &line_range)
 
 std::string     configurationSA::_getWord_skip_space(line_range_type &line_range)
 {
-    skipCharSet(line_range, conf::_whiteSpacesSet);
+    skipCharSet(line_range, configuration::is_white_space);
     
     std::string word = getWord(line_range);
     
-    skipCharSet(line_range, conf::_whiteSpacesSet);
+    skipCharSet(line_range, configuration::is_white_space);
     return (word);
 }
 
 /////////////////////////////////////////// END PARSE METHODS ///////////////////////////////////////////
 
 
-void configurationSA::conf::printDefaultVal(location _defaultVals)
+void configurationSA::configuration::printDefaultVal(location _defaultVals)
 {
     std::cout << "-----------------" << std::endl;
     std::cout << _defaultVals.UniqueKey["allowed_methods"][0] << std::endl;
@@ -542,10 +569,10 @@ configurationSA::data_type configurationSA::getData(void)
 configurationSA::configurationSA(char *config_file)
 {
     // init data.
-    conf::init_data();
+    configuration::initialize_data();
     
     // init default values.
-    conf::initDefaultVals();
+    configuration::initialize_default_values();
 
     std::ifstream            input(config_file);
     std::vector<std::string> fullFile;
@@ -571,36 +598,37 @@ configurationSA::configurationSA(char *config_file)
         return ;
     }
     
-    line_range_type lineRange(fullFile.begin()->begin(), fullFile.begin()->end());
-    file_range_type fileRange(fullFile.begin(), fullFile.end());
+    line_range_type line_range(fullFile.begin()->begin(), fullFile.begin()->end());
+    file_range_type file_range(fullFile.begin(), fullFile.end());
 
     try
     {
-        while (fileRange.first != fileRange.second)
+        while (file_range.first != file_range.second)
         {
-            goToNExtWordInFile(lineRange, fileRange);
-            if(_isServerContext(_getKeyValue(lineRange), lineRange, fileRange))
+            goToNExtWordInFile(line_range, file_range);
+            if(_isServerContext(_getKeyValue(line_range), line_range, file_range))
             {
-                lineRange.first++;
-                goToNExtWordInFile(lineRange, fileRange);
+                line_range.first++;
+                goToNExtWordInFile(line_range, file_range);
                 try
                 {
-                    _data.push_back(NewServerCreation(lineRange, fileRange));
+
+                    _data.push_back(NewServerCreation(line_range, file_range));
                 }
                 catch (ParsingErr &e)
                 {
                     throw ParsingErr("Server " + std::to_string(_data.size()) + " : " + e.what()); 
                 }
             }
-            else if (fileRange.first != fileRange.second)
+            else if (file_range.first != file_range.second)
                 throw ParsingErr("Wrong server context");
-            goToNExtWordInFile(lineRange, fileRange);
+            goToNExtWordInFile(line_range, file_range);
         }
     }
     catch (ParsingErr &e)
     {
-        throw ParsingErr(std::string(e.what()) + " :\n" + "line " + std::to_string(fullFile.size() - (fileRange.second - fileRange.first) + 1) + " : " + \
-        ((fileRange.first == fileRange.second) ? *(fileRange.first - 1) : *fileRange.first));
+        throw ParsingErr(std::string(e.what()) + " :\n" + "line " + std::to_string(fullFile.size() - (file_range.second - file_range.first) + 1) + " : " + \
+        ((file_range.first == file_range.second) ? *(file_range.first - 1) : *file_range.first));
     }
     //printData(_data);
     //std::cout << "End of parsing config file: " << config_file << "..." << std::endl;

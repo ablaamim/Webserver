@@ -7,9 +7,9 @@ void printVector(std::vector<std::string> &vec)
         std::cout << *it << std::endl;
 }
 
-void configurationSA::conf::print_data()
+void configurationSA::configuration::print_data()
 {
-  for (std::map<std::string, rawConf>::const_iterator it = _data.begin(); it != _data.end(); ++it)
+  for (std::map<std::string, raw_configuration>::const_iterator it = _data.begin(); it != _data.end(); ++it)
   {
     std::cout << it->first << ": {" << std::endl;
     std::cout << "    keyType: " << it->second.keyType << std::endl;

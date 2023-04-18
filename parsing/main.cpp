@@ -17,7 +17,7 @@ int main(int argc, char **argv, char **env)
     }
     catch (std::exception &e)
     {
-        std::cerr << "Failed to init, error : " << e.what() << std::endl;
+        std::cerr << "Failed to init " << e.what() << std::endl;
         return (EXIT_FAILURE);
     }
 

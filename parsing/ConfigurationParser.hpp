@@ -16,10 +16,15 @@
 # include <set>
 # include <stdlib.h>
 
-#define UNLIMITED_PARAMS 0
-#define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
-#define DEFAULT_LISTEN_INTERF "0.0.0.0"
-#define DEFAULT_LISTEN_PORT "8080"
+# define UNLIMITED_PARAMS 0
+
+# define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
+
+# define DEFAULT_LISTEN_INTERF "0.0.0.0"
+
+# define DEFAULT_LISTEN_PORT "8080"
+
+# define PORT_MAX 65535
 
 class configurationSA   // BEGIN OF CONFIGURATIONSA
 {
@@ -44,7 +49,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             NoneUniqueKey_t NoneUniqueKey;
 
             // Insert a unique key in the location struct
-            static void insertUniqueKey(const UniqueKey_t &lval, UniqueKey_t &rval)
+            static void insert_unique_key(const UniqueKey_t &lval, UniqueKey_t &rval)
             {
                 for (UniqueKey_t::const_iterator it = lval.begin(); it != lval.end(); it++)
                     rval.insert(*it);
@@ -53,16 +58,15 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             // Insert a none unique key in the location struct
             void insert(const location &otherInsert)
             {
-                insertUniqueKey(otherInsert.UniqueKey, UniqueKey);
+                insert_unique_key(otherInsert.UniqueKey, UniqueKey);
                 // Insert none unique keys in the location struct
                 for (NoneUniqueKey_t::const_iterator iter = otherInsert.NoneUniqueKey.begin(); iter != otherInsert.NoneUniqueKey.end(); iter++)
-                    insertUniqueKey(iter->second, NoneUniqueKey[iter->first]);
+                    insert_unique_key(iter->second, NoneUniqueKey[iter->first]);
             }
         }; // END OF LOCATION STRUCT
         
         // Server struct will contain a map of locations and a set of server 
         // names and a map of listen ports.
-
         struct Server // BEGIN OF SERVER STRUCT
         {
             typedef std::map<std::string, location>               typeLocation;     // map of locations
@@ -79,7 +83,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
     private :
 
         // Configuration struct :
-        struct conf // BEGIN OF CONF STRUCT
+        struct configuration // BEGIN OF CONF STRUCT
         {
             enum KEYTYPE
             {
@@ -90,28 +94,28 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             };
                 // sub struct it contains information about each defined key 
                 // in the configuration file.
-                struct rawConf // FINAL CONTAINER
+                struct raw_configuration // FINAL CONTAINER
                 {
                     KEYTYPE keyType;
 
-                    void                    (*func)(key_value_type &, int &start_last_line, std::string &line);
+                    void                    (*func)(key_value_type &, size_t &start_last_line, std::string &line);
                     int                     max_Parameters;
                     std::set<std::string>   validParametters;
 
-                    rawConf(void){};
+                    raw_configuration(void){};
                     
-                    rawConf(const KEYTYPE &keytype, void (*func)(key_value_type &, int &start_last_line, std::string &line), int maxParameters, std::string validParameterstab[], int validParamettersSize)
+                    raw_configuration(const KEYTYPE &keytype, void (*func)(key_value_type &, size_t &start_last_line, std::string &line), size_t maxParameters, std::string validParameterstab[], size_t validParamettersSize)
                     : keyType(keytype), func(func), max_Parameters(maxParameters), validParametters(validParameterstab, validParameterstab + validParamettersSize)
                     {};
                     
-                    rawConf(const KEYTYPE &keytype, void (*func)(key_value_type &, int &start_last_line, std::string &line), int maxParameters)
+                    raw_configuration(const KEYTYPE &keytype, void (*func)(key_value_type &, size_t &start_last_line, std::string &line), size_t maxParameters)
                     : keyType(keytype), func(func), max_Parameters(maxParameters)
                     {
                     };
                 };
 
-                // map of rawConf, key = key name, value = rawConf struct :
-                typedef std::map<std::string, rawConf> data_type;
+                // map of raw_configuration, key = key name, value = raw_configuration struct :
+                typedef std::map<std::string, raw_configuration> data_type;
 
 ////////////////////////////////////////   DEBUG SECTION  ////////////////////////////////////////
 
@@ -145,40 +149,40 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 // map of rawConf, key = key name, value = rawConf struct :
                 //typedef std::map<std::string, rawConf> data_type;
                 static  data_type                      _data;
-                static location                        _defaultVals;
+                static  location                        _defaultVals;
 
                 static void  printDefaultVal(location _defaultVals);
-                static void                            init_data(void);
-                static void                            initDefaultVals(void);
+                static void                            initialize_data(void);
+                static void                            initialize_default_values(void);
                 static void                            print_data();
              
-                const static std::string               _whiteSpacesSet;
-                const static std::string               _LineBeakSet;
-                const static std::string               _CommentSet;
-                const static std::string               _ScopeSet;
+                const static std::string               is_white_space;
+                const static std::string               is_line_break;
+                const static std::string               is_comment;
+                const static std::string               is_scope;
 
                 static KEYTYPE                        getKeyType(const std::string &key)
                 {
-                    return (_data.count(key) ? _data[key].keyType : NONE_KEYTYPE);
+                    return ((_data.count(key)) ? _data[key].keyType : NONE_KEYTYPE);
                 }
         }; // END OF CONF STRUCT
 
     public :
 
-        typedef std::vector<Server>                               data_type;    
+        typedef std::vector<Server> data_type;    
     
     private :
 
-        data_type                                       _data;
+        data_type   _data;
 
 /////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
 
-    static void     _listenFormat(key_value_type &key_value, int &start_last_line, std::string &line);
-    static void     _checkPort(std::string str, int &start_last_line, std::string &line);
-    static void     _checkroot(key_value_type &key_values, int &start_last_line, std::string &line);
-    static void     _checkIp(std::vector<std::string> ip, int &start_last_line, std::string &line);
-    static void     _checkCgi(key_value_type &key_value, int &start_last_line, std::string &line);
-    static void     _checkBodySize(key_value_type &key_value, int &start_last_line, std::string &line);
+    static void     _listenFormat(key_value_type &key_value, size_t &start_last_line, std::string &line);
+    static void     _checkPort(std::string str, size_t &start_last_line, std::string &line);
+    static void     _checkroot(key_value_type &key_values, size_t &start_last_line, std::string &line);
+    static void     _checkIp(std::vector<std::string> ip, size_t &start_last_line, std::string &line);
+    static void     _checkCgi(key_value_type &key_value, size_t &start_last_line, std::string &line);
+    static void     _checkBodySize(key_value_type &key_value, size_t &start_last_line, std::string &line);
 
     std::string     getWord(line_range_type &line_range);
 
@@ -190,16 +194,16 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
     
     key_value_type  _getKeyValue(line_range_type &line_range);
 
-    bool            _isLocationContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, int start_last_line);
+    bool            _isLocationContext(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, size_t start_last_line);
 
-    bool            checkDuplicatedParametters(std::vector<std::string> parameters, int &start_last_line, std::string &line);
+    bool            checkDuplicatedParametters(std::vector<std::string> parameters, size_t &start_last_line, std::string &line);
 
-    bool            CheckValidParametters(std::vector<std::string> parameters, std::set<std::string> validParamters, int &start_last_line, std::string &line);
+    bool            CheckValidParametters(std::vector<std::string> parameters, std::set<std::string> validParamters, size_t &start_last_line, std::string &line);
     
-    void            insertKeyValLocation(location &location, key_value_type &key_value, int &start_last_line, std::string &line);
-    void            checkKeyValues(key_value_type &keyVals, const conf::rawConf &keyConfig, int start_last_line,std::string &line);
+    void            insertKeyValLocation(location &location, key_value_type &key_value, size_t &start_last_line, std::string &line);
+    void            checkKeyValues(key_value_type &keyVals, const configuration::raw_configuration &keyConfig, size_t start_last_line,std::string &line);
     location        NewLocationCreation(line_range_type &line_range, file_range_type &file_range);
-    void            insertKeyValServer(Server &server, key_value_type &key_value, int &start_last_line, std::string &line); 
+    void            insertKeyValServer(Server &server, key_value_type &key_value, size_t &start_last_line, std::string &line); 
     Server          NewServerCreation(line_range_type &line_range, file_range_type &file_range);
 
 ///////////////////////////////// END PARSING FUNCTIONS LOGIC : /////////////////////////////////////

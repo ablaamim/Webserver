@@ -155,4 +155,95 @@ Here are additional features you can add:
 
 > Parsing configuration file :
 
+## Specifications restricted by the subject :
+
+In the configuration file, you should be able to:
+• Choose the port and host of each ’server’.
+• Setup the server_names or not.
+• The first server for a host:port will be the default for this host:port (that means
+
+it will answer to all the requests that don’t belong to an other server).
+• Setup default error pages.
+• Limit client body size.
+• Setup routes with one or multiple of the following rules/configuration (routes wont
+be using regexp):
+◦ Define a list of accepted HTTP methods for the route.
+◦ Define a HTTP redirection.
+◦ Define a directory or a file from where the file should be searched (for example,
+
+if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
+/tmp/www/pouic/toto/pouet).
+◦ Turn on or off directory listing.
+◦ Set a default file to answer if the request is a directory.
+◦ Execute CGI based on certain file extension (for example .php).
+◦ Make it work with POST and GET methods.
+◦ Make the route able to accept uploaded files and configure where they should
+be saved.
+
+∗ Do you wonder what a CGI is?
+
+∗ Because you won’t call the CGI directly, use the full path as PATH_INFO.
+
+∗ Just remember that, for chunked request, your server needs to unchunk
+it, the CGI will expect EOF as end of the body.
+
+∗ Same things for the output of the CGI. If no content_length is returned
+from the CGI, EOF will mark the end of the returned data.
+
+∗ Your program should call the CGI with the file requested as first argument.
+
+∗ The CGI should be run in the correct directory for relative path file access.
+
+∗ Your server should work with one CGI (php-CGI, Python, and so forth).
+
+---
+
+### Steps :
+
+---
+
+> In order to build a WebServer that can parse configuration files and handle HTTP requests. Here are the steps i followed to parse the configuration file:
+
+* STEP 0 :
+
+> Entry point of the program which is the main function : it contains simple error handling before and after calling my constructor.
+
+```
+int main(int argc, char **argv, char **env)
+{
+    if (argc != 2)
+    {
+        std::cerr << "Invalid number of arguments : Usage ./Parsing <configuration file>" << std::endl;
+        return (EXIT_FAILURE);
+    }
+    try
+    {
+        //std::cout << "Parsing config file: " << argv[1] << "..." << std::endl
+        configurationSA config(argv[1]);
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << "Failed to init, error : " << e.what() << std::endl;
+        return (EXIT_FAILURE);
+    }
+    return (EXIT_SUCCESS);
+}
+```
+
+* STEP 1 :
+
+> My entry point which is the main function starts by a constructor call that takes a char pointer as argument, which is assumed to be a filename.
+
+> configurationSA stands for 'configuration syntax analysis'.
+
+```
+configurationSA(char *config_file);
+```
+
+> This contructor begins by calling two other functions from a class called 'configuration', configuration::initialize_data() and configuration::initialize_default_values().
+
+> configuration::initialize_data() : this function initializes a collection of configuration data that is used by configurationSA
+class to parse server configuration file, The method first checks if the data collection is empty, and if not, it returns immediately. Otherwise, it initializes the data collection by creating an array of key-value pairs. Each key is a string that represents a configuration option, and each value is an instance of the raw_configuration class. The raw class is a container for configuration values, and it contains a function pointer to a function that validates the configuration value.
+After creating the array of key-value pairs, the method inserts them into the _data collection, which is a member variable of the Configuration class. The _data collection is a map that maps a string key to a raw_configuration value.
+
 ---
