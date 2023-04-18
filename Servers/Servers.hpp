@@ -34,7 +34,7 @@ class Servers
     private :
         socket_map_t    sockIpPort;
 
-        void NewServerCreateSocket(std::string ip, std::string port);
+        void new_server_create_socket(std::string ip, std::string port);
 
 
     public :
