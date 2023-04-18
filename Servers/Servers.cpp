@@ -39,7 +39,7 @@ Servers::Servers(configurationSA &config)
 {
     std::cout << "Servers constructor called" << std::endl;
 
-    configurationSA::data_type conf= config.getData();
+    configurationSA::data_type conf= config.get_data();
     std::set <std::pair<std::string, std::string> > bindSockets;
 
     //std::cout << "conf.size() = " << conf.size() << std::endl;
@@ -63,7 +63,7 @@ Servers::Servers(configurationSA &config)
     for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
     {
         //std::cout << "FIRST LOOP " << std::endl;
-        for (configurationSA::Server::typeListen::iterator iterListen = iterConf->Listen.begin(); iterListen != iterConf->Listen.end(); iterListen++)
+        for (configurationSA::Server::type_listen::iterator iterListen = iterConf->listen.begin(); iterListen != iterConf->listen.end(); iterListen++)
         {
             //std::cout << "SECOND LOOP " << std::endl;
             for (std::set<std::string>::iterator iterSet = iterListen->second.begin(); iterSet != iterListen->second.end(); iterSet++)

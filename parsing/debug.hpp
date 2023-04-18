@@ -7,6 +7,6 @@
 # include <map>
 # include <set>
 
-void printVector(std::vector<std::string> &vec);
+void print_vector(std::vector<std::string> &vec);
 
 #endif

@@ -20,7 +20,7 @@ std::vector<std::string> split(std::string str, std::string delim)
 {
     std::string              token;
     std::vector<std::string> list;
-    int                      pos;
+    size_t                      pos;
     
     pos = 0;
     while ((pos = str.find(delim)) != std::string::npos)
