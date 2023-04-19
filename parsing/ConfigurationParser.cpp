@@ -79,7 +79,7 @@ void configurationSA::configuration::initialize_default_values(void)
     if (!_default_values.NoneUniqueKey.empty() && !_default_values.UniqueKey.empty())
         return ;
     
-    std::pair<std::string, std::vector<std::string> > returTab[] =
+    std::pair<std::string, std::vector<std::string> > return_tab[] =
     {
         std::make_pair("200", std::vector<std::string>(1, "OK")),
         std::make_pair("403", std::vector<std::string>(1, "Forbidden")),
@@ -91,7 +91,7 @@ void configurationSA::configuration::initialize_default_values(void)
 
     std::pair<std::string, std::map<std::string, std::vector<std::string> > > noneUniqueKey[] =
     {
-        std::make_pair("return", std::map<std::string, std::vector<std::string> >(returTab, returTab + SIZEOF(returTab))),
+        std::make_pair("return", std::map<std::string, std::vector<std::string> >(return_tab, return_tab + SIZEOF(return_tab))),
     };
 
     _default_values.NoneUniqueKey.insert(noneUniqueKey, noneUniqueKey + SIZEOF(noneUniqueKey));
@@ -127,7 +127,7 @@ void configurationSA::check_port(std::string str)
     
     port = atoi(str.c_str());
     
-    if (port < 0 || port > PORT_MAX)
+    if (port < 0 || port > PORT_MAX_VALUE)
        throw configurationSA::ParsingErr("Listen, port needs to be between 0 and 65535.");
 }
 
@@ -162,7 +162,7 @@ void configurationSA::listen_format(key_value_type &key_values, size_t &start_la
             std::swap(key_values.second[0], key_values.second[1]);
         }
         else
-            key_values.second.insert(key_values.second.begin(), DEFAULT_LISTEN_INTERF);        
+            key_values.second.insert(key_values.second.begin(), DEFAULT_LISTEN_INTERFACE);        
     }
     else
     {
@@ -256,17 +256,19 @@ bool configurationSA::is_location_context(key_value_type key_value, line_range_t
     try
     {
         if (key_value.second.size() != 1)
-            throw ParsingErr("Error : Location context should have one parameter");
+            throw ParsingErr("Location context should have one parameter");
         
         if (!key_value.second[0].empty() && key_value.second[0][0] != '/')
-            throw ParsingErr("Error : Location context should start with a '/'");
+            throw ParsingErr("Location context should start with a '/'");
         
         if (*line_range_copy.first != '{')
-            throw ParsingErr("Error : Location context should be followed by a '{'");
+            throw ParsingErr("Location context should be followed by a '{'");
+        // location context value should not be "//"
+        if (key_value.second[0].size() > 1 && key_value.second[0][1] == '/')
+            throw ParsingErr("Location context should not contain '//'");
     }
     catch (ParsingErr &e)
     {
-        std::cerr << "IS_LOCATION_CONTEXT : Error : in location context : ";
         throw ParsingErr(e.what());
     }
     return (true);

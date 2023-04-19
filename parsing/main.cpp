@@ -14,7 +14,7 @@ int main(int argc, char **argv, char **env)
     try
     {
         configurationSA config(argv[1]);
-        Servers server(config);
+        Servers         server(config);
     }
     
     catch (std::exception &e)
@@ -24,5 +24,6 @@ int main(int argc, char **argv, char **env)
     }
 
     std::cout << "~ B y e ~" << std::endl;
+
     return (EXIT_SUCCESS);
 }
