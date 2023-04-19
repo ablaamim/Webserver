@@ -19,14 +19,15 @@ class Servers
 {
     public :
         
-        struct socket_t
+        class socket_t
         {
-            int         socket_fd;
-            sockaddr_in address;
-            int         option;
-            int         address_len;
-            std::string ip;
-            int         port;
+            public :
+                int         socket_fd;
+                sockaddr_in address;
+                int         option;
+                int         address_len;
+                std::string ip;
+                int         port;
         };
     
     // map of socket_t with the key being the socket file descriptor
@@ -42,5 +43,16 @@ class Servers
 
         Servers(configurationSA &config);
         ~Servers();
+
+    class Server_err : public std::exception
+    {
+        private :
+            std::string error;
+
+        public :
+            Server_err(std::string error) : error(error) {}
+            virtual const char* what() const throw() { return error.c_str(); }
+            ~Server_err() throw() {};
+    };
 };
 #endif
