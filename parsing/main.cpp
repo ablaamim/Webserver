@@ -15,6 +15,13 @@ int main(int argc, char **argv, char **env)
     {
         configurationSA config(argv[1]);
         Servers         server(config);
+
+        while (1)
+        {
+            std::cout << "SERVER RUNNING ... " << std::endl;
+            std::cout << "PRESS CTRL + C TO STOP THE SERVER" << std::endl;
+            sleep(60);
+        }
     }
     
     catch (std::exception &e)

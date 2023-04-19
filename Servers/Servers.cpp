@@ -28,7 +28,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     if (bind(socket_fd, (struct sockaddr *)&socket_info.address, socket_info.address_len) < 0)
     {
         close(socket_fd);
-        //throw std::runtime_error("Error binding socket");
+        throw std::runtime_error("Error binding socket");
     }
         
     sockIpPort.insert(std::make_pair(socket_fd, socket_info));
@@ -73,13 +73,6 @@ Servers::Servers(configurationSA &config)
             
             std::cout << "Number of sockets " << ++number_of_sockets << std::endl;
             std::cout << "----------------------------------------" << std::endl;
-            
-            /*
-            std::cout << "------------------------" << std::endl;
-            std::cout << "\rServer " << iterConf - conf.begin() << std::endl;
-            std::cout << "IP  : " << iterListen->first << std::endl;
-            std::cout << "------------------------" << std::endl;
-            */
         }
     }
 }

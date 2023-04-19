@@ -576,13 +576,8 @@ configurationSA::configurationSA(char *config_file)
         std::getline(input, line);
         fullFile.push_back(line);
     }
+    
     // Check if file is empty.
-
-    if (fullFile.empty())
-    {
-        std::cerr << "Error: File is empty : " << config_file << std::endl;
-        return ;
-    }
     
     line_range_type line_range(fullFile.begin()->begin(), fullFile.begin()->end());
     file_range_type file_range(fullFile.begin(), fullFile.end());
