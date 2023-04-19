@@ -3,13 +3,13 @@
 
 Kqueue::Kqueue(Servers &server)
 {
+    //kq = kqueue();
     (void) server;
-    kq = kqueue();
     if (kq == -1)
     {
         std::cerr << "kqueue() failed" << std::endl;
     }
-    std::cout << "kq = " << kq << std::endl;
+    //std::cout << "kq = " << kq << std::endl;
 }
 
 Kqueue::~Kqueue()

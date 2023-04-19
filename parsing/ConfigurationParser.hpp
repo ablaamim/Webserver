@@ -21,6 +21,14 @@
 # define DEFAULT_LISTEN_INTERFACE "0.0.0.0"
 # define DEFAULT_LISTEN_PORT "8080"
 # define PORT_MAX_VALUE 65535
+# define MAX_BODY_SIZE 10000000
+# define COLOR_RED "\033[1;31m"
+# define COLOR_GREEN "\033[1;32m"
+# define COLOR_RESET "\033[0m"
+# define COLOR_YELLOW "\033[1;33m"
+# define COLOR_BLUE "\033[1;34m"
+# define COLOR_BLACK "\033[1;30m"
+# define COLOR_WHITE "\033[1;37m"
 
 class configurationSA   // BEGIN OF CONFIGURATIONSA
 {
@@ -38,20 +46,17 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
         class location // BEGININING OF LOCATION STRUCT
         {
             public :
-            
                 typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
                 typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
             
                 UniqueKey_t     UniqueKey;
                 NoneUniqueKey_t NoneUniqueKey;
-
                 // Insert a unique key in the location struct
                 static void insert_unique_key(const UniqueKey_t &lval, UniqueKey_t &rval)
                 {
                     for (UniqueKey_t::const_iterator it = lval.begin(); it != lval.end(); it++)
                         rval.insert(*it);
                 }
-
                 // Insert a none unique key in the location struct
                 void insert(const location &otherInsert)
                 {
@@ -67,7 +72,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             class Server // BEGIN OF SERVER STRUCT
             {
                 public :
-
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
                     typedef std::set<std::string>                         type_server_name; // set of server names
@@ -80,12 +84,10 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             }; // END OF SERVER STRUCT
 
             private :
-
                 // Configuration struct :
                 class configuration // BEGIN OF CONF STRUCT
                 {
                     public :
-                
                         enum KEYTYPE
                         {
                             NONE_KEYTYPE,
@@ -115,10 +117,8 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                                 {
                         };
                 };
-
                 // map of raw_configuration, key = key name, value = raw_configuration struct :
                 typedef std::map<std::string, raw_configuration> data_type;
-                
                 // map of rawConf, key = key name, value = rawConf struct :
                 //typedef std::map<std::string, rawConf> data_type;
                 static data_type                       _data;
@@ -129,7 +129,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 const static std::string               is_line_break;
                 const static std::string               is_comment;
                 const static std::string               is_scope;
-
                 static KEYTYPE                        get_keytype(const std::string &key)
                 {
                     return ((_data.count(key)) ? _data[key].keyType : NONE_KEYTYPE);
@@ -137,19 +136,14 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
         }; // END OF CONF STRUCT
 
     public :
-
         typedef std::vector<Server> data_type;    
-    
     private :
-
         data_type   _data;
-
 /////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
-
     static void     listen_format(key_value_type &key_value, size_t &start_last_line, std::string &line);
-    static void     check_port(std::string str);
+    static void     check_port(std::string str, size_t &start_last_line, std::string &line);
     static void     check_root(key_value_type &key_values, size_t &start_last_line, std::string &line);
-    static void     check_ip(std::vector<std::string> ip);
+    static void     check_ip(std::vector<std::string> ip, size_t &start_last_line, std::string &line);
     static void     check_cgi(key_value_type &key_value, size_t &start_last_line, std::string &line);
     static void     check_body_size(key_value_type &key_value, size_t &start_last_line, std::string &line);
     std::string     get_word(line_range_type &line_range);
@@ -166,19 +160,16 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
     location        new_location_creation(line_range_type &line_range, file_range_type &file_range);
     void            insert_keyvalue_server(Server &server, key_value_type &key_value, size_t &start_last_line, std::string &line); 
     Server          new_server_creation(line_range_type &line_range, file_range_type &file_range);
-
+    static void     color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color);
 ///////////////////////////////// END PARSING FUNCTIONS LOGIC : /////////////////////////////////////
 
     public :
         // CONSTRUCTORS AND DESTRUCTORS :
         //configurationSA();
-        
         configurationSA(char *config_file);
-        
         ~configurationSA();
                 
         // GETTERS AND SETTERS :
-
         data_type get_data(void);
 
         // EXCEPTIONS :
@@ -189,20 +180,16 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 std::string _err;
             
             public :
-                ParsingErr(const std::string &err, const std::string &word = std::string()) : _word(word), _err(err) {};
-                
+                ParsingErr(const std::string &err, const std::string &word = std::string()) : _word(word), _err(err) {};            
                 virtual ~ParsingErr(void) throw() {};
-                
                 virtual const char *what() const throw()
                 {
                     return (_err.c_str());
                 }
-
                 std::string word(void)
                 {
                     return (_word);
                 }
         };
 }; // END OF CONFIGURATIONSA
-
 #endif // CONFIGURATIONSA_HPP

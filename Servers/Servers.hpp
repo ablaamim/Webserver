@@ -45,7 +45,8 @@ class Servers
         // Constructor
         Servers(configurationSA &config);
         ~Servers();
-
+        
+        Servers::socket_type get_socket_ip_port(void);
 
     // Exceptions
     class Server_err : public std::exception

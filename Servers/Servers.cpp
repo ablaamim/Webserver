@@ -7,10 +7,6 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     int         socket_fd;
 
     socket_info.ip = ip;
-    
-    //std::cout << "port: " << port << std::endl;
-    //std::cout << "ip: " << ip << std::endl;
-    
     socket_info.port = port;
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     socket_info.socket_fd = socket_fd;
@@ -49,33 +45,29 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
 
 void Servers::listen_for_connections()
 {
+    /*
     std::cout << "----------------------------------------" << std::endl;
     std::cout << "Listening for connections" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
+    */
     for (Servers::socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
     {
-        
         //std::cout << "Listening for connections on socket " << iter->first << std::endl;
         if (listen(iter->first, TIMEOUT) < 0)
         {
             close(iter->first);
             //throw Server_err("Error listening for connections");
-        }
-        
+        }    
     }
 }
 
 Servers::Servers(configurationSA &config)
 {
-    std::cout << "Servers constructor called" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
-    
+    //std::cout << "Servers constructor called" << std::endl;
+    //std::cout << "----------------------------------------" << std::endl;
     //int number_of_sockets = 0;
-
     configurationSA::data_type conf = config.get_data();
-
     std::set <std::pair<std::string, std::string> > bind_sockets;
-
     try
     {
         // Loop through the configuration file and create 1 single socket for each server
@@ -90,12 +82,12 @@ Servers::Servers(configurationSA &config)
                         new_server_create_socket(iterListen->first, *iterSet);
                         bind_sockets.insert(std::make_pair(iterListen->first, *iterSet));
                     }
-                    std::cout << "\rServer "  << "0" << "   listening on        " << iterListen->first << "         :  " << *iterSet << "          ...      ";                
+                    std::cout << COLOR_GREEN << "\rLoading~"   << COLOR_RESET << "   listening on        " << COLOR_RED << iterListen->first << "         :  " <<  *iterSet << COLOR_RESET;                
                     std::cout.flush();
                     usleep(1000000);
                 }
             }
-            std::cout << "\rServer "  << iterConf - conf.begin() << "      Up               " << std::endl;
+            std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
         }
         listen_for_connections();
     }

@@ -1,6 +1,22 @@
 #include "ConfigurationParser.hpp"
 
 /*
+* COLORS :
+*/
+void configurationSA::color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color)
+{
+   std::string reset(COLOR_RESET);
+   if (line.find(word, start) == std::string::npos)
+       return ;
+
+    start = line.find(word, start);
+    line.insert(start, color);
+    start += color.size() + word.size();
+    line.insert(start, reset);
+    start += reset.size();
+}
+
+/*
 * default constructor : this function is used to initialize the configuration class.
 */
 
@@ -37,18 +53,15 @@ void configurationSA::configuration::initialize_data(void)
     // Check if data is already initialized, if so, return immediately.    
     if (!_data.empty())
        return ;
-
     // Initialize data collection.    
     std::string allowedMethods[] = {"GET", "POST", "DELETE"};
     std::string autoindex[] = {"on", "off"};
     std::string ErrorPages[] = {"403", "404", "405", "413", "500"}; 
     std::string returnCode[] = {"200", "403", "404" ,"405", "413", "500"};
-    
     /*
      ERROR PAGES : 403 = Forbidden, 404 = Not Found, 405 = Method Not Allowed, 413 = Request Entity Too Large, 500 = Internal Server Error
      RETURN CODE : 200 = OK, 403 = Forbidden, 404 = Not Found, 405 = Method Not Allowed, 413 = Request Entity Too Large, 500 = Internal Server Error
     */
-
     // Pair of key and value, key is a string that represents a configuration option, and value is an instance of the raw_configuration class.
     std::pair<std::string, raw_configuration> data[] =
     {
@@ -78,7 +91,6 @@ void configurationSA::configuration::initialize_default_values(void)
 {    
     if (!_default_values.NoneUniqueKey.empty() && !_default_values.UniqueKey.empty())
         return ;
-    
     std::pair<std::string, std::vector<std::string> > return_tab[] =
     {
         std::make_pair("200", std::vector<std::string>(1, "OK")),
@@ -88,22 +100,17 @@ void configurationSA::configuration::initialize_default_values(void)
         std::make_pair("413", std::vector<std::string>(1, "Request Entity Too Large")),
         std::make_pair("500", std::vector<std::string>(1, "Internal Server Error")),
     };
-
     std::pair<std::string, std::map<std::string, std::vector<std::string> > > noneUniqueKey[] =
     {
         std::make_pair("return", std::map<std::string, std::vector<std::string> >(return_tab, return_tab + SIZEOF(return_tab))),
     };
-
     _default_values.NoneUniqueKey.insert(noneUniqueKey, noneUniqueKey + SIZEOF(noneUniqueKey));
-
     // UNIQUE KEY DEFAULT VALUES.
-
     std::string allow_methods[] = {"GET", "POST", "DELETE"};
-
     std::pair <std::string, std::vector<std::string> > uniqueKey[] =
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "of")),
-        std::make_pair("body_size", std::vector<std::string>(1, "2000000")),
+        std::make_pair("body_size", std::vector<std::string>(1, "1000000")),
         std::make_pair("allow_methods", std::vector<std::string>(allow_methods, allow_methods + SIZEOF(allow_methods))),
     };
     _default_values.UniqueKey.insert(uniqueKey, uniqueKey + SIZEOF(uniqueKey));
@@ -118,7 +125,7 @@ const std::string configurationSA::configuration::is_scope = "{}";
 
 ///////////////////////////////////////////// CHECKERS : /////////////////////////////////////////////
 
-void configurationSA::check_port(std::string str)
+void configurationSA::check_port(std::string str, size_t &start_last_line, std::string &line)
 {
     int port;
 
@@ -128,25 +135,43 @@ void configurationSA::check_port(std::string str)
     port = atoi(str.c_str());
     
     if (port < 0 || port > PORT_MAX_VALUE)
+    {
+       color_words_in_range(start_last_line, str, line, COLOR_RED);
        throw configurationSA::ParsingErr("Listen, port needs to be between 0 and 65535.");
+    }
 }
 
-void configurationSA::check_ip(std::vector<std::string> ip)
+void configurationSA::check_ip(std::vector<std::string> ip, size_t &start_last_line, std::string &line)
 {
     if (ip.size() != 4)
     {
+        for (std::vector<std::string>::iterator it = ip.begin(); it < ip.end(); it++)
+        {
+            if (it != ip.begin())
+                color_words_in_range(start_last_line, ".", line, COLOR_RED);
+            color_words_in_range(start_last_line, *it, line, COLOR_RED);
+        }
         throw configurationSA::ParsingErr("Listen, up needs to be 4 octets separated by a dot.");
     }
     for (std::vector<std::string>::iterator it = ip.begin(); it < ip.end(); it++)
     {
         if (!isDigit(*it))
+        {
+            color_words_in_range(start_last_line, *it, line, COLOR_RED);
             throw configurationSA::ParsingErr("Listen, ip split by dot needs to be a digit.");
+        }
         if (atoi(it->c_str()) < 0 || atoi(it->c_str()) > 255)
+        {
+            color_words_in_range(start_last_line, *it, line, COLOR_RED);
             throw configurationSA::ParsingErr("Listen, ip split by dot needs to be between 0 and 255.");
+        }
+    }
+    if (ip[0] == "0" && ip[1] == "0" && ip[2] == "0" && ip[3] == "0")
+    {
+        color_words_in_range(start_last_line, ip[0], line, COLOR_RED);
+        throw configurationSA::ParsingErr("Listen, ip cannot be a meta address.");
     }
 }
-//std::cout << "End of IP address check !" << std::endl;
-
 
 void configurationSA::listen_format(key_value_type &key_values, size_t &start_last_line, std::string &line)
 {
@@ -154,11 +179,11 @@ void configurationSA::listen_format(key_value_type &key_values, size_t &start_la
     (void) line;
     if (isDigit(key_values.second[0]))
     {       
-        check_port(key_values.second[0]);
+        check_port(key_values.second[0], start_last_line, line);
         
         if (key_values.second.size() == 2)
         {
-            check_ip(split(key_values.second[1], "."));
+            check_ip(split(key_values.second[1], "."), start_last_line, line);
             std::swap(key_values.second[0], key_values.second[1]);
         }
         else
@@ -166,10 +191,9 @@ void configurationSA::listen_format(key_value_type &key_values, size_t &start_la
     }
     else
     {
-        check_ip(split(key_values.second[0], "."));
-        
+        check_ip(split(key_values.second[0], "."), start_last_line, line);
         if (key_values.second.size() == 2)
-            check_port(key_values.second[1]);
+            check_port(key_values.second[1], start_last_line, line);
         
         else
             key_values.second.push_back(DEFAULT_LISTEN_PORT);
@@ -205,6 +229,8 @@ void configurationSA::check_root(key_value_type &key_values, size_t &start_last_
         throw configurationSA::ParsingErr("Root, path cannot contain '../'");
     if (key_values.second[0][key_values.second[0].size() - 1] == '/')
         key_values.second[0].erase(key_values.second[0].end() - 1);
+    if (key_values.second[0].size() < 2)
+        throw configurationSA::ParsingErr("Root, path should be at least 2 characters long.");
 }
 
 void configurationSA::check_body_size(key_value_type &key_values, size_t &start_last_line, std::string &line)
@@ -219,7 +245,16 @@ void configurationSA::check_body_size(key_value_type &key_values, size_t &start_
     if (atoi(key_values.second[0].c_str()) <= 0)
     {
         throw configurationSA::ParsingErr("Body size overflow, max value : " + to_string(INT_MAX));
-    }}
+    }
+    if (atoi(key_values.second[0].c_str()) > INT_MAX)
+    {
+        throw configurationSA::ParsingErr("Body size overflow, max value : " + to_string(INT_MAX));
+    }
+    if (atoi(key_values.second[0].c_str()) > MAX_BODY_SIZE)
+    {
+        throw configurationSA::ParsingErr("Body size overflow, max value : " + to_string(MAX_BODY_SIZE));
+    }
+}
 
 /////////////////////////////////////////// END CHECKERS ///////////////////////////////////////////
 
@@ -322,7 +357,7 @@ void configurationSA::check_keyvalues(key_value_type &keyVals, const configurati
 {
     std::set<std::string> sParameters(keyVals.second.begin(), keyVals.second.end());
     
-    if (keyVals.second.empty() /*&& keyConfig.keyType == conf::UNIQUE_KEYTYPE*/)
+    if (keyVals.second.empty())
         throw ParsingErr("Not enough parameters for key " + keyVals.first);
     
     if (!keyConfig.validParametters.empty())

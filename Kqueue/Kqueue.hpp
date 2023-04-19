@@ -8,8 +8,7 @@ class Kqueue
     private :
 
         int kq;
-        std::vector<struct kevent> event_list;
-
+        struct kevent *event_list;
 
     public :
         // Constructor

@@ -19,18 +19,20 @@ int main(int argc, char **argv, char **env)
         
         while (1)
         {
-            std::cout << "SERVER RUNNING ... " << std::endl;
-            std::cout << "PRESS CTRL + C TO STOP THE SERVER" << std::endl;
+            std::cout << std::endl;
+            std::cout << COLOR_GREEN << "       Success initialization -> "  << "Server is running" << COLOR_RESET << std::endl;
+            std::cout << std::endl;
             sleep(60);
         }
     }
     catch (std::exception &e)
     {
-        std::cerr << "Failed to init " << e.what() << std::endl;
+        
+        std::cerr << COLOR_RED << "Failed to init " << e.what() << COLOR_RESET <<std::endl;
         return (EXIT_FAILURE);
     }
 
-    std::cout << "~ B y e ~" << std::endl;
+    std::cout <<  COLOR_GREEN <<"~ B y e ~" << COLOR_RESET << std::endl;
 
     return (EXIT_SUCCESS);
 }
