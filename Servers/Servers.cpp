@@ -7,11 +7,14 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     int         socket_fd;
 
     socket_info.ip = ip;
+    
     //std::cout << "port: " << port << std::endl;
     //std::cout << "ip: " << ip << std::endl;
+    
     socket_info.port = port;
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     socket_info.socket_fd = socket_fd;
+    
     if (!socket_fd)
     {
         throw Server_err(" : Error : creating socket");
@@ -46,16 +49,19 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
 
 void Servers::listen_for_connections()
 {
+    std::cout << "----------------------------------------" << std::endl;
     std::cout << "Listening for connections" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
-    for (socket_map_t::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
+    for (Servers::socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
     {
+        
         //std::cout << "Listening for connections on socket " << iter->first << std::endl;
-        if (listen(iter->first, 3) < 0)
+        if (listen(iter->first, TIMEOUT) < 0)
         {
             close(iter->first);
             //throw Server_err("Error listening for connections");
         }
+        
     }
 }
 
@@ -69,15 +75,14 @@ Servers::Servers(configurationSA &config)
     configurationSA::data_type conf = config.get_data();
 
     std::set <std::pair<std::string, std::string> > bind_sockets;
+
     try
     {
         // Loop through the configuration file and create 1 single socket for each server
         for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
         { 
-            //std::cout << "FIRST LOOP " << std::endl;
             for (configurationSA::Server::type_listen::iterator iterListen = iterConf->listen.begin(); iterListen != iterConf->listen.end(); iterListen++)
             {
-                //std::cout << "SECOND LOOP " << std::endl;
                 for (std::set<std::string>::iterator iterSet = iterListen->second.begin(); iterSet != iterListen->second.end(); iterSet++)
                 {
                     if (!bind_sockets.count(std::make_pair(iterListen->first, *iterSet)))
@@ -85,21 +90,18 @@ Servers::Servers(configurationSA &config)
                         new_server_create_socket(iterListen->first, *iterSet);
                         bind_sockets.insert(std::make_pair(iterListen->first, *iterSet));
                     }
-                    //std::cout << "Number of sockets " << sockIpPort.size() << std::endl;
-
-                    std::cout << "\rServer "  << "0" << "   listening on    " << iterListen->first << "   :  " << *iterSet << "          ...      ";                
+                    std::cout << "\rServer "  << "0" << "   listening on        " << iterListen->first << "         :  " << *iterSet << "          ...      ";                
                     std::cout.flush();
                     usleep(1000000);
                 }
-                std::cout << "\rServer "  << iterConf - conf.begin() << "      Up               " << std::endl;
-                //std::cout << "Number of sockets " << ++number_of_sockets << std::endl;
             }
+            std::cout << "\rServer "  << iterConf - conf.begin() << "      Up               " << std::endl;
         }
         listen_for_connections();
     }
     catch (const std::exception& e)
     {
-        for (socket_map_t::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
+        for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
         {
             close(iter->first);
         }
@@ -110,7 +112,7 @@ Servers::Servers(configurationSA &config)
 Servers::~Servers()
 {
     std::cout << "Servers destructor called" << std::endl;
-    for (socket_map_t::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
+    for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
     {
         close(iter->first);
     }

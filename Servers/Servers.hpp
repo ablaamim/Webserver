@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+# define TIMEOUT 30
+
 class Servers
 {
     public :  
@@ -30,11 +32,11 @@ class Servers
         };
     
     // map of socket_t with the key being the socket file descriptor
-    typedef std::map<int, socket_t> socket_map_t;
-
+    typedef std::map<int, socket_t> socket_type;
+    
     private :
 
-        socket_map_t    socket_ip_port;
+        socket_type socket_ip_port;
 
         void new_server_create_socket(std::string ip, std::string port);
         void listen_for_connections();
@@ -57,4 +59,5 @@ class Servers
             ~Server_err() throw() {};
     };
 };
+
 #endif

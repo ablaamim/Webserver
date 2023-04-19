@@ -1,5 +1,6 @@
 #include "../MainInc/main.hpp"
 #include "../Servers/Servers.hpp"
+#include "../Kqueue/Kqueue.hpp"
 
 int main(int argc, char **argv, char **env)
 {
@@ -10,12 +11,12 @@ int main(int argc, char **argv, char **env)
         std::cerr << "Invalid number of arguments : Usage ./Parsing <configuration file>" << std::endl;
         return (EXIT_FAILURE);
     }
-    
     try
     {
         configurationSA config(argv[1]);
         Servers         server(config);
-
+        Kqueue          kq(server);
+        
         while (1)
         {
             std::cout << "SERVER RUNNING ... " << std::endl;
@@ -23,7 +24,6 @@ int main(int argc, char **argv, char **env)
             sleep(60);
         }
     }
-    
     catch (std::exception &e)
     {
         std::cerr << "Failed to init " << e.what() << std::endl;
