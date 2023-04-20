@@ -1,19 +1,19 @@
 NAME = Webserv
 
-SRC = main.cpp \
-	ConfigurationParser.cpp \
-	debug.cpp \
-	libcpp.cpp \
-	../Servers/Servers.cpp \
-	../Kqueue/Kqueue.cpp \
+SRC = ./MainInc/main.cpp \
+	./parsing/ConfigurationParser.cpp \
+	./parsing/debug.cpp \
+	./parsing/libcpp.cpp \
+	./Servers/Servers.cpp \
+	./IO_Multiplexing/Kqueue/Kqueue.cpp \
 
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
 
-CC = clang++
+CC = g++
 
-CFLAGS = -Wall -Wextra -Werror -fsanitize=address -g3 -std=c++98 #-O2 -Werror=format-security -D_GLIBCXX_ASSERTIONS
+CFLAGS =  -fsanitize=address -g3 -std=c++98 #-Wall -Wextra -Werror #-O2 -Werror=format-security -D_GLIBCXX_ASSERTIONS
 
 ##
 # -D_GLIBCXX_ASSERTIONS enables additional C++ standard library hardening. 

@@ -2,6 +2,7 @@
 # define SERVERS_HPP
 
 #include "../parsing/ConfigurationParser.hpp"
+#include "../MainInc/main.hpp"
 
 #include <iostream>
 #include <string>
@@ -15,7 +16,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-# define TIMEOUT 30
+class configurationSA;
 
 class Servers
 {

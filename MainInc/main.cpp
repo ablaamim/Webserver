@@ -1,6 +1,4 @@
 #include "../MainInc/main.hpp"
-#include "../Servers/Servers.hpp"
-#include "../Kqueue/Kqueue.hpp"
 
 int main(int argc, char **argv, char **env)
 {
@@ -8,21 +6,30 @@ int main(int argc, char **argv, char **env)
 
     if (argc != 2)
     {
-        std::cerr << "Invalid number of arguments : Usage ./Parsing <configuration file>" << std::endl;
+        std::cerr << INVALID_ARGS << std::endl;
         return (EXIT_FAILURE);
+    }
+    if (strcmp(argv[1], "-h") == 0)
+    {
+        std::cerr << HELP << std::endl;
+        return (EXIT_SUCCESS);
     }
     try
     {
         configurationSA config(argv[1]);
         Servers         server(config);
-        Kqueue          kq(server);
-        
-        while (1)
+
+        std::cout << std::endl << COLOR_GREEN << "                 Server is running" << COLOR_RESET << std::endl;
+        while (true)
         {
-            std::cout << std::endl;
-            std::cout << COLOR_GREEN << "       Success initialization -> "  << "Server is running" << COLOR_RESET << std::endl;
-            std::cout << std::endl;
-            sleep(60);
+            /*
+            Kqueue kq(server);
+            if (kq.get_kqueue_return() == 0)
+            {
+                std::cout << "Kqueue timeout" << std::endl;
+                continue;
+            }
+            */
         }
     }
     catch (std::exception &e)

@@ -16,21 +16,7 @@
 # include <set>
 # include <stdlib.h>
 
-# define UNLIMITED_PARAMS 0
-# define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
-# define DEFAULT_LISTEN_INTERFACE "0.0.0.0"
-# define DEFAULT_LISTEN_PORT "8080"
-# define PORT_MAX_VALUE 65535
-# define MAX_BODY_SIZE 10000000
-# define COLOR_RED "\033[1;31m"
-# define COLOR_GREEN "\033[1;32m"
-# define COLOR_RESET "\033[0m"
-# define COLOR_YELLOW "\033[1;33m"
-# define COLOR_BLUE "\033[1;34m"
-# define COLOR_BLACK "\033[1;30m"
-# define COLOR_WHITE "\033[1;37m"
-
-class configurationSA   // BEGIN OF CONFIGURATIONSA
+class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 {
     private :
         typedef std::string::iterator                             line_iterator;   // iterator for a line in configuration file
@@ -38,12 +24,9 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
         typedef std::pair<line_iterator, line_iterator>           line_range_type; // pair of iterators for a line in configuration file
         typedef std::pair<file_iterator, file_iterator>           file_range_type; // pair of iterators for a file in configuration file
         typedef std::pair<std::string, std::vector<std::string> > key_value_type;  // pair of key and value in configuration file
-    
-    // I will use two inner structs named 'Location' && 'Server'
     public :
-
         // Location struct will contain a map of none unique keys and a map of unique keys
-        class location // BEGININING OF LOCATION STRUCT
+        class location // BEGININING OF LOCATION 
         {
             public :
                 typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
@@ -51,7 +34,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
             
                 UniqueKey_t     UniqueKey;
                 NoneUniqueKey_t NoneUniqueKey;
-                // Insert a unique key in the location struct
+                // Insert a unique key in the location 
                 static void insert_unique_key(const UniqueKey_t &lval, UniqueKey_t &rval)
                 {
                     for (UniqueKey_t::const_iterator it = lval.begin(); it != lval.end(); it++)
@@ -65,27 +48,25 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                     for (NoneUniqueKey_t::const_iterator iter = otherInsert.NoneUniqueKey.begin(); iter != otherInsert.NoneUniqueKey.end(); iter++)
                         insert_unique_key(iter->second, NoneUniqueKey[iter->first]);
                 }
-            }; // END OF LOCATION STRUCT
-        
+            }; // END OF LOCATION 
             // Server struct will contain a map of locations and a set of server 
             // names and a map of listen ports.
-            class Server // BEGIN OF SERVER STRUCT
+            class Server // BEGIN OF SERVER
             {
                 public :
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
                     typedef std::set<std::string>                         type_server_name; // set of server names
-
-
-                    type_listen        listen;      // map of listen ports and interfaces (ip, set<port>)
-                    type_server_name   server_name;  // set of server names
-                    type_location      location;    // map of locations
+                    
+                    type_listen                                           listen;       // map of listen ports and interfaces (ip, set<port>)
+                    type_server_name                                      server_name;  // set of server names
+                    type_location                                         location;     // map of locations
              
-            }; // END OF SERVER STRUCT
+            }; // END OF SERVER 
 
             private :
-                // Configuration struct :
-                class configuration // BEGIN OF CONF STRUCT
+                // Configuration 
+                class configuration // BEGIN OF CONF 
                 {
                     public :
                         enum KEYTYPE
@@ -117,9 +98,9 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                                 {
                         };
                 };
-                // map of raw_configuration, key = key name, value = raw_configuration struct :
+                // map of raw_configuration, key = key name, value = raw_configuration :
                 typedef std::map<std::string, raw_configuration> data_type;
-                // map of rawConf, key = key name, value = rawConf struct :
+                // map of rawConf, key = key name, value = rawConf s:
                 //typedef std::map<std::string, rawConf> data_type;
                 static data_type                       _data;
                 static location                        _default_values;
@@ -133,7 +114,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
                 {
                     return ((_data.count(key)) ? _data[key].keyType : NONE_KEYTYPE);
                 }
-        }; // END OF CONF STRUCT
+        }; // END OF CONF 
 
     public :
         typedef std::vector<Server> data_type;    
@@ -161,8 +142,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA
     void            insert_keyvalue_server(Server &server, key_value_type &key_value, size_t &start_last_line, std::string &line); 
     Server          new_server_creation(line_range_type &line_range, file_range_type &file_range);
     static void     color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color);
-///////////////////////////////// END PARSING FUNCTIONS LOGIC : /////////////////////////////////////
-
+///////////////////////////////// END PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
     public :
         // CONSTRUCTORS AND DESTRUCTORS :
         //configurationSA();

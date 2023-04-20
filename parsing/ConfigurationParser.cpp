@@ -130,14 +130,14 @@ void configurationSA::check_port(std::string str, size_t &start_last_line, std::
     int port;
 
     if (!isDigit(str))
-        throw configurationSA::ParsingErr("Error : Listen port needs to be a digit.");
+        throw configurationSA::ParsingErr(PORT_ERR_DIGIT);
     
     port = atoi(str.c_str());
     
     if (port < 0 || port > PORT_MAX_VALUE)
     {
        color_words_in_range(start_last_line, str, line, COLOR_RED);
-       throw configurationSA::ParsingErr("Listen, port needs to be between 0 and 65535.");
+       throw configurationSA::ParsingErr(ERR_MAX_PORT);
     }
 }
 
@@ -151,25 +151,25 @@ void configurationSA::check_ip(std::vector<std::string> ip, size_t &start_last_l
                 color_words_in_range(start_last_line, ".", line, COLOR_RED);
             color_words_in_range(start_last_line, *it, line, COLOR_RED);
         }
-        throw configurationSA::ParsingErr("Listen, up needs to be 4 octets separated by a dot.");
+        throw configurationSA::ParsingErr(LISTEN_IP_ERR);
     }
     for (std::vector<std::string>::iterator it = ip.begin(); it < ip.end(); it++)
     {
         if (!isDigit(*it))
         {
             color_words_in_range(start_last_line, *it, line, COLOR_RED);
-            throw configurationSA::ParsingErr("Listen, ip split by dot needs to be a digit.");
+            throw configurationSA::ParsingErr(LISTEN_DOTS_ERR);
         }
         if (atoi(it->c_str()) < 0 || atoi(it->c_str()) > 255)
         {
             color_words_in_range(start_last_line, *it, line, COLOR_RED);
-            throw configurationSA::ParsingErr("Listen, ip split by dot needs to be between 0 and 255.");
+            throw configurationSA::ParsingErr(LISTEN_INTERVAL_ERR);
         }
     }
     if (ip[0] == "0" && ip[1] == "0" && ip[2] == "0" && ip[3] == "0")
     {
         color_words_in_range(start_last_line, ip[0], line, COLOR_RED);
-        throw configurationSA::ParsingErr("Listen, ip cannot be a meta address.");
+        throw configurationSA::ParsingErr(LISTEN_META_ADDR);
     }
 }
 
@@ -204,18 +204,18 @@ void configurationSA::check_cgi(key_value_type &key_values, size_t &start_last_l
 {
     (void) line;
     if (key_values.first.rfind('.') != 0)
-       throw configurationSA::ParsingErr("Cgi, key should start with a dot.");
+       throw configurationSA::ParsingErr(CGI_DOT_ERR);
     
     if (key_values.first.size() < 2)
-     throw configurationSA::ParsingErr("Cgi, key should be at least 2 characters long.");
+     throw configurationSA::ParsingErr(CGI_SIZE_ERR);
     
     if (key_values.second[0].size() < 2)
-        throw configurationSA::ParsingErr("Cgi, value should be at least 2 characters long.");
+        throw configurationSA::ParsingErr(CGI_SIZE_ERR);
     
     if (key_values.second[0][key_values.second[0].size() - 1] == '/')
     {
         start_last_line += key_values.second[0].size() - 1;
-        throw configurationSA::ParsingErr("Cgi, value should not end with a slash.");
+        throw configurationSA::ParsingErr(CGI_SLASH_ERR);
     }
     if (key_values.second[0].find("../") != std::string::npos)
         throw configurationSA::ParsingErr("Cgi, value should not contain ../");
