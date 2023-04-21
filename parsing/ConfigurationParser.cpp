@@ -147,7 +147,7 @@ void configurationSA::check_ip(std::vector<std::string> ip, size_t &start_last_l
 {
     if (ip.size() != 4)
     {
-        for (std::vector<std::string>::iterator it = ip.begin(); it < ip.end(); it++)
+        for (std::vector<std::string>::iterator it = ip.begin(); it != ip.end(); it++)
         {
             if (it != ip.begin())
                 color_words_in_range(start_last_line, ".", line, COLOR_RED);
@@ -282,13 +282,9 @@ bool configurationSA::is_server_context(key_value_type key_value, line_range_typ
 {
     if (key_value.first != "server")
         return (false);
-    
     go_to_next_word_in_file(line_range, file_range);
-
     if (!key_value.second.empty())
-    {
         throw ParsingErr("Error : Does' take parameters");
-    }
     if (line_range.first != line_range.second && *line_range.first != '{')
     {
         throw ParsingErr("Error : Server context should be followed by a '{'");

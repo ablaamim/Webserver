@@ -246,7 +246,7 @@ server
     }
 
     location / {
-        root ./;                                                 # cgi-bin location, mandatory parameter
+        root ./;                                      # cgi-bin location, mandatory parameter
         cgi .py /usr/bin/python3;                     # location of interpreters installed on the current system, mandatory parameter and extensions for executable files, mandatory parameter
     }
 }

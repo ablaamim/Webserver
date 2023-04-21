@@ -31,6 +31,11 @@
 # define ROOT_DOTDOT_ERR "Root, value should not contain ../"
 # define ROOT_SIZE_ERR "Root, value should be at least 2 characters long."
 # define BODYSIZE_DIGIT_ERR "BodySize, value should be a digit."
-# define BODYSIZE_OVFL_ERR "Body size overflow, max value : " 
+# define BODYSIZE_OVFL_ERR "Body size overflow, max value : "
+# define SERVER_PARAM_ERR "Server : Doesn't take parameters"
+# define SERVER_BRACKET_ERR "Server : Server context should be followed by a '{'"
+# define SOCKET_CREATE_ERR "Failed creating socket"
+# define SOCKET_BINDING_ERR "Failed binding socket"
+# define SOCKET_OPTION_ERR "Failed setting socket options"
 
 #endif
