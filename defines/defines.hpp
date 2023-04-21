@@ -26,7 +26,7 @@
 # define CGI_DOT_ERR "Cgi, key should start with a dot."
 # define CGI_SIZE_ERR "Cgi, key should be at least 2 characters long."
 # define CGI_SLASH_ERR "Cgi, key should not end with a slash."
-# define TIMEOUT 30
+# define TIMEOUT 120
 # define CGI_DOTDOT_ERR "Cgi, value should not contain ../"
 # define ROOT_DOTDOT_ERR "Root, value should not contain ../"
 # define ROOT_SIZE_ERR "Root, value should be at least 2 characters long."
@@ -37,5 +37,6 @@
 # define SOCKET_CREATE_ERR "Failed creating socket"
 # define SOCKET_BINDING_ERR "Failed binding socket"
 # define SOCKET_OPTION_ERR "Failed setting socket options"
+# define SOCKET_LISTEN_ERR "Failed listening on socket"
 
 #endif

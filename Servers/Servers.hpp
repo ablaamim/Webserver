@@ -30,6 +30,7 @@ class Servers
                 int         address_len;
                 std::string ip;
                 std::string port;
+                size_t      data_s;
         };
     
     // map of socket_t with the key being the socket file descriptor
@@ -38,9 +39,12 @@ class Servers
     private :
 
         socket_type socket_ip_port;
+        int         kq;
+        struct      timespec timeout;
+        void        new_server_create_socket(std::string ip, std::string port);
+        void        listen_for_connections();
+        //void addEvent(int socket_fd, uint16_t filter, socket_t *socket_info);
 
-        void new_server_create_socket(std::string ip, std::string port);
-        void listen_for_connections();
 
     public :
         // Constructor
@@ -48,6 +52,7 @@ class Servers
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);
+        int get_kq(void);
 
     // Exceptions
     class Server_err : public std::exception

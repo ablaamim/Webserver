@@ -6,11 +6,16 @@ Servers::socket_type Servers::get_socket_ip_port(void)
     return (socket_ip_port);
 }
 
+int Servers::get_kq()
+{
+    return (kq);
+}
 
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
     socket_t    socket_info;
     int         socket_fd;
+    this->kq = kqueue();
 
     socket_info.ip = ip;
     socket_info.port = port;
@@ -21,17 +26,19 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     if (!socket_fd)
         throw Server_err(SOCKET_CREATE_ERR);
     // SOL_SOCKET is the socket layer itself
+    
     // SO_REUSEADDR allows the local address to be reused when the server is restarted
-    // SO_REUSEPORT allows the local port to be reused when the server is restarted
+    
     // setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &socket_info.option, sizeof(socket_info.option));
-    // std::cout << "Socket port = " << port << std::endl;
-    // std::cout << "Socket ip = " << ip << std::endl;
+    
     // std::cout << "Socket fd = " << socket_fd << std::endl;
     // std::cout << "Socket option = " << socket_info.option << std::endl;
     
-    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &socket_info.option, sizeof(socket_info.option)) < 0)
+    // ONCE I THROW AN EXCEPTION HERE, I CAN'T RECOVER FROM IT AND THE SERVER CRASHES !!!!!!!!!!!!!!!!!!!!!!!!!
+
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_info.option, sizeof(socket_info.option)) < 0)
     {
-        ///std::cout << "PROBLEM HERE ? " << std::endl;
+        ///std::cout << "PROBLEM HERE ! " << std::endl;
         close(socket_fd);
         throw Server_err(SOCKET_OPTION_ERR);
     }
@@ -41,11 +48,46 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info.address.sin_port = htons(atoi(port.c_str()));
     socket_info.address_len = sizeof(socket_info.address);
     
+    memset(socket_info.address.sin_zero, '\0', sizeof(socket_info.address.sin_zero));
+    
     if (bind(socket_fd, (struct sockaddr *) &socket_info.address, sizeof(socket_info.address)) < 0)
     {
         close(socket_fd);
         throw Server_err(SOCKET_BINDING_ERR);
-    }   
+    }
+    
+    if (listen(socket_fd, TIMEOUT) < 0)
+    {
+        close(socket_fd);
+        throw Server_err(SOCKET_LISTEN_ERR);
+    }
+    
+    if (fcntl(socket_fd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        close(socket_fd);
+        throw Server_err("fnctl error");
+    }
+    
+    // KQ IMPLEMENTATION HERE
+    
+    struct kevent event;
+
+    EV_SET(&event, socket_fd, EVFILT_READ, EV_ADD, 0, 0, &socket_info);
+
+    if (kevent(kq, &event, 1, NULL, 0, NULL) < 0)
+    {
+        close(socket_fd);
+        throw Server_err("kevent error");
+    }
+    
+    std::cout << "----------------------------------------------------------------" << std::endl;
+    std::cout << COLOR_GREEN << "Socket PORT    = "  << COLOR_BLUE << port << COLOR_RESET << std::endl;
+    std::cout << COLOR_GREEN << "Socket IP ADDR = " << COLOR_BLUE << ip << COLOR_RESET << std::endl;
+    std::cout << COLOR_GREEN << "Socket Fd      = " << COLOR_BLUE << socket_fd << COLOR_RESET << std::endl;
+    std::cout << COLOR_GREEN << "Socket Option  = " << COLOR_BLUE << socket_info.option << COLOR_RESET << std::endl;
+    std::cout << COLOR_GREEN << "kernel Queue   =  " << COLOR_BLUE << kq << COLOR_RESET <<std::endl;
+    std::cout << "----------------------------------------------------------------" << std::endl;
+
     socket_ip_port.insert(std::make_pair(socket_fd, socket_info));
 }
 
@@ -62,7 +104,7 @@ void Servers::listen_for_connections()
         if (listen(iter->first, TIMEOUT) < 0)
         {
             close(iter->first);
-            throw Server_err("Error listening for connections");
+            throw Server_err(SOCKET_LISTEN_ERR);
         }    
     }
 }
@@ -91,7 +133,11 @@ Servers::Servers(configurationSA &config)
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
         }
-        listen_for_connections();
+        //listen_for_connections();
+        //std::cout << socket_ip_port.size() << " sockets created" << std::endl;
+        //std::cout << socket_ip_port.begin()->first << std::endl;
+        //if (fcntl(socket_ip_port.begin()->first, F_SETFL, O_NONBLOCK) < 0)
+            //throw Server_err("fnctl error");        
     }
     catch (const std::exception& e)
     {

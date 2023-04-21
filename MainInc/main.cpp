@@ -22,15 +22,30 @@ int main(int argc, char **argv, char **env)
         std::cout << std::endl << COLOR_GREEN << "                 Server is running" << COLOR_RESET << std::endl;
         while (true)
         {
-                Kqueue kqueue(server);
-                if (kqueue.get_kqueue_return() == 0)
-                {
-                    std::cerr << "No events" << std::endl;
-                }
-                else
-                {
-                    std::cout << "kqueue_return: " << kqueue.get_kqueue_return() << std::endl;
-                }
+            size_t kq_return = 0;
+            
+            struct kevent event[10000];
+            
+            struct timespec timeout = {1, 0};
+            
+            //std::cout << "KQ VALUE = " << server.get_kq() << std::endl;
+
+            kq_return = kevent(server.get_kq(), NULL, 0, event, 10000, &timeout);
+            if (kq_return == -1)
+            {
+                std::cerr << "kevent error" << std::endl;
+                throw std::runtime_error("kevent");
+            }
+            if (kq_return == 0)
+            {
+                std::cout << "timeout" << std::endl;
+                continue;
+            }
+            for (size_t i = 0; i < kq_return; i++)
+            {
+                std::cout << "event " << i << std::endl;
+            }
+            //system("leaks webserv");
         }
     }
     catch (std::exception &e)
