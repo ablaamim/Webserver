@@ -2,6 +2,10 @@
 
 ---
 
+<img src= "https://bytesofgigabytes.com/IMAGES/Networking/HTTPcommuncation/http%20communication.png" width="700">
+
+---
+
 This project is about writing a [HTTP server](https://en.wikipedia.org/wiki/Web_server), your own version of [Nginx](https://www.nginx.com/), [Apache](https://apache.org/) or [Lighttpd](https://www.lighttpd.net/).
 
 ### What is Webserv ?
@@ -158,25 +162,40 @@ Here are additional features you can add:
 ## Specifications restricted by the subject :
 
 In the configuration file, you should be able to:
+
 • Choose the port and host of each ’server’.
+
 • Setup the server_names or not.
+
 • The first server for a host:port will be the default for this host:port (that means
 
 it will answer to all the requests that don’t belong to an other server).
+
 • Setup default error pages.
+
 • Limit client body size.
+
 • Setup routes with one or multiple of the following rules/configuration (routes wont
+
 be using regexp):
+
 ◦ Define a list of accepted HTTP methods for the route.
+
 ◦ Define a HTTP redirection.
+
 ◦ Define a directory or a file from where the file should be searched (for example,
 
 if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 /tmp/www/pouic/toto/pouet).
+
 ◦ Turn on or off directory listing.
+
 ◦ Set a default file to answer if the request is a directory.
+
 ◦ Execute CGI based on certain file extension (for example .php).
+
 ◦ Make it work with POST and GET methods.
+
 ◦ Make the route able to accept uploaded files and configure where they should
 be saved.
 
@@ -198,6 +217,44 @@ from the CGI, EOF will mark the end of the returned data.
 
 ---
 
+### Configuration file, Nginx like config :
+
+---
+
+Configuration file is a text file that contains various settings and directives that dictate how the web server should operate. These settings can include things like the port number that the web server should listen on, the location of the web server's root directory, and many other settings.
+
+Here is an example fie that shows config file format and supported directives.
+<br>
+```nginx
+
+server 
+{
+    listen 8001;                        # listening port, mandatory parameter
+    server_name test;                   # specify server_name, need to be added into /etc/hosts to work
+    error_page 404 /error/404.html;     # default error page
+    client_max_body_size 1024;          # max request body size in bytes
+    root docs/fusion_web/;              # root folder of site directory, full or relative path, mandatory parameter
+    index index.html;                   # default page when requesting a directory, index.html by default
+
+    location /
+    {                   
+        root docs/fusion_web;           # root folder of the location, if not specified, taken from the server. 
+        autoindex on;                   # turn on/off directory listing
+        allow_methods POST GET;         # allowed methods in location, GET only by default
+        index index.html;               # default page when requesting a directory, copies root index by default
+        return abc/index1.html;         # redirection
+    }
+
+    location / {
+        root ./;                                                 # cgi-bin location, mandatory parameter
+        cgi .py /usr/bin/python3;                     # location of interpreters installed on the current system, mandatory parameter and extensions for executable files, mandatory parameter
+    }
+}
+  ```
+
+
+---
+
 ### Steps :
 
 ---
@@ -208,7 +265,7 @@ from the CGI, EOF will mark the end of the returned data.
 
 > Entry point of the program which is the main function : it contains simple error handling before and after calling my constructor.
 
-```
+```c
 int main(int argc, char **argv, char **env)
 {
     if (argc != 2)
@@ -236,7 +293,7 @@ int main(int argc, char **argv, char **env)
 
 > configurationSA stands for 'configuration syntax analysis'.
 
-```
+```c
 configurationSA(char *config_file);
 ```
 

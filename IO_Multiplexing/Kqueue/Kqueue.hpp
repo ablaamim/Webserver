@@ -11,8 +11,9 @@ class Kqueue
 {
     private :
     
-        int kq;
+        int kqfd;
         int kqueue_return;
+        struct kevent *events;
 
     public :
         // Constructor

@@ -22,14 +22,15 @@ int main(int argc, char **argv, char **env)
         std::cout << std::endl << COLOR_GREEN << "                 Server is running" << COLOR_RESET << std::endl;
         while (true)
         {
-            /*
-            Kqueue kq(server);
-            if (kq.get_kqueue_return() == 0)
-            {
-                std::cout << "Kqueue timeout" << std::endl;
-                continue;
-            }
-            */
+                Kqueue kqueue(server);
+                if (kqueue.get_kqueue_return() == 0)
+                {
+                    std::cerr << "No events" << std::endl;
+                }
+                else
+                {
+                    std::cout << "kqueue_return: " << kqueue.get_kqueue_return() << std::endl;
+                }
         }
     }
     catch (std::exception &e)

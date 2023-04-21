@@ -4,7 +4,26 @@ int    Kqueue::check_events(struct kevent *event, int kqueue_return)
 {
     for (int i = 0; i < kqueue_return; i++)
     {
-        std::cout << "Kqueue event" << std::endl;
+        if (event[i].flags & EV_EOF)
+        {
+            std::cout << "Connection closed" << std::endl;
+        }
+        else if (event[i].flags & EV_ERROR)
+        {
+            std::cout << "Error" << std::endl;
+        }
+        else if (event[i].filter == EVFILT_READ)
+        {
+            std::cout << "Read" << std::endl;
+        }
+        else if (event[i].filter == EVFILT_WRITE)
+        {
+            std::cout << "Write" << std::endl;
+        }
+        else
+        {
+            std::cout << "Unknown" << std::endl;
+        }
     }
     return (0);
 }
@@ -14,53 +33,36 @@ int Kqueue::get_kqueue_return() const
     return (kqueue_return);
 }
 
-Kqueue::Kqueue(Servers &server)
+Kqueue::Kqueue(Servers &servers)
 {
-    (void) server;
-    // Init kqueue :
-    
-    kq = kqueue();
-
-    if (kq == -1)
-    {
-        //throw std::runtime_error("Kqueue failed to init");
-        perror("Kqueue failed to init");
-        exit (EXIT_FAILURE);
-    }
-    
+    this->kqfd = kqueue();
     this->kqueue_return = 0;
-    
-    struct kevent events[10000];
-    
     struct timespec timeout;
-    
     timeout.tv_sec = 2;
-    
     timeout.tv_nsec = 0;
+    if (kqfd == -1)
+    {
+        std::cerr << "kqueue failed" << std::endl;
+        //throw std::runtime_error("kqueue");
+    }
+    struct kevent event[10000];
+    this->kqueue_return = kevent(kqfd, NULL, 0, event, 10000, &timeout);
+    if (kqueue_return == -1)
+    {
+        std::cerr << "kevent failed" << std::endl;
+        //throw std::runtime_error("kevent failed");
+    }
+    //std::cout << "kqueue_return: " << kqueue_return << std::endl;
+    check_events(event, kqueue_return);
 
-    kqueue_return = kevent(kq, NULL, 0, events, 10000, &timeout);
-    
-    std::cout << std::endl << "KQ VAL = " << kq << std::endl;
-    
-    if (kqueue_return < 0)
-    {
-        //throw std::runtime_error("Kqueue failed to init");
-        perror("Kqueue failed to init");
-        exit (EXIT_FAILURE);
-    }
-    else
-    {
-        check_events(events, kqueue_return);
-    }
-    //std::cout << "KQUEUE RET VAL = " << kqueue_return << std::endl;
 }
 
 Kqueue::~Kqueue()
 {
-    close(kq);
+    close(kqfd);
 }
 
 int Kqueue::get_kq_fd() const
 {
-    return (kq);
+    return (kqfd);
 }

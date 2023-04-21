@@ -1,6 +1,12 @@
 #include "Servers.hpp"
 #include "../parsing/ConfigurationParser.hpp"
 
+Servers::socket_type Servers::get_socket_ip_port(void)
+{
+    return (socket_ip_port);
+}
+
+
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
     socket_t    socket_info;

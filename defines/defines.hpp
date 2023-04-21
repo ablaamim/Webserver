@@ -27,5 +27,10 @@
 # define CGI_SIZE_ERR "Cgi, key should be at least 2 characters long."
 # define CGI_SLASH_ERR "Cgi, key should not end with a slash."
 # define TIMEOUT 30
+# define CGI_DOTDOT_ERR "Cgi, value should not contain ../"
+# define ROOT_DOTDOT_ERR "Root, value should not contain ../"
+# define ROOT_SIZE_ERR "Root, value should be at least 2 characters long."
+# define BODYSIZE_DIGIT_ERR "BodySize, value should be a digit."
+# define BODYSIZE_OVFL_ERR "Body size overflow, max value : " 
 
 #endif

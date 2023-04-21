@@ -3,6 +3,7 @@
 /*
 * COLORS :
 */
+
 void configurationSA::color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color)
 {
    std::string reset(COLOR_RESET);
@@ -93,12 +94,12 @@ void configurationSA::configuration::initialize_default_values(void)
         return ;
     std::pair<std::string, std::vector<std::string> > return_tab[] =
     {
-        std::make_pair("200", std::vector<std::string>(1, "OK")),
-        std::make_pair("403", std::vector<std::string>(1, "Forbidden")),
-        std::make_pair("404", std::vector<std::string>(1, "Not Found")),
-        std::make_pair("405", std::vector<std::string>(1, "Method Not Allowed")),
-        std::make_pair("413", std::vector<std::string>(1, "Request Entity Too Large")),
-        std::make_pair("500", std::vector<std::string>(1, "Internal Server Error")),
+        std::make_pair("200", std::vector<std::string> (1, "OK")),
+        std::make_pair("403", std::vector<std::string> (1, "Forbidden")),
+        std::make_pair("404", std::vector<std::string> (1, "Not Found")),
+        std::make_pair("405", std::vector<std::string> (1, "Method Not Allowed")),
+        std::make_pair("413", std::vector<std::string> (1, "Request Entity Too Large")),
+        std::make_pair("500", std::vector<std::string> (1, "Internal Server Error")),
     };
     std::pair<std::string, std::map<std::string, std::vector<std::string> > > noneUniqueKey[] =
     {
@@ -130,10 +131,11 @@ void configurationSA::check_port(std::string str, size_t &start_last_line, std::
     int port;
 
     if (!isDigit(str))
+    {
+        color_words_in_range(start_last_line, str, line, COLOR_RED);
         throw configurationSA::ParsingErr(PORT_ERR_DIGIT);
-    
+    }
     port = atoi(str.c_str());
-    
     if (port < 0 || port > PORT_MAX_VALUE)
     {
        color_words_in_range(start_last_line, str, line, COLOR_RED);
@@ -204,21 +206,30 @@ void configurationSA::check_cgi(key_value_type &key_values, size_t &start_last_l
 {
     (void) line;
     if (key_values.first.rfind('.') != 0)
-       throw configurationSA::ParsingErr(CGI_DOT_ERR);
-    
+    {
+        color_words_in_range(start_last_line, key_values.first, line, COLOR_RED);
+        throw configurationSA::ParsingErr(CGI_DOT_ERR);
+    }
     if (key_values.first.size() < 2)
-     throw configurationSA::ParsingErr(CGI_SIZE_ERR);
-    
-    if (key_values.second[0].size() < 2)
+    {
+        color_words_in_range(start_last_line, key_values.first, line, COLOR_RED);
         throw configurationSA::ParsingErr(CGI_SIZE_ERR);
+    }
+    if (key_values.second[0].size() < 2)
+    {
+        color_words_in_range(start_last_line, key_values.second[0], line, COLOR_RED);
+        throw configurationSA::ParsingErr(CGI_SIZE_ERR);
+    }
     
     if (key_values.second[0][key_values.second[0].size() - 1] == '/')
     {
+        color_words_in_range(start_last_line, key_values.first, line, COLOR_RED);
         start_last_line += key_values.second[0].size() - 1;
+        color_words_in_range(start_last_line, "/", line, COLOR_RED);
         throw configurationSA::ParsingErr(CGI_SLASH_ERR);
     }
     if (key_values.second[0].find("../") != std::string::npos)
-        throw configurationSA::ParsingErr("Cgi, value should not contain ../");
+        throw configurationSA::ParsingErr(CGI_DOTDOT_ERR);
 }
 
 void configurationSA::check_root(key_value_type &key_values, size_t &start_last_line, std::string &line)
@@ -226,38 +237,44 @@ void configurationSA::check_root(key_value_type &key_values, size_t &start_last_
     (void) line;
     (void) start_last_line;
     if (key_values.second[0].find("../") != std::string::npos)
-        throw configurationSA::ParsingErr("Root, path cannot contain '../'");
+    {
+        color_words_in_range(start_last_line, key_values.first, line, COLOR_RED);
+        throw configurationSA::ParsingErr(ROOT_DOTDOT_ERR);
+    }
     if (key_values.second[0][key_values.second[0].size() - 1] == '/')
         key_values.second[0].erase(key_values.second[0].end() - 1);
     if (key_values.second[0].size() < 2)
-        throw configurationSA::ParsingErr("Root, path should be at least 2 characters long.");
+    {
+        color_words_in_range(start_last_line, key_values.second[0], line, COLOR_RED);
+        throw configurationSA::ParsingErr(ROOT_SIZE_ERR);
+    }
 }
 
 void configurationSA::check_body_size(key_value_type &key_values, size_t &start_last_line, std::string &line)
 {
-    (void) start_last_line;
-    (void) line;
     if (!isDigit(key_values.second[0]))
     {
-       throw configurationSA::ParsingErr("Body size, value should be a digit.");
+        color_words_in_range(start_last_line, key_values.second[0], line, COLOR_RED);
+        throw configurationSA::ParsingErr(BODYSIZE_DIGIT_ERR);
     }
     
     if (atoi(key_values.second[0].c_str()) <= 0)
     {
-        throw configurationSA::ParsingErr("Body size overflow, max value : " + to_string(INT_MAX));
+        color_words_in_range(start_last_line, key_values.second[0], line, COLOR_RED);
+        throw configurationSA::ParsingErr(BODYSIZE_OVFL_ERR + to_string(INT_MAX));
     }
     if (atoi(key_values.second[0].c_str()) > INT_MAX)
     {
-        throw configurationSA::ParsingErr("Body size overflow, max value : " + to_string(INT_MAX));
+        color_words_in_range(start_last_line, key_values.second[0], line, COLOR_RED);
+        throw configurationSA::ParsingErr(BODYSIZE_OVFL_ERR + to_string(INT_MAX));
     }
     if (atoi(key_values.second[0].c_str()) > MAX_BODY_SIZE)
     {
-        throw configurationSA::ParsingErr("Body size overflow, max value : " + to_string(MAX_BODY_SIZE));
+        color_words_in_range(start_last_line, key_values.second[0], line, COLOR_RED);
+        throw configurationSA::ParsingErr(BODYSIZE_OVFL_ERR + to_string(MAX_BODY_SIZE));
     }
 }
-
 /////////////////////////////////////////// END CHECKERS ///////////////////////////////////////////
-
 
 /////////////////////////////////////////// PARSE METHODS ///////////////////////////////////////////
 
@@ -269,17 +286,18 @@ bool configurationSA::is_server_context(key_value_type key_value, line_range_typ
     go_to_next_word_in_file(line_range, file_range);
 
     if (!key_value.second.empty())
+    {
         throw ParsingErr("Error : Does' take parameters");
-    
+    }
     if (line_range.first != line_range.second && *line_range.first != '{')
+    {
         throw ParsingErr("Error : Server context should be followed by a '{'");
-    
+    }
     return (true);
 }
 
 bool configurationSA::is_location_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, size_t start_last_line)
 {
-    (void) start_last_line;
     line_range_type line_range_copy = line_range;
     file_range_type file_range_copy = file_range;
     
@@ -287,20 +305,29 @@ bool configurationSA::is_location_context(key_value_type key_value, line_range_t
         return (false);
     
     go_to_next_word_in_file(line_range_copy, file_range_copy);
-
     try
     {
         if (key_value.second.size() != 1)
+        {
+            color_words_in_range(start_last_line, key_value.first, *file_range_copy.first, COLOR_RED);
             throw ParsingErr("Location context should have one parameter");
-        
+        }
         if (!key_value.second[0].empty() && key_value.second[0][0] != '/')
+        {
+            color_words_in_range(start_last_line, key_value.second[0], *file_range_copy.first, COLOR_RED);
             throw ParsingErr("Location context should start with a '/'");
-        
+        }
         if (*line_range_copy.first != '{')
+        {
+            color_words_in_range(start_last_line, key_value.second[0], *file_range_copy.first, COLOR_RED);
             throw ParsingErr("Location context should be followed by a '{'");
+        }
         // location context value should not be "//"
         if (key_value.second[0].size() > 1 && key_value.second[0][1] == '/')
+        {
+            color_words_in_range(start_last_line, key_value.second[0], *file_range_copy.first, COLOR_RED);
             throw ParsingErr("Location context should not contain '//'");
+        }
     }
     catch (ParsingErr &e)
     {
@@ -311,11 +338,9 @@ bool configurationSA::is_location_context(key_value_type key_value, line_range_t
 
 configurationSA::key_value_type configurationSA::get_keyvalue(line_range_type &line_range)
 {    
-    std::string key = get_word_skip_space(line_range);
-    
-    std::vector<std::string> values;
-    
-    std::string word = get_word_skip_space(line_range);
+    std::string                 key = get_word_skip_space(line_range);
+    std::vector<std::string>    values;
+    std::string                 word = get_word_skip_space(line_range);
     
     while (!word.empty())
     {
@@ -467,24 +492,18 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
     Server   result;
     
     go_to_next_word_in_file(line_range, file_range);
-    
-    size_t start_last_line = (size_t) (line_range.first - file_range.first->begin());
-    
+
+    size_t         start_last_line = (size_t) (line_range.first - file_range.first->begin());
     key_value_type key_value = get_keyvalue(line_range);
     
     while (file_range.first != file_range.second && !key_value.first.empty())
     {
-
         if (is_location_context(key_value, line_range, file_range, start_last_line))
         {
            if (result.location.count(key_value.second[0]))
                 throw ParsingErr("Error : Location context already exists");
-
-           
            go_to_next_word_in_file(line_range, file_range);
-
            line_range.first++;
-           
            if (key_value.second[0].size() > 1 && key_value.second[0][key_value.second[0].size() - 1] == '/')
                key_value.second[0].erase(key_value.second[0].end() - 1);
             try
@@ -570,10 +589,8 @@ std::string     configurationSA::get_word(line_range_type &line_range)
 
 std::string     configurationSA::get_word_skip_space(line_range_type &line_range)
 {
-    skip_charset(line_range, configuration::is_white_space);
-    
+    skip_charset(line_range, configuration::is_white_space); 
     std::string word = get_word(line_range);
-    
     skip_charset(line_range, configuration::is_white_space);
     return (word);
 }
@@ -622,13 +639,10 @@ configurationSA::configurationSA(char *config_file)
         while (file_range.first != file_range.second)
         {
             go_to_next_word_in_file(line_range, file_range);
-            
             if(is_server_context(get_keyvalue(line_range), line_range, file_range))
             {
                 line_range.first++;
-                
                 go_to_next_word_in_file(line_range, file_range);
-                
                 try
                 {
                     _data.push_back(new_server_creation(line_range, file_range));
@@ -639,7 +653,6 @@ configurationSA::configurationSA(char *config_file)
                     throw ParsingErr("Server " + std::to_string(_data.size()) + " : " + e.what()); 
                 }
             }
-            
             else if (file_range.first != file_range.second)
                 throw ParsingErr("Wrong server context");
             
@@ -651,7 +664,5 @@ configurationSA::configurationSA(char *config_file)
         throw ParsingErr(std::string(e.what()) + " :\n" + "line " + std::to_string(fullFile.size() - (file_range.second - file_range.first) + 1) + " : " + \
         ((file_range.first == file_range.second) ? *(file_range.first - 1) : *file_range.first));
     }
-    //printData(_data);
-    //std::cout << "End of parsing config file: " << config_file << "..." << std::endl;
     input.close();
 }
