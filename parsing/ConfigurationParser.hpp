@@ -147,6 +147,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
         // CONSTRUCTORS AND DESTRUCTORS :
         //configurationSA();
         configurationSA(char *config_file);
+        //static int kq;
         ~configurationSA();
                 
         // GETTERS AND SETTERS :

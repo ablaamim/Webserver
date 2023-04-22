@@ -6,25 +6,28 @@ Servers::socket_type Servers::get_socket_ip_port(void)
     return (socket_ip_port);
 }
 
+/*
 int Servers::get_kq()
 {
     return (kq);
 }
+*/
 
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
     socket_t    socket_info;
     int         socket_fd;
-    this->kq = kqueue();
+    //this->kq = kqueue();
 
     socket_info.ip = ip;
     socket_info.port = port;
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     socket_info.socket_fd = socket_fd;
     socket_info.option = 1;
-
+    this->socket_fd = socket_fd;
     if (!socket_fd)
         throw Server_err(SOCKET_CREATE_ERR);
+    
     // SOL_SOCKET is the socket layer itself
     
     // SO_REUSEADDR allows the local address to be reused when the server is restarted
@@ -47,9 +50,13 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info.address.sin_addr.s_addr = inet_addr(ip.c_str());
     socket_info.address.sin_port = htons(atoi(port.c_str()));
     socket_info.address_len = sizeof(socket_info.address);
-    
-    memset(socket_info.address.sin_zero, '\0', sizeof(socket_info.address.sin_zero));
-    
+    addr = socket_info.address;
+    if (inet_aton(ip.c_str(), &socket_info.address.sin_addr) == 0)
+    {
+        close(socket_fd);
+        throw Server_err("Inet failure");
+    }
+    memset(socket_info.address.sin_zero, '\0', sizeof(socket_info.address.sin_zero));    
     if (bind(socket_fd, (struct sockaddr *) &socket_info.address, sizeof(socket_info.address)) < 0)
     {
         close(socket_fd);
@@ -74,18 +81,17 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
 
     EV_SET(&event, socket_fd, EVFILT_READ, EV_ADD, 0, 0, &socket_info);
 
-    if (kevent(kq, &event, 1, NULL, 0, NULL) < 0)
+    if (kevent(get_kq(), &event, 1, NULL, 0, NULL) < 0)
     {
         close(socket_fd);
         throw Server_err("kevent error");
     }
-    
     std::cout << "----------------------------------------------------------------" << std::endl;
     std::cout << COLOR_GREEN << "Socket PORT    = "  << COLOR_BLUE << port << COLOR_RESET << std::endl;
     std::cout << COLOR_GREEN << "Socket IP ADDR = " << COLOR_BLUE << ip << COLOR_RESET << std::endl;
     std::cout << COLOR_GREEN << "Socket Fd      = " << COLOR_BLUE << socket_fd << COLOR_RESET << std::endl;
     std::cout << COLOR_GREEN << "Socket Option  = " << COLOR_BLUE << socket_info.option << COLOR_RESET << std::endl;
-    std::cout << COLOR_GREEN << "kernel Queue   =  " << COLOR_BLUE << kq << COLOR_RESET <<std::endl;
+    //std::cout << COLOR_GREEN << "kernel Queue   =  " << COLOR_BLUE << configueationSA::kq << COLOR_RESET <<std::endl;
     std::cout << "----------------------------------------------------------------" << std::endl;
 
     socket_ip_port.insert(std::make_pair(socket_fd, socket_info));
@@ -113,6 +119,7 @@ Servers::Servers(configurationSA &config)
 {
     configurationSA::data_type conf = config.get_data();
     std::set <std::pair<std::string, std::string> > bind_sockets_list;
+    this->kq = kqueue();
     try
     {
         for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
@@ -123,6 +130,7 @@ Servers::Servers(configurationSA &config)
                 {
                     if (!bind_sockets_list.count(std::make_pair(iterListen->first, *iterSet)))
                     {
+                        std::cout << std::endl << COLOR_BLUE << "Creating socket for " << iterListen->first << " : " << *iterSet << COLOR_RESET <<std::endl;
                         new_server_create_socket(iterListen->first, *iterSet);
                         bind_sockets_list.insert(std::make_pair(iterListen->first, *iterSet));
                     }

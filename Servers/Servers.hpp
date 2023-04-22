@@ -21,6 +21,8 @@ class configurationSA;
 class Servers
 {
     public :  
+            int         socket_fd;
+            sockaddr_in addr;
         class socket_t
         {
             public :
@@ -33,6 +35,16 @@ class Servers
                 size_t      data_s;
         };
     
+    int get_kq(void)
+    {
+        return (kq);
+    }
+
+    void set_kq(int kq)
+    {
+        this->kq = kq;
+    }
+
     // map of socket_t with the key being the socket file descriptor
     typedef std::map<int, socket_t> socket_type;
     
@@ -52,7 +64,7 @@ class Servers
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);
-        int get_kq(void);
+        //int get_kq(void);
 
     // Exceptions
     class Server_err : public std::exception
