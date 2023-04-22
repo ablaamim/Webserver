@@ -13,7 +13,7 @@ all: $(NAME)
 
 CC = g++
 
-CFLAGS =  -fsanitize=address -g3 -std=c++98 #-Wall -Wextra -Werror #-O2 -Werror=format-security -D_GLIBCXX_ASSERTIONS
+CFLAGS =  #-fsanitize=address -g3 -std=c++98 #-Wall -Wextra -Werror #-O2 -Werror=format-security -D_GLIBCXX_ASSERTIONS
 
 ##
 # -D_GLIBCXX_ASSERTIONS enables additional C++ standard library hardening. 

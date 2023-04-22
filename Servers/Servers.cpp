@@ -25,11 +25,12 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info.socket_fd = socket_fd;
     socket_info.option = 1;
     this->socket_fd = socket_fd;
+    
     if (!socket_fd)
         throw Server_err(SOCKET_CREATE_ERR);
     
     // SOL_SOCKET is the socket layer itself
-    
+
     // SO_REUSEADDR allows the local address to be reused when the server is restarted
     
     // setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &socket_info.option, sizeof(socket_info.option));
