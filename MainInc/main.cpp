@@ -80,7 +80,7 @@ int main(int argc, char **argv, char **env)
                 //}
                 
                 //std::cout << "n = " << n << std::endl;
-;               char str[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length:30\r\n\r\n<h1>HELLO FROM WEBSERV</h1>";
+;               char str[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 28\r\n\r\n<h1>HELLO FROM WEBSERV</h1>";
 
                 std::cout << sizeof("<h1>HELLO FROM WEBSERV</h1>") << std::endl;
 
