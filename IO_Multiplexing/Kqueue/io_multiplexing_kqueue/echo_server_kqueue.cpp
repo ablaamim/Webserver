@@ -115,7 +115,6 @@ int main()
                     /* read data from client */
                     char buf[1024];
                     int n = read(curr_event->ident, buf, sizeof(buf));
-
                     if (n <= 0)
                     {
                         if (n < 0)

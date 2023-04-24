@@ -55,6 +55,11 @@ int main(int argc, char **argv, char **env)
                 //std::cout << "new socket fd = " << new_socket->socket_fd << std::endl;
                 
                 new_socket->socket_fd = accept(event[i].ident, (sockaddr *)&new_socket->address, &len);
+                if (new_socket->socket_fd < 0)
+                {
+                    std::cerr << "accept error" << std::endl;
+                    throw std::runtime_error("accept");
+                }
                 
                 std::cout <<  COLOR_BLUE << "NEW SOCKET = " << new_socket->socket_fd << COLOR_RESET << std::endl;
                 
@@ -73,11 +78,11 @@ int main(int argc, char **argv, char **env)
                 
                 std::cout << COLOR_YELLOW << " -> NEXT SOCKET = " << event[i].ident << COLOR_RESET << std::endl;    
 
-                //int n = read(event[i].ident, buffer, 1024);
-                //if (n < 0)
-                //{
-                  //  throw std::runtime_error("read");
-                //}
+                int nb = read(event[i].ident, buffer, 1024);
+                if (nb < 0)
+                {
+                    throw std::runtime_error("Read failed");
+                }
                 
                 //std::cout << "n = " << n << std::endl;
 ;               char str[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 28\r\n\r\n<h1>HELLO FROM WEBSERV</h1>";
@@ -87,6 +92,7 @@ int main(int argc, char **argv, char **env)
                 //int istr = strlen(str);
                 
                 int n = write(new_socket->socket_fd, &str, sizeof(str));
+
                 std::cout << "n = " << n << std::endl;
                 delete new_socket;                
             }
