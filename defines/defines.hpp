@@ -2,6 +2,7 @@
 
 #define DEFINES_HPP
 
+# define BUFFER_SIZE 1024
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>

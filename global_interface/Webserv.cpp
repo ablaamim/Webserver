@@ -14,41 +14,67 @@ void Webserv::add_event(int socket_fd, uint16_t filter, Servers::socket_t *socke
 }
 */
 
-int Webserv::event_check(struct kevent *event, unsigned int  kq_return)
+
+int Webserv::event_check(struct kevent *event, int kq_return)
 {
     std::cout << COLOR_BLUE << "EVENT CHECK" << COLOR_RESET << std::endl;
 
     for (unsigned int i = 0; i < kq_return; i++)
     {
-        std::cout << COLOR_BLUE << "EVENT COUGHT" << COLOR_RESET << std::endl;
-        std::cout << COLOR_BLUE << "EVENT " << i << COLOR_RESET << std::endl;
+        //std::cout << COLOR_BLUE << "EVENT COUGHT" << COLOR_RESET << std::endl;
+        //std::cout << COLOR_BLUE << "EVENT " << i << COLOR_RESET << std::endl;
         Servers::socket_t *new_socket = reinterpret_cast<Servers::socket_t *>(event[i].udata);
         if (new_socket->success_flag)
         {
-            std::cout << COLOR_BLUE << "SUCCESS FLAG" << COLOR_RESET << std::endl;
-            
-            std::cout << COLOR_BLUE << "ACCEPT CONNECTION" << COLOR_RESET << std::endl;
-            
-            Servers::socket_t *new_socket = new Servers::socket_t;
+            std::cout << COLOR_BLUE << "EVENT COUGHT" << COLOR_RESET << std::endl;
+            std::cout << COLOR_BLUE << "EVENT " << i << COLOR_RESET << std::endl;
+            Servers::socket_t *socket = new Servers::socket_t;
             int option = 1;
-            sockaddr_in address;
-            socklen_t len = sizeof(address);
-            new_socket->socket_fd = accept(event[i].ident, (sockaddr *)&address, &len);
-
-            if (new_socket->socket_fd == -1)
+            socklen_t len = sizeof(socket->address);
+            socket->socket_fd = accept(event[i].ident, (sockaddr *)&socket->address, &len);
+            if (socket->socket_fd == -1)
             {
                 std::cerr << "accept error" << std::endl;
                 throw std::runtime_error("accept");
             }
-            if (setsockopt(new_socket->socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) == -1)
+            else
+            {
+                std::cout << COLOR_BLUE << "ACCEPTED" << COLOR_RESET << std::endl;
+            }
+            if (setsockopt(socket->socket_fd, SOL_SOCKET, SO_NOSIGPIPE, &option, sizeof(option)) == -1)
             {
                 std::cerr << "setsockopt error" << std::endl;
                 throw std::runtime_error("setsockopt");
             }
-            if (fcntl(new_socket->socket_fd, F_SETFL, O_NONBLOCK) == -1)
+            if (fcntl(socket->socket_fd, F_SETFL, O_NONBLOCK) < 0)
             {
-                std::cerr << "fcntl error" << std::endl;
                 throw std::runtime_error("fcntl");
+            }
+            struct kevent event;
+            EV_SET(&event, socket->socket_fd, EVFILT_READ, EV_ADD, 0, 0,reinterpret_cast<void *>(socket));
+            int kq_return = kevent(this->kq, &event, 1, NULL, 0, NULL);
+            if (kq_return == -1)
+            {
+                std::cerr << "kevent error!!!" << std::endl;
+                throw std::runtime_error("kevent");
+            }
+            //char str[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>HELLO</h1></body></html>";
+            //write(socket->socket_fd, str, strlen(str));
+            
+        }
+        else if (!new_socket->success_flag)
+        {
+            std::cout << COLOR_BLUE << "EVENT COUGHT" << COLOR_RESET << std::endl;
+            std::cout << COLOR_BLUE << "EVENT " << i << COLOR_RESET << std::endl;
+            if (event[i].filter == EVFILT_READ)
+            {
+                std::cout << "EVFILT_READ" << std::endl;
+            }
+            else if (event[i].filter == EVFILT_WRITE)
+            {
+                std::cout << "EVFILT_WRITE" << std::endl;
+                //char buffer[BUFFER_SIZE] = {0};
+                //int write_return = write(event[i].ident, buffer, BUFFER_SIZE); 
             }
         }
     }
@@ -60,18 +86,22 @@ void Webserv::run()
 {
     
     std::cout << std::endl << COLOR_GREEN << "                 Server is running" << COLOR_RESET << std::endl;
-    
+    //this->kq = kqueue();
     // Server loop
     while (1337)
     {
         try
         {
-            unsigned int kq_return = kevent(this->kq, NULL, 0, NULL, EVENT_LIST, &this->timeout);
+            //this->kq = kqueue();
             struct kevent event[EVENT_LIST];
+
+            std::cout << this->kq << std::endl;
+            std::cout << std::endl;
+            int kq_return = kevent(this->kq, NULL, 0, NULL, EVENT_LIST, &this->timeout);
             if (kq_return == -1)
             {
                 // C++ 11 feature : throw exception i will replace it with a custom exception class later.
-                std::cerr << "kevent error" << std::endl;
+                std::cerr << "kevent error!!!" << std::endl;
                 throw std::runtime_error("kevent");
             }
             if (kq_return == 0)
@@ -79,7 +109,7 @@ void Webserv::run()
                 std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;     
                 continue;
             }
-            //std::cout << COLOR_BLUE << "KQ RETURN = " << kq_return << COLOR_RESET << std::endl;
+            std::cout << COLOR_BLUE << "KQ RETURN = " << kq_return << COLOR_RESET << std::endl;
             event_check(event, kq_return);
         }
         catch (const std::exception &e)
@@ -99,8 +129,8 @@ Webserv::Webserv(char *config_file)
     
     // Create a server object with the configurationSA object
     Servers         server(config);
-    server.kq = this->kq;
-
+    //server.kq = this->kq;
+    
     // set timeout value for kevent function
     this->timeout.tv_sec = 1;
     this->timeout.tv_nsec = 0;

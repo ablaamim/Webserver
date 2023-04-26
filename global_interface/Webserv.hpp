@@ -1,9 +1,7 @@
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
-#include "../MainInc/main.hpp"
-
-class socket_t;
+#include "../Servers/Servers.hpp"
 
 class Webserv
 {
@@ -13,9 +11,8 @@ class Webserv
 
         void    run();
 
-        int     event_check(struct kevent *event, unsigned int kq_return);
-        //void    add_event(int socket_fd, uint16_t filter, Servers::socket_t *socket_info);
-
+        int     event_check(struct kevent *event, int kq_return);
+        //int     accept_connection(Servers::socket_t *new_socket);
 
     private :
         int             kq;

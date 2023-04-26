@@ -46,6 +46,7 @@ class Servers
         struct      timespec timeout;
         void        new_server_create_socket(std::string ip, std::string port);
         void        listen_for_connections();
+        //int         accept_connection(socket_t *new_socket);
         //void addEvent(int socket_fd, uint16_t filter, socket_t *socket_info);
 
 
@@ -55,7 +56,7 @@ class Servers
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);
-        void add_event1(int socket_fd, uint16_t filter, socket_t socket_info);
+        //void add_event1(int socket_fd, uint16_t filter, socket_t socket_info);
 
         //int get_kq(void);
 
