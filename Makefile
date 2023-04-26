@@ -5,7 +5,7 @@ SRC = ./MainInc/main.cpp \
 	./parsing/debug.cpp \
 	./parsing/libcpp.cpp \
 	./Servers/Servers.cpp \
-	./IO_Multiplexing/Kqueue/Kqueue.cpp \
+	./global_interface/Webserv.cpp \
 
 OBJ = $(SRC:.cpp=.o)
 

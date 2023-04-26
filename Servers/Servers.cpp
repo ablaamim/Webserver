@@ -1,5 +1,7 @@
 #include "Servers.hpp"
 #include "../parsing/ConfigurationParser.hpp"
+#include "../MainInc/main.hpp"
+
 
 Servers::socket_type Servers::get_socket_ip_port(void)
 {
@@ -24,7 +26,8 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     socket_info.socket_fd = socket_fd;
     socket_info.option = 1;
-    this->socket_fd = socket_fd;
+    socket_info.success_flag = 1;
+    //this->socket_fd = socket_fd;
     
     if (!socket_fd)
         throw Server_err(SOCKET_CREATE_ERR);
@@ -51,7 +54,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info.address.sin_addr.s_addr = inet_addr(ip.c_str());
     socket_info.address.sin_port = htons(atoi(port.c_str()));
     socket_info.address_len = sizeof(socket_info.address);
-    addr = socket_info.address;
+    //addr = socket_info.address;
     if (inet_aton(ip.c_str(), &socket_info.address.sin_addr) == 0)
     {
         close(socket_fd);
@@ -75,26 +78,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         close(socket_fd);
         throw Server_err("fnctl error");
     }
-    
-    // KQ IMPLEMENTATION HERE
-    
-    struct kevent event;
-
-    EV_SET(&event, socket_fd, EVFILT_READ, EV_ADD, 0, 0, &socket_info);
-
-    if (kevent(get_kq(), &event, 1, NULL, 0, NULL) < 0)
-    {
-        close(socket_fd);
-        throw Server_err("kevent error");
-    }
-    std::cout << "----------------------------------------------------------------" << std::endl;
-    std::cout << COLOR_GREEN << "Socket PORT    = "  << COLOR_BLUE << port << COLOR_RESET << std::endl;
-    std::cout << COLOR_GREEN << "Socket IP ADDR = " << COLOR_BLUE << ip << COLOR_RESET << std::endl;
-    std::cout << COLOR_GREEN << "Socket Fd      = " << COLOR_BLUE << socket_fd << COLOR_RESET << std::endl;
-    std::cout << COLOR_GREEN << "Socket Option  = " << COLOR_BLUE << socket_info.option << COLOR_RESET << std::endl;
-    //std::cout << COLOR_GREEN << "kernel Queue   =  " << COLOR_BLUE << configueationSA::kq << COLOR_RESET <<std::endl;
-    std::cout << "----------------------------------------------------------------" << std::endl;
-
+    //add_event1(socket_fd, EVFILT_READ, socket_info);
     socket_ip_port.insert(std::make_pair(socket_fd, socket_info));
 }
 
@@ -120,7 +104,7 @@ Servers::Servers(configurationSA &config)
 {
     configurationSA::data_type conf = config.get_data();
     std::set <std::pair<std::string, std::string> > bind_sockets_list;
-    this->kq = kqueue();
+    //this->kq = kqueue();
     try
     {
         for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
@@ -158,10 +142,10 @@ Servers::Servers(configurationSA &config)
 
 Servers::~Servers()
 {
-    std::cout << "Servers destructor called" << std::endl;
+    //std::cout << "Servers destructor called" << std::endl;
     for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
     {
         close(iter->first);
     }
-    std::cout << "----------------------------------------" << std::endl;
+    //std::cout << "----------------------------------------" << std::endl;
 }

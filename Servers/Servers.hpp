@@ -21,8 +21,8 @@ class configurationSA;
 class Servers
 {
     public :  
-            int         socket_fd;
-            sockaddr_in addr;
+            int     kq;
+            //sockaddr_in addr;
         class socket_t
         {
             public :
@@ -33,17 +33,8 @@ class Servers
                 std::string ip;
                 std::string port;
                 size_t      data_s;
+                int         success_flag;
         };
-    
-    int get_kq(void)
-    {
-        return (kq);
-    }
-
-    void set_kq(int kq)
-    {
-        this->kq = kq;
-    }
 
     // map of socket_t with the key being the socket file descriptor
     typedef std::map<int, socket_t> socket_type;
@@ -51,7 +42,7 @@ class Servers
     private :
 
         socket_type socket_ip_port;
-        int         kq;
+        //int         kq;
         struct      timespec timeout;
         void        new_server_create_socket(std::string ip, std::string port);
         void        listen_for_connections();
@@ -64,6 +55,8 @@ class Servers
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);
+        void add_event1(int socket_fd, uint16_t filter, socket_t socket_info);
+
         //int get_kq(void);
 
     // Exceptions

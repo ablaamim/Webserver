@@ -5,8 +5,6 @@
 #include <sys/event.h>
 #include <sys/time.h>
 
-class Servers;
-
 class Kqueue
 {
     private :
