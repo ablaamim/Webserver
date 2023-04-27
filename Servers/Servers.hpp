@@ -22,7 +22,6 @@ class Servers
 {
     public :  
             int     kq;
-            //sockaddr_in addr;
         class socket_t
         {
             public :
@@ -42,7 +41,6 @@ class Servers
     private :
 
         socket_type socket_ip_port;
-        //int         kq;
         struct      timespec timeout;
         void        new_server_create_socket(std::string ip, std::string port);
         void        listen_for_connections();

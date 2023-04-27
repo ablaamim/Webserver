@@ -46,17 +46,13 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         throw Server_err(SOCKET_OPTION_ERR);
     }
     
+    memset(socket_info->address.sin_zero, '\0', sizeof(socket_info->address.sin_zero));    
+
     socket_info->address.sin_family = AF_INET;
     socket_info->address.sin_addr.s_addr = inet_addr(ip.c_str());
     socket_info->address.sin_port = htons(atoi(port.c_str()));
     socket_info->address_len = sizeof(socket_info->address);
     //addr = socket_info.address;
-    if (inet_aton(ip.c_str(), &socket_info->address.sin_addr) == 0)
-    {
-        close(socket_info->socket_fd);
-        throw Server_err("Inet failure");
-    }
-    memset(socket_info->address.sin_zero, '\0', sizeof(socket_info->address.sin_zero));    
     if (bind(socket_info->socket_fd, (struct sockaddr *) &socket_info->address, sizeof(socket_info->address)) < 0)
     {
         close(socket_fd);
@@ -74,12 +70,21 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         close(socket_info->socket_fd);
         throw Server_err("fnctl error");
     }
+    
+    this->kq = kqueue();
+    
+    if (this->kq < 0)
+    {
+        close(socket_info->socket_fd);
+        throw Server_err("kqueue error");
+    }
 
     struct kevent ev;
     EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
     
     if (kevent(this->kq, &ev, 1, NULL, 0, NULL) < 0)
     {
+        
         close(socket_info->socket_fd);
         throw Server_err("kevent error!!!");
     }
@@ -108,7 +113,6 @@ Servers::Servers(configurationSA &config)
 {
     configurationSA::data_type conf = config.get_data();
     std::set <std::pair<std::string, std::string> > bind_sockets_list;
-    this->kq = kqueue();
     try
     {
         for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)

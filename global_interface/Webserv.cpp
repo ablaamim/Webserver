@@ -14,7 +14,6 @@ void Webserv::add_event(int socket_fd, uint16_t filter, Servers::socket_t *socke
 }
 */
 
-
 int Webserv::event_check(struct kevent *event, int kq_return)
 {
     std::cout << COLOR_BLUE << "EVENT CHECK" << COLOR_RESET << std::endl;
@@ -52,10 +51,14 @@ int Webserv::event_check(struct kevent *event, int kq_return)
             }
             struct kevent event;
             EV_SET(&event, socket->socket_fd, EVFILT_READ, EV_ADD, 0, 0,reinterpret_cast<void *>(socket));
+            
+            
             int kq_return = kevent(this->kq, &event, 1, NULL, 0, NULL);
             if (kq_return == -1)
             {
-                std::cerr << "kevent error!!!" << std::endl;
+                std::cout << COLOR_BLUE << "KQ VALUE = " << this->kq << COLOR_RESET << std::endl;
+
+                std::cerr << "->kevent error!!!<-" << std::endl;
                 throw std::runtime_error("kevent");
             }
             //char str[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>HELLO</h1></body></html>";
@@ -86,22 +89,24 @@ void Webserv::run()
 {
     
     std::cout << std::endl << COLOR_GREEN << "                 Server is running" << COLOR_RESET << std::endl;
-    //this->kq = kqueue();
-    // Server loop
+
+            std::cout<< std::endl << COLOR_BLUE<< "-> KQ VALUE BEFORE LOOP " << this->kq << std::endl;
     while (1337)
     {
         try
         {
-            //this->kq = kqueue();
             struct kevent event[EVENT_LIST];
 
-            std::cout << this->kq << std::endl;
             std::cout << std::endl;
-            int kq_return = kevent(this->kq, NULL, 0, NULL, EVENT_LIST, &this->timeout);
+            int kq_return = kevent(this->kq, event, 0, 0, EVENT_LIST, &this->timeout);
+            
+            std::cout<< std::endl << COLOR_BLUE<< "-> KQ VALUE INSIDE LOOP " << this->kq << std::endl;
+
             if (kq_return == -1)
             {
+                std::cout << "KQ VAL AFTER KVENT = " << this->kq << std::endl;
                 // C++ 11 feature : throw exception i will replace it with a custom exception class later.
-                std::cerr << "kevent error!!!" << std::endl;
+                std::cerr << "kevent error!!! <-" << std::endl;
                 throw std::runtime_error("kevent");
             }
             if (kq_return == 0)
@@ -121,21 +126,18 @@ void Webserv::run()
 
 Webserv::Webserv(char *config_file)
 {
-    // set kqueue value using kqueue() function.
-    this->kq = kqueue();
-
     // Parse config file and create a configurationSA object
     configurationSA config(config_file);
     
     // Create a server object with the configurationSA object
     Servers         server(config);
-    //server.kq = this->kq;
+    this->kq = server.kq;
     
     // set timeout value for kevent function
     this->timeout.tv_sec = 1;
     this->timeout.tv_nsec = 0;
 
-    std::cout << std::endl << COLOR_BLUE << "--------------------> KQ VALUE = " << this->kq << COLOR_RESET << std::endl << std::endl;
+    std::cout << std::endl << COLOR_BLUE << "-> KQ VAL IN WEBSERV CONSTRUCTOR = " << this->kq << COLOR_RESET << std::endl << std::endl;
 }
 
 // default destructor
