@@ -20,8 +20,6 @@ int Webserv::event_check(struct kevent *event, int kq_return)
 
     for (int i = 0; i < kq_return; i++)
     {
-        //std::cout << COLOR_BLUE << "EVENT COUGHT" << COLOR_RESET << std::endl;
-        //std::cout << COLOR_BLUE << "EVENT " << i << COLOR_RESET << std::endl;
         Servers::socket_t *new_socket = reinterpret_cast<Servers::socket_t *>(event[i].udata);
         if (new_socket->success_flag)
         {
@@ -87,41 +85,20 @@ int Webserv::event_check(struct kevent *event, int kq_return)
 
 void Webserv::run()
 {
+    struct kevent event[EVENT_LIST];
+    int kq_return = 0;
     
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(50) << "Server is running" << COLOR_RESET << std::endl;
-
-            std::cout<< std::endl << COLOR_BLUE<< "-> KQ VALUE BEFORE LOOP " << this->kq << std::endl;
     while (1337)
     {
-        try
-        {
-            struct kevent event[EVENT_LIST];
-
-            std::cout << std::endl;
-            int kq_return = kevent(this->kq, event, 0, 0, EVENT_LIST, &this->timeout);
-            
-            std::cout<< std::endl << COLOR_BLUE<< "-> KQ VALUE INSIDE LOOP " << this->kq << std::endl;
-
-            if (kq_return == -1)
-            {
-                std::cout << "KQ VAL AFTER KVENT = " << this->kq << std::endl;
-                // C++ 11 feature : throw exception i will replace it with a custom exception class later.
-                std::cerr << "kevent error!!! <-" << std::endl;
-                throw std::runtime_error("kevent");
-            }
-            if (kq_return == 0)
-            {
-                std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;     
-                continue;
-            }
-            std::cout << COLOR_BLUE << "KQ RETURN = " << kq_return << COLOR_RESET << std::endl;
+        kq_return = kevent(this->kq, NULL, 0, event, EVENT_LIST, &this->timeout);
+        if (kq_return == -1)
+            perror("kevent inside infinit loop");
+        else if (kq_return == 0)
+            std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
+        else
             event_check(event, kq_return);
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << std::endl;
-        }   
     }
 }
 
