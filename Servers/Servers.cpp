@@ -1,5 +1,4 @@
-#include "Servers.hpp"
-#include "../parsing/ConfigurationParser.hpp"
+
 #include "../MainInc/main.hpp"
 
 Servers::socket_type Servers::get_socket_ip_port(void)
@@ -17,8 +16,10 @@ int Servers::get_kq()
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
     socket_t    *socket_info = new socket_t;
-    int         socket_fd;
-   //std::cout << "KQUEUE VAL : " << kq << std::endl;
+    struct kevent ev;
+
+
+    
     socket_info->ip = ip;
     socket_info->port = port;
     socket_info->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -41,23 +42,17 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
 
     if (setsockopt(socket_info->socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_info->option, sizeof(socket_info->option)) < 0)
     {
-        ///std::cout << "PROBLEM HERE ! " << std::endl;
         close(socket_info->socket_fd);
         throw Server_err(SOCKET_OPTION_ERR);
     }
     
     memset(socket_info->address.sin_zero, '\0', sizeof(socket_info->address.sin_zero));    
-
     socket_info->address.sin_family = AF_INET;
     socket_info->address.sin_addr.s_addr = inet_addr(ip.c_str());
     socket_info->address.sin_port = htons(atoi(port.c_str()));
     socket_info->address_len = sizeof(socket_info->address);
-    //addr = socket_info.address;
     if (bind(socket_info->socket_fd, (struct sockaddr *) &socket_info->address, sizeof(socket_info->address)) < 0)
-    {
-        close(socket_fd);
         throw Server_err(SOCKET_BINDING_ERR);
-    }
     
     if (listen(socket_info->socket_fd, TIMEOUT) < 0)
     {
@@ -70,16 +65,8 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         close(socket_info->socket_fd);
         throw Server_err("fnctl error");
     }
-    
-    this->kq = kqueue();
-    
-    if (this->kq < 0)
-    {
-        close(socket_info->socket_fd);
-        throw Server_err("kqueue error");
-    }
 
-    struct kevent ev;
+    
     EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
     
     if (kevent(this->kq, &ev, 1, NULL, 0, NULL) < 0)
@@ -88,7 +75,6 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         close(socket_info->socket_fd);
         throw Server_err("kevent error!!!");
     }
-    //socket_ip_port.insert(std::make_pair(socket_fd, socket_info));
 }
 
 void Servers::listen_for_connections()
@@ -113,6 +99,10 @@ Servers::Servers(configurationSA &config)
 {
     configurationSA::data_type conf = config.get_data();
     std::set <std::pair<std::string, std::string> > bind_sockets_list;
+    this->kq = kqueue();
+    
+    if (this->kq < 0)
+        throw Server_err("kqueue error");
     try
     {
         for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
@@ -133,12 +123,7 @@ Servers::Servers(configurationSA &config)
                 }
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
-        }
-        //listen_for_connections();
-        //std::cout << socket_ip_port.size() << " sockets created" << std::endl;
-        //std::cout << socket_ip_port.begin()->first << std::endl;
-        //if (fcntl(socket_ip_port.begin()->first, F_SETFL, O_NONBLOCK) < 0)
-            //throw Server_err("fnctl error");        
+        }     
     }
     catch (const std::exception& e)
     {

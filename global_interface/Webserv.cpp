@@ -1,4 +1,4 @@
-#include "Webserv.hpp"
+
 #include "../MainInc/main.hpp"
 
 /*
@@ -18,7 +18,7 @@ int Webserv::event_check(struct kevent *event, int kq_return)
 {
     std::cout << COLOR_BLUE << "EVENT CHECK" << COLOR_RESET << std::endl;
 
-    for (unsigned int i = 0; i < kq_return; i++)
+    for (int i = 0; i < kq_return; i++)
     {
         //std::cout << COLOR_BLUE << "EVENT COUGHT" << COLOR_RESET << std::endl;
         //std::cout << COLOR_BLUE << "EVENT " << i << COLOR_RESET << std::endl;
@@ -88,7 +88,8 @@ int Webserv::event_check(struct kevent *event, int kq_return)
 void Webserv::run()
 {
     
-    std::cout << std::endl << COLOR_GREEN << "                 Server is running" << COLOR_RESET << std::endl;
+    std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
+    std::setw(50) << "Server is running" << COLOR_RESET << std::endl;
 
             std::cout<< std::endl << COLOR_BLUE<< "-> KQ VALUE BEFORE LOOP " << this->kq << std::endl;
     while (1337)

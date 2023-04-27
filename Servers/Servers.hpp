@@ -1,27 +1,14 @@
 #ifndef SERVERS_HPP
 # define SERVERS_HPP
 
-#include "../parsing/ConfigurationParser.hpp"
 #include "../MainInc/main.hpp"
-
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-#include <list>
-#include <algorithm>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 class configurationSA;
 
 class Servers
 {
     public :  
-            int     kq;
+        int     kq;
         class socket_t
         {
             public :
@@ -37,15 +24,13 @@ class Servers
 
     // map of socket_t with the key being the socket file descriptor
     typedef std::map<int, socket_t> socket_type;
+    struct      timespec timeout;
     
     private :
 
         socket_type socket_ip_port;
-        struct      timespec timeout;
         void        new_server_create_socket(std::string ip, std::string port);
         void        listen_for_connections();
-        //int         accept_connection(socket_t *new_socket);
-        //void addEvent(int socket_fd, uint16_t filter, socket_t *socket_info);
 
 
     public :
@@ -54,9 +39,6 @@ class Servers
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);
-        //void add_event1(int socket_fd, uint16_t filter, socket_t socket_info);
-
-        //int get_kq(void);
 
     // Exceptions
     class Server_err : public std::exception

@@ -11,28 +11,12 @@ OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
 
-CC = g++
+CC = c++
 
-CFLAGS =  #-fsanitize=address -g3 -std=c++98 #-Wall -Wextra -Werror #-O2 -Werror=format-security -D_GLIBCXX_ASSERTIONS
+CFLAGS =  -std=c++98 -Wall -Wextra -Werror #-fsanitize=address -g3
 
-##
-# -D_GLIBCXX_ASSERTIONS enables additional C++ standard library hardening. 
-# It is implemented in libstdc++ and described in the libstdc++ documentation.
-##
-
-##
-# -Werror=format-security enables format string security checks.
-##
-
-##
-# -O2 enables optimization.
-##
-
-$(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
-
-%.o: %.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+$(NAME): 
+	$(CC) $(CFLAGS) $(SRC) -o $(NAME)
 
 clean:
 	rm -f $(OBJ)
