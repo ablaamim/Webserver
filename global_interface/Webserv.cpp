@@ -16,14 +16,13 @@ void Webserv::add_event(int socket_fd, uint16_t filter, Servers::socket_t *socke
 
 int Webserv::event_check(struct kevent *event_list, int new_events, struct kevent *current_event)
 {
-    std::cout << COLOR_BLUE << "EVENT CHECK" << COLOR_RESET << std::endl;
-
+    //std::cout << COLOR_BLUE << "EVENT CHECK" << COLOR_RESET << std::endl;
     for (int i = 0; i < new_events; i++)
     {
         current_event = &event_list[i];   
         if (current_event->flags & EV_ERROR)
         {
-            std::cerr << "EV_ERROR" << std::endl;
+            //std::cerr << "EV_ERROR" << std::endl;
             throw std::runtime_error("EV_ERROR");
         }
         else if (current_event->filter == EVFILT_READ)
@@ -40,7 +39,7 @@ int Webserv::event_check(struct kevent *event_list, int new_events, struct keven
             }
             else
             {
-                std::cout << COLOR_BLUE << "ACCEPTED" << COLOR_RESET << std::endl;
+                std::cout << COLOR_BLUE << "SOCKET ACCEPTED" << COLOR_RESET << std::endl;
             }
             if (setsockopt(socket->socket_fd, SOL_SOCKET, SO_NOSIGPIPE, &option, sizeof(option)) == -1)
             {
