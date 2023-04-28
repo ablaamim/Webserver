@@ -13,12 +13,18 @@ int Servers::get_kq()
 }
 */
 
+void change_events(std::vector<struct kevent>& change_list, int ident, int16_t filter,
+        uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
+{
+    struct kevent temp_event;
+
+    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+    change_list.push_back(temp_event);
+}
+
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
     socket_t    *socket_info = new socket_t;
-    struct kevent ev;
-
-
     
     socket_info->ip = ip;
     socket_info->port = port;
@@ -54,7 +60,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     if (bind(socket_info->socket_fd, (struct sockaddr *) &socket_info->address, sizeof(socket_info->address)) < 0)
         throw Server_err(SOCKET_BINDING_ERR);
     
-    if (listen(socket_info->socket_fd, TIMEOUT) < 0)
+    if (listen(socket_info->socket_fd, EVENT_LIST) < 0)
     {
         close(socket_info->socket_fd);
         throw Server_err(SOCKET_LISTEN_ERR);
@@ -66,15 +72,9 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         throw Server_err("fnctl error");
     }
 
+    EV_SET(this->event_list, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
     
-    EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
-    
-    if (kevent(this->kq, &ev, 1, NULL, 0, NULL) < 0)
-    {
-        
-        close(socket_info->socket_fd);
-        throw Server_err("kevent error!!!");
-    }
+    change_events(this->change_list, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
 }
 
 void Servers::listen_for_connections()

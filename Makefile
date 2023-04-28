@@ -13,10 +13,13 @@ all: $(NAME)
 
 CC = c++
 
-CFLAGS =  -std=c++98 -Wall -Wextra -Werror #-fsanitize=address -g3
+CFLAGS =  -std=c++98 #-Wall -Wextra -Werror -fsanitize=address -g3
 
-$(NAME): 
-	$(CC) $(CFLAGS) $(SRC) -o $(NAME)
+$(NAME): $(OBJ)
+	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJ)

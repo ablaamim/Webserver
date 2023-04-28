@@ -2,6 +2,7 @@
 # define SERVERS_HPP
 
 #include "../MainInc/main.hpp"
+#include "../defines/defines.hpp"
 
 class configurationSA;
 
@@ -39,6 +40,9 @@ class Servers
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);
+        std::vector<struct kevent> change_list;
+        struct kevent event_list[EVENT_LIST];
+
 
     // Exceptions
     class Server_err : public std::exception

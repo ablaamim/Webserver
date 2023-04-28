@@ -14,19 +14,25 @@ void Webserv::add_event(int socket_fd, uint16_t filter, Servers::socket_t *socke
 }
 */
 
-int Webserv::event_check(struct kevent *event, int kq_return)
+int Webserv::event_check(struct kevent *event_list, int new_events, struct kevent *current_event)
 {
     std::cout << COLOR_BLUE << "EVENT CHECK" << COLOR_RESET << std::endl;
 
-    for (int i = 0; i < kq_return; i++)
+    for (int i = 0; i < new_events; i++)
     {
-        if (reinterpret_cast<Servers::socket_t *>(event[i].udata)->success_flag)
+        current_event = &event_list[i];   
+        if (current_event->flags & EV_ERROR)
+        {
+            std::cerr << "EV_ERROR" << std::endl;
+            throw std::runtime_error("EV_ERROR");
+        }
+        else if (current_event->filter == EVFILT_READ)
         {
             std::cout << COLOR_BLUE << "EVENT COUGHT " << i << COLOR_RESET << std::endl;
             Servers::socket_t *socket = new Servers::socket_t;
             int option = 1;
             socklen_t len = sizeof(socket->address);
-            socket->socket_fd = accept(event[i].ident, (sockaddr *)&socket->address, &len);
+            event_list[i].ident = accept(event_list[i].ident, (sockaddr *)&socket->address, &len);
             if (socket->socket_fd == -1)
             {
                 std::cerr << "accept error" << std::endl;
@@ -46,11 +52,9 @@ int Webserv::event_check(struct kevent *event, int kq_return)
                 throw std::runtime_error("fcntl");
             }
             struct kevent event;
-            EV_SET(&event, socket->socket_fd, EVFILT_READ, EV_ADD, 0, 0,reinterpret_cast<void *>(socket));
-            
-            
-            int kq_return = kevent(this->kq, &event, 1, NULL, 0, NULL);
-            if (kq_return == -1)
+            EV_SET(&event, socket->socket_fd, EVFILT_WRITE, EV_ADD, 0, 0,reinterpret_cast<void *>(socket));
+            int new_event = kevent(this->kq, &event, 1, NULL, 0, 0);
+            if (new_event == -1)
             {
                 std::cout << COLOR_BLUE << "KQ VALUE = " << this->kq << COLOR_RESET << std::endl;
 
@@ -62,7 +66,7 @@ int Webserv::event_check(struct kevent *event, int kq_return)
             
         }
         else
-            std::cout << COLOR_RED << "EVENT ERROR" << i << " " << event[i].filter << COLOR_RESET << std::endl;
+            std::cout << COLOR_RED << "EVENT ERROR" << i << " " << event_list[i].filter << COLOR_RESET << std::endl;
     }
 
     return (EXIT_FAILURE);
@@ -70,20 +74,26 @@ int Webserv::event_check(struct kevent *event, int kq_return)
 
 void Webserv::run()
 {
-    struct kevent event[EVENT_LIST];
-    int kq_return = 0;
+    struct kevent *curr_event;
+    int new_events;
     
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(50) << "Server is running" << COLOR_RESET << std::endl;
     while (1337)
     {
-        kq_return = kevent(this->kq, NULL, 0, event, EVENT_LIST, &this->timeout);
-        if (kq_return == -1)
+        new_events = kevent(this->kq, &change_list[0], change_list.size(), this->event_list, 0, &this->timeout);
+        
+        this->change_list.clear();
+
+        if (new_events == -1)
             perror("kevent inside infinit loop");
-        else if (kq_return == 0)
+        else if (new_events == 0)
+        {
             std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
+            sleep(1);
+        }
         else
-            event_check(event, kq_return);
+            event_check(event_list, new_events, curr_event);
     }
 }
 
@@ -91,14 +101,16 @@ Webserv::Webserv(char *config_file)
 {
     // Parse config file and create a configurationSA object
     configurationSA config(config_file);
-    
+    this->timeout.tv_sec = 3;
+    this->timeout.tv_nsec = 0;
     // Create a server object with the configurationSA object
     Servers         server(config);
     this->kq = server.kq;
+    this->change_list = server.change_list;
+    memcpy(this->event_list, server.event_list, sizeof(server.event_list));
     
     // set timeout value for kevent function
-    this->timeout.tv_sec = 1;
-    this->timeout.tv_nsec = 0;
+
 
     std::cout << std::endl << COLOR_BLUE << "-> KQ VAL IN WEBSERV CONSTRUCTOR = " << this->kq << COLOR_RESET << std::endl << std::endl;
 }
