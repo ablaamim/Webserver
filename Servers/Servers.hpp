@@ -25,7 +25,18 @@ class Servers
 
     // map of socket_t with the key being the socket file descriptor
     typedef std::map<int, socket_t> socket_type;
+    
+    static std::vector<int>  fd_vector;
+    
     struct      timespec timeout;
+    
+    void print_fd_vector(void)
+    {
+        std::cout << "fd_vector = ";
+        for (std::vector<int>::iterator it = fd_vector.begin(); it != fd_vector.end(); it++)
+            std::cout << *it << " ";
+        std::cout << std::endl;
+    }
     
     private :
 

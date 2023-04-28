@@ -1,6 +1,8 @@
 
 #include "../MainInc/main.hpp"
 
+std::vector<int>  Servers::fd_vector;
+
 Servers::socket_type Servers::get_socket_ip_port(void)
 {
     return (socket_ip_port);
@@ -75,6 +77,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     EV_SET(this->event_list, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
     
     change_events(this->change_list, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
+    this->fd_vector.push_back(socket_info->socket_fd);
 }
 
 void Servers::listen_for_connections()
@@ -123,7 +126,7 @@ Servers::Servers(configurationSA &config)
                 }
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
-        }     
+        }
     }
     catch (const std::exception& e)
     {

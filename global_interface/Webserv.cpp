@@ -107,6 +107,7 @@ Webserv::Webserv(char *config_file)
     this->kq = server.kq;
     this->change_list = server.change_list;
     memcpy(this->event_list, server.event_list, sizeof(server.event_list));
+    server.print_fd_vector();
     
     // set timeout value for kevent function
 
