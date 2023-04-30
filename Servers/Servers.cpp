@@ -7,10 +7,6 @@ Servers::Servers(configurationSA &config)
 {
     configurationSA::data_type conf = config.get_data();
     std::set <std::pair<std::string, std::string> > bind_sockets_list;
-    this->kq = kqueue();
-    
-    if (this->kq < 0)
-        throw Server_err("kqueue error");
     try
     {
         for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
@@ -32,7 +28,10 @@ Servers::Servers(configurationSA &config)
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
         }
-    }
+        this->kq = kqueue();
+        if (this->kq < 0)
+            throw Server_err("kqueue error");
+        }
     catch (const std::exception& e)
     {
         for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)

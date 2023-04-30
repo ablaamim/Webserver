@@ -1,27 +1,82 @@
 
 #include "../MainInc/main.hpp"
 
+void Webserv::change_events(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
+        uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
+{
+    struct kevent temp_event;
+
+    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+    change_list.push_back(temp_event);
+}
+
+
+void Webserv::disconnect_client(int client_fd, std::map<int, std::string>& clients)
+{
+    std::cout << "client disconnected: " << client_fd << std::endl;
+    close(client_fd);
+    clients.erase(client_fd);
+}
 
 
 int Webserv::event_check(struct kevent *event_list, int new_events, std::vector<int> & fds_s)
 {
-    struct kevent *current_event;
+    struct kevent *curr_event;
     Servers::socket_t *socket = new Servers::socket_t;
     int client_socket;
-    std::map<int, string> clients;
+    std::map<int, std::string> clients;
+    char buf[1024];
 
     for (int i = 0; i < new_events; i++)
     {
-        current_event = &event_list[i];   
-        if (current_event->flags & EV_ERROR)
+        curr_event = &event_list[i];   
+        if (curr_event->flags & EV_ERROR)
             throw std::runtime_error("EV_ERROR");
-        else if (current_event->filter == EVFILT_READ)
+        else if (curr_event->filter == EVFILT_READ)
         {
             if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
             {
-                if((client_socket =  accept(current_event->ident, NULL, NULL)) < 0)
+                if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
                     throw std::runtime_error("accept");
-                std::cout << "accept new client: " << client_socket << endl;
+                std::cout << "accept new client: " << client_socket << std::endl;
+                change_events(change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+                change_events(change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+                clients[client_socket] = "";
+            }
+            else
+                std::cout << "not found" << std::endl;
+            if (clients.find(curr_event->ident)!= clients.end())
+            {
+                int n = read(curr_event->ident, buf, sizeof(buf));
+                if (n <= 0)
+                {
+                    if (n < 0)
+                        std::cerr << "client read error!" << std::endl;
+                    disconnect_client(curr_event->ident, clients);
+                }
+                else
+                {
+                    buf[n] = '\0';
+                    clients[curr_event->ident] += buf;
+                    std::cout << "received data from " << curr_event->ident << ": " << clients[curr_event->ident] << std::endl;
+                }
+            }
+        }
+        else if (curr_event->filter == EVFILT_WRITE)
+        {
+            if (clients.find(curr_event->ident) != clients.end())
+            {
+                if (clients[curr_event->ident] != "")
+                {
+                    if (write(curr_event->ident, clients[curr_event->ident].c_str(),
+                                    clients[curr_event->ident].size()) == -1)
+                    {
+                        std::cerr << "client write error!" << std::endl;
+                        disconnect_client(curr_event->ident, clients);  
+                    }
+                    else
+                        clients[curr_event->ident].clear();
+                }
             }
         }
         else
@@ -37,15 +92,16 @@ void Webserv::run(std::vector<int> & fds_socket)
     int new_events;
     
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
-    std::setw(50) << "Server is running" << COLOR_RESET << std::endl;
+    std::setw(50) << "Server is running" << " " << this->kq << COLOR_RESET << std::endl;
     while (1337)
     {
-        new_events = kevent(this->kq, change_list, 0, this->event_list, 0, &this->timeout);
+        new_events = kevent(this->kq, change_list, 0, this->event_list, EVENT_LIST, &this->timeout);
         this->change_list.clear();
         if (new_events == -1)
-            perror("kevent inside infinit loop");
+            perror("kevent");
         else if (!new_events)
-            std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
+            continue;
+            //std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
         else
             event_check(event_list, new_events, fds_socket);
     }
