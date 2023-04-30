@@ -9,10 +9,9 @@ class Webserv
         Webserv(char *config_file);
         ~Webserv();
 
-        void    run();
+        void    run(std::vector<int> & fds_socket);
 
-        int     event_check(struct kevent *event, int kq_return, struct kevent *curr_event);
-        //int     accept_connection(Servers::socket_t *new_socket);
+        int     event_check(struct kevent *event, int kq_return);
         std::vector<struct kevent> change_list;
         struct kevent event_list[EVENT_LIST];
 

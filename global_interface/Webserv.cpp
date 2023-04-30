@@ -1,30 +1,16 @@
 
 #include "../MainInc/main.hpp"
 
-/*
-void Webserv::add_event(int socket_fd, uint16_t filter, Servers::socket_t *socket_info)
-{
-    struct kevent event;
-    EV_SET(&event, socket_fd, filter, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, socket_info);
-    if (kevent(this->kq, &event, 1, NULL, 0, NULL) == -1)
-    {
-        std::cerr << "kevent error" << std::endl;
-        throw std::runtime_error("kevent");
-    }
-}
-*/
 
-int Webserv::event_check(struct kevent *event_list, int new_events, struct kevent *current_event)
+
+int Webserv::event_check(struct kevent *event_list, int new_events)
 {
-    //std::cout << COLOR_BLUE << "EVENT CHECK" << COLOR_RESET << std::endl;
+    struct kevent *current_event;
     for (int i = 0; i < new_events; i++)
     {
         current_event = &event_list[i];   
         if (current_event->flags & EV_ERROR)
-        {
-            //std::cerr << "EV_ERROR" << std::endl;
             throw std::runtime_error("EV_ERROR");
-        }
         else if (current_event->filter == EVFILT_READ)
         {
             std::cout << COLOR_BLUE << "EVENT COUGHT " << i << COLOR_RESET << std::endl;
@@ -71,28 +57,27 @@ int Webserv::event_check(struct kevent *event_list, int new_events, struct keven
     return (EXIT_FAILURE);
 }
 
-void Webserv::run()
+void Webserv::run(std::vector<int> & fds_socket)
 {
-    struct kevent *curr_event;
+    struct kevent *change_list;
     int new_events;
     
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(50) << "Server is running" << COLOR_RESET << std::endl;
+    (void) fds_socket;
     while (1337)
     {
-        new_events = kevent(this->kq, &change_list[0], change_list.size(), this->event_list, 0, &this->timeout);
-        
+        new_events = kevent(this->kq, change_list, 0, this->event_list, 0, &this->timeout);
         this->change_list.clear();
-
         if (new_events == -1)
             perror("kevent inside infinit loop");
-        else if (new_events == 0)
+        else if (!new_events)
         {
-            std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
-            sleep(1);
+            //std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
+            continue;
         }
         else
-            event_check(event_list, new_events, curr_event);
+            event_check(event_list, new_events);
     }
 }
 
@@ -102,17 +87,14 @@ Webserv::Webserv(char *config_file)
     configurationSA config(config_file);
     this->timeout.tv_sec = 3;
     this->timeout.tv_nsec = 0;
+
     // Create a server object with the configurationSA object
     Servers         server(config);
     this->kq = server.kq;
-    this->change_list = server.change_list;
-    memcpy(this->event_list, server.event_list, sizeof(server.event_list));
-    server.print_fd_vector();
-    
+
     // set timeout value for kevent function
-
-
     std::cout << std::endl << COLOR_BLUE << "-> KQ VAL IN WEBSERV CONSTRUCTOR = " << this->kq << COLOR_RESET << std::endl << std::endl;
+    this->run(Servers::fd_vector);
 }
 
 // default destructor

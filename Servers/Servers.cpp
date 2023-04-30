@@ -1,28 +1,69 @@
 
 #include "../MainInc/main.hpp"
+#include "../Servers/Servers.hpp"
 
-std::vector<int>  Servers::fd_vector;
+
+Servers::Servers(configurationSA &config)
+{
+    configurationSA::data_type conf = config.get_data();
+    std::set <std::pair<std::string, std::string> > bind_sockets_list;
+    this->kq = kqueue();
+    
+    if (this->kq < 0)
+        throw Server_err("kqueue error");
+    try
+    {
+        for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
+        { 
+            for (configurationSA::Server::type_listen::iterator iterListen = iterConf->listen.begin(); iterListen != iterConf->listen.end(); iterListen++)
+            {
+                for (std::set<std::string>::iterator iterSet = iterListen->second.begin(); iterSet != iterListen->second.end(); iterSet++)
+                {
+                    if (!bind_sockets_list.count(std::make_pair(iterListen->first, *iterSet)))
+                    {
+                        std::cout << std::endl << COLOR_BLUE << "Creating socket for " << iterListen->first << " : " << *iterSet << COLOR_RESET <<std::endl;
+                        new_server_create_socket(iterListen->first, *iterSet);
+                        bind_sockets_list.insert(std::make_pair(iterListen->first, *iterSet));
+                    }
+                    std::cout << COLOR_GREEN << "\rLoading~"   << COLOR_RESET << "   listening on        " << COLOR_RED << iterListen->first << "         :  " <<  *iterSet << COLOR_RESET;                
+                    std::cout.flush();
+                    usleep(100000);
+                }
+            }
+            std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
+            close(iter->first);
+        throw Server_err(e.what());
+    }
+}
+
+Servers::~Servers()
+{
+    //std::cout << "Servers destructor called" << std::endl;
+    for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
+    {
+        close(iter->first);
+    }
+    //std::cout << "----------------------------------------" << std::endl;
+}
+
+void Servers::print_fd_vector()
+{
+    std::cout << "fd_vector = ";
+    for (std::vector<int>::iterator it = Servers::fd_vector.begin(); it != Servers::fd_vector.end(); it++)
+        std::cout << *it << " ";
+    std::cout << std::endl;
+}
 
 Servers::socket_type Servers::get_socket_ip_port(void)
 {
     return (socket_ip_port);
 }
 
-/*
-int Servers::get_kq()
-{
-    return (kq);
-}
-*/
-
-void change_events(std::vector<struct kevent>& change_list, int ident, int16_t filter,
-        uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
-{
-    struct kevent temp_event;
-
-    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
-    change_list.push_back(temp_event);
-}
 
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
@@ -75,9 +116,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     }
 
     EV_SET(this->event_list, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
-    
-    change_events(this->change_list, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
-    this->fd_vector.push_back(socket_info->socket_fd);
+    Servers::fd_vector.push_back((int)socket_info->socket_fd);
 }
 
 void Servers::listen_for_connections()
@@ -96,52 +135,4 @@ void Servers::listen_for_connections()
             throw Server_err(SOCKET_LISTEN_ERR);
         }    
     }
-}
-
-Servers::Servers(configurationSA &config)
-{
-    configurationSA::data_type conf = config.get_data();
-    std::set <std::pair<std::string, std::string> > bind_sockets_list;
-    this->kq = kqueue();
-    
-    if (this->kq < 0)
-        throw Server_err("kqueue error");
-    try
-    {
-        for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
-        { 
-            for (configurationSA::Server::type_listen::iterator iterListen = iterConf->listen.begin(); iterListen != iterConf->listen.end(); iterListen++)
-            {
-                for (std::set<std::string>::iterator iterSet = iterListen->second.begin(); iterSet != iterListen->second.end(); iterSet++)
-                {
-                    if (!bind_sockets_list.count(std::make_pair(iterListen->first, *iterSet)))
-                    {
-                        std::cout << std::endl << COLOR_BLUE << "Creating socket for " << iterListen->first << " : " << *iterSet << COLOR_RESET <<std::endl;
-                        new_server_create_socket(iterListen->first, *iterSet);
-                        bind_sockets_list.insert(std::make_pair(iterListen->first, *iterSet));
-                    }
-                    std::cout << COLOR_GREEN << "\rLoading~"   << COLOR_RESET << "   listening on        " << COLOR_RED << iterListen->first << "         :  " <<  *iterSet << COLOR_RESET;                
-                    std::cout.flush();
-                    usleep(100000);
-                }
-            }
-            std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
-        }
-    }
-    catch (const std::exception& e)
-    {
-        for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
-            close(iter->first);
-        throw Server_err(e.what());
-    }
-}
-
-Servers::~Servers()
-{
-    //std::cout << "Servers destructor called" << std::endl;
-    for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
-    {
-        close(iter->first);
-    }
-    //std::cout << "----------------------------------------" << std::endl;
 }
