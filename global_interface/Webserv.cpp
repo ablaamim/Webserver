@@ -3,9 +3,13 @@
 
 
 
-int Webserv::event_check(struct kevent *event_list, int new_events)
+int Webserv::event_check(struct kevent *event_list, int new_events, std::vector<int> & fds_s)
 {
     struct kevent *current_event;
+    Servers::socket_t *socket = new Servers::socket_t;
+    int client_socket;
+    std::map<int, string> clients;
+
     for (int i = 0; i < new_events; i++)
     {
         current_event = &event_list[i];   
@@ -13,47 +17,17 @@ int Webserv::event_check(struct kevent *event_list, int new_events)
             throw std::runtime_error("EV_ERROR");
         else if (current_event->filter == EVFILT_READ)
         {
-            std::cout << COLOR_BLUE << "EVENT COUGHT " << i << COLOR_RESET << std::endl;
-            Servers::socket_t *socket = new Servers::socket_t;
-            int option = 1;
-            socklen_t len = sizeof(socket->address);
-            event_list[i].ident = accept(event_list[i].ident, (sockaddr *)&socket->address, &len);
-            if (socket->socket_fd == -1)
+            if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
             {
-                std::cerr << "accept error" << std::endl;
-                throw std::runtime_error("accept");
+                if((client_socket =  accept(current_event->ident, NULL, NULL)) < 0)
+                    throw std::runtime_error("accept");
+                std::cout << "accept new client: " << client_socket << endl;
             }
-            else
-            {
-                std::cout << COLOR_BLUE << "SOCKET ACCEPTED" << COLOR_RESET << std::endl;
-            }
-            if (setsockopt(socket->socket_fd, SOL_SOCKET, SO_NOSIGPIPE, &option, sizeof(option)) == -1)
-            {
-                std::cerr << "setsockopt error" << std::endl;
-                throw std::runtime_error("setsockopt");
-            }
-            if (fcntl(socket->socket_fd, F_SETFL, O_NONBLOCK) < 0)
-            {
-                throw std::runtime_error("fcntl");
-            }
-            struct kevent event;
-            EV_SET(&event, socket->socket_fd, EVFILT_WRITE, EV_ADD, 0, 0,reinterpret_cast<void *>(socket));
-            int new_event = kevent(this->kq, &event, 1, NULL, 0, 0);
-            if (new_event == -1)
-            {
-                std::cout << COLOR_BLUE << "KQ VALUE = " << this->kq << COLOR_RESET << std::endl;
-
-                std::cerr << "->kevent error!!!<-" << std::endl;
-                throw std::runtime_error("kevent");
-            }
-            //char str[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>HELLO</h1></body></html>";
-            //write(socket->socket_fd, str, strlen(str));
-            
         }
         else
             std::cout << COLOR_RED << "EVENT ERROR" << i << " " << event_list[i].filter << COLOR_RESET << std::endl;
     }
-
+    delete (socket);
     return (EXIT_FAILURE);
 }
 
@@ -64,7 +38,6 @@ void Webserv::run(std::vector<int> & fds_socket)
     
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(50) << "Server is running" << COLOR_RESET << std::endl;
-    (void) fds_socket;
     while (1337)
     {
         new_events = kevent(this->kq, change_list, 0, this->event_list, 0, &this->timeout);
@@ -72,12 +45,9 @@ void Webserv::run(std::vector<int> & fds_socket)
         if (new_events == -1)
             perror("kevent inside infinit loop");
         else if (!new_events)
-        {
-            //std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
-            continue;
-        }
+            std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
         else
-            event_check(event_list, new_events);
+            event_check(event_list, new_events, fds_socket);
     }
 }
 
