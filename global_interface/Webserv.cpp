@@ -22,14 +22,17 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
 {
     int client_socket;
     char buf[1024];
+    struct kevent temp_event;
 
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw std::runtime_error("accept");
         std::cout << "accept new client: " << client_socket << std::endl;
-        change_events(this->change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        change_events(this->change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        EV_SET(&temp_event, client_socket, EVFILT_READ | EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        this->change_list.push_back(temp_event);
+        // change_events(this->change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        // change_events(this->change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         this->clients[client_socket] = "";
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
@@ -44,7 +47,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
         else
         {
             buf[n] = '\0';
-            this->clients[curr_event->ident] += buf;
+            this->clients[curr_event->ident] = buf;
             std::cout << "received data from " << curr_event->ident << ": " << this->clients[curr_event->ident] << std::endl;
         }
     }
