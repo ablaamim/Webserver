@@ -8,7 +8,12 @@ class configurationSA;
 class Servers
 {
     public :  
-        int     kq;
+        int                     kq;
+        static std::vector<int> fd_vector;
+        Servers(configurationSA &config);
+        ~Servers();
+        void    new_server_create_socket(std::string ip, std::string port);
+        void    thr_exce_close(std::string str, int socket_fd);
         class socket_t
         {
             public :
@@ -21,28 +26,6 @@ class Servers
                 size_t      data_s;
                 int         success_flag;
         };
-
-    // map of socket_t with the key being the socket file descriptor
-    typedef std::map<int, socket_t> socket_type;
-    static std::vector<int>  fd_vector;
-    
-    
-    private :
-
-        socket_type socket_ip_port;
-
-
-    public :
-
-        // Constructor
-        Servers(configurationSA &config);
-        ~Servers();
-        
-        Servers::socket_type get_socket_ip_port(void);
-        void        print_fd_vector();
-        void        new_server_create_socket(std::string ip, std::string port);
-        void        listen_for_connections();
-
         // Exceptions
         class Server_err : public std::exception
         {

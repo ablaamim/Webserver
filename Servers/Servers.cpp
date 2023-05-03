@@ -35,35 +35,23 @@ Servers::Servers(configurationSA &config)
     }
     catch (const std::exception& e)
     {
-        for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
-            close(iter->first);
+        for (std::vector<int>::iterator iter = fd_vector.begin(); iter != fd_vector.end(); iter++)
+            close(*iter);
         throw Server_err(e.what());
     }
 }
 
 Servers::~Servers()
 {
-    //std::cout << "Servers destructor called" << std::endl;
-    for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
-    {
-        close(iter->first);
-    }
-    //std::cout << "----------------------------------------" << std::endl;
+    for (std::vector<int>::iterator iter = fd_vector.begin(); iter != fd_vector.end(); iter++)
+        close(*iter);
 }
 
-void Servers::print_fd_vector()
+void    Servers::thr_exce_close(std::string str, int socket_fd)
 {
-    std::cout << "fd_vector = ";
-    for (std::vector<int>::iterator it = Servers::fd_vector.begin(); it != Servers::fd_vector.end(); it++)
-        std::cout << *it << " ";
-    std::cout << std::endl;
+    close(socket_fd);
+    throw Server_err(str);
 }
-
-Servers::socket_type Servers::get_socket_ip_port(void)
-{
-    return (socket_ip_port);
-}
-
 
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
@@ -76,14 +64,12 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info->option = 1;
     socket_info->success_flag = 1;
 
+    Servers::fd_vector.push_back((int)socket_info->socket_fd);
     if (socket_info->socket_fd < 0)
         throw Server_err(SOCKET_CREATE_ERR);
 
     if (setsockopt(socket_info->socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_info->option, sizeof(socket_info->option)) < 0)
-    {
-        close(socket_info->socket_fd);
-        throw Server_err(SOCKET_OPTION_ERR);
-    }
+        thr_exce_close(SOCKET_OPTION_ERR , socket_info->socket_fd);
     
     memset(socket_info->address.sin_zero, '\0', sizeof(socket_info->address.sin_zero));    
     socket_info->address.sin_family = AF_INET;
@@ -92,39 +78,13 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info->address_len = sizeof(socket_info->address);
     if (bind(socket_info->socket_fd, (struct sockaddr *) &socket_info->address, sizeof(socket_info->address)) < 0)
         throw Server_err(SOCKET_BINDING_ERR);
-    
     if (listen(socket_info->socket_fd, EVENT_LIST) < 0)
-    {
-        close(socket_info->socket_fd);
-        throw Server_err(SOCKET_LISTEN_ERR);
-    }
+        thr_exce_close(SOCKET_LISTEN_ERR , socket_info->socket_fd);
     
     if (fcntl(socket_info->socket_fd, F_SETFL, O_NONBLOCK) < 0)
-    {
-        close(socket_info->socket_fd);
-        throw Server_err("fnctl error");
-    }
+        thr_exce_close("fnctl error" , socket_info->socket_fd);
 
     EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     if (kevent(this->kq, &ev, 1, NULL, 0, NULL) == -1)
         throw Server_err("kqueue error");
-    Servers::fd_vector.push_back((int)socket_info->socket_fd);
-}
-
-void Servers::listen_for_connections()
-{
-    /*
-    std::cout << "----------------------------------------" << std::endl;
-    std::cout << "Listening for connections" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
-    */
-    for (Servers::socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
-    {
-        //std::cout << "Listening for connections on socket " << iter->first << std::endl;
-        if (listen(iter->first, TIMEOUT) < 0)
-        {
-            close(iter->first);
-            throw Server_err(SOCKET_LISTEN_ERR);
-        }    
-    }
 }
