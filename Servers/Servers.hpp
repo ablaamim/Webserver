@@ -39,7 +39,6 @@ class Servers
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);
-        struct kevent event_list[EVENT_LIST];
         void        print_fd_vector();
         void        new_server_create_socket(std::string ip, std::string port);
         void        listen_for_connections();

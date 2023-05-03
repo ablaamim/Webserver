@@ -13,7 +13,7 @@ class Webserv
         uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
         void disconnect_client(int client_fd, std::map<int, std::string>& clients);
         void    run(std::vector<int> & fds_socket);
-        int     event_check(struct kevent *event, int kq_return, std::vector<int> & fds_socket);
+        int     event_check(struct kevent *event, int kq_return, std::vector<int> & fds_socket, std::vector<struct kevent> change_list);
         std::vector<struct kevent> change_list;
         struct kevent event_list[EVENT_LIST];
 

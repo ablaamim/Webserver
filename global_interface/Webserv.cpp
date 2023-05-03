@@ -19,7 +19,7 @@ void Webserv::disconnect_client(int client_fd, std::map<int, std::string>& clien
 }
 
 
-int Webserv::event_check(struct kevent *event_list, int new_events, std::vector<int> & fds_s)
+int Webserv::event_check(struct kevent *event_list, int new_events, std::vector<int> & fds_s, std::vector<struct kevent> change_list)
 {
     struct kevent *curr_event;
     Servers::socket_t *socket = new Servers::socket_t;
@@ -43,9 +43,7 @@ int Webserv::event_check(struct kevent *event_list, int new_events, std::vector<
                 change_events(change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
                 clients[client_socket] = "";
             }
-            else
-                std::cout << "not found" << std::endl;
-            if (clients.find(curr_event->ident)!= clients.end())
+            else if (clients.find(curr_event->ident)!= clients.end())
             {
                 int n = read(curr_event->ident, buf, sizeof(buf));
                 if (n <= 0)
@@ -61,6 +59,8 @@ int Webserv::event_check(struct kevent *event_list, int new_events, std::vector<
                     std::cout << "received data from " << curr_event->ident << ": " << clients[curr_event->ident] << std::endl;
                 }
             }
+            else
+                    std::cout << "sdasdasd" << std::endl;
         }
         else if (curr_event->filter == EVFILT_WRITE)
         {
@@ -88,22 +88,21 @@ int Webserv::event_check(struct kevent *event_list, int new_events, std::vector<
 
 void Webserv::run(std::vector<int> & fds_socket)
 {
-    struct kevent *change_list;
     int new_events;
     
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(50) << "Server is running" << " " << this->kq << COLOR_RESET << std::endl;
     while (1337)
     {
-        new_events = kevent(this->kq, change_list, 0, this->event_list, EVENT_LIST, &this->timeout);
-        this->change_list.clear();
+        new_events = kevent(this->kq, &change_list[0], change_list.size(), this->event_list, EVENT_LIST, &this->timeout);
+        change_list.clear();
         if (new_events == -1)
             perror("kevent");
         else if (!new_events)
-            continue;
-            //std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
+            //continue;
+            std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
         else
-            event_check(event_list, new_events, fds_socket);
+            event_check(event_list, new_events, fds_socket, change_list);
     }
 }
 
@@ -124,7 +123,4 @@ Webserv::Webserv(char *config_file)
 }
 
 // default destructor
-Webserv::~Webserv()
-{
-    //std::cout << "Webserv destructor" << std::endl;
-}
+Webserv::~Webserv(){}

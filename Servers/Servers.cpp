@@ -9,6 +9,9 @@ Servers::Servers(configurationSA &config)
     std::set <std::pair<std::string, std::string> > bind_sockets_list;
     try
     {
+        this->kq = kqueue();
+        if (this->kq < 0)
+            throw Server_err("kqueue error");
         for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
         { 
             for (configurationSA::Server::type_listen::iterator iterListen = iterConf->listen.begin(); iterListen != iterConf->listen.end(); iterListen++)
@@ -28,10 +31,8 @@ Servers::Servers(configurationSA &config)
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
         }
-        this->kq = kqueue();
-        if (this->kq < 0)
-            throw Server_err("kqueue error");
-        }
+
+    }
     catch (const std::exception& e)
     {
         for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
@@ -67,6 +68,7 @@ Servers::socket_type Servers::get_socket_ip_port(void)
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
     socket_t    *socket_info = new socket_t;
+    struct kevent ev;
     
     socket_info->ip = ip;
     socket_info->port = port;
@@ -74,19 +76,8 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info->option = 1;
     socket_info->success_flag = 1;
 
-    if (!socket_info->socket_fd)
+    if (socket_info->socket_fd < 0)
         throw Server_err(SOCKET_CREATE_ERR);
-    
-    // SOL_SOCKET is the socket layer itself
-
-    // SO_REUSEADDR allows the local address to be reused when the server is restarted
-    
-    // setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &socket_info.option, sizeof(socket_info.option));
-    
-    // std::cout << "Socket fd = " << socket_fd << std::endl;
-    // std::cout << "Socket option = " << socket_info.option << std::endl;
-    
-    // ONCE I THROW AN EXCEPTION HERE, I CAN'T RECOVER FROM IT AND THE SERVER CRASHES !!!!!!!!!!!!!!!!!!!!!!!!!
 
     if (setsockopt(socket_info->socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_info->option, sizeof(socket_info->option)) < 0)
     {
@@ -114,7 +105,9 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         throw Server_err("fnctl error");
     }
 
-    EV_SET(this->event_list, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
+    EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+    if (kevent(this->kq, &ev, 1, NULL, 0, NULL) == -1)
+        throw Server_err("kqueue error");
     Servers::fd_vector.push_back((int)socket_info->socket_fd);
 }
 
