@@ -36,6 +36,7 @@ class Servers
     public :
         // Constructor
         Servers(configurationSA &config);
+        Servers();
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);

@@ -1,19 +1,6 @@
 
 #include "../MainInc/main.hpp"
 
-/*
-void Webserv::add_event(int socket_fd, uint16_t filter, Servers::socket_t *socket_info)
-{
-    struct kevent event;
-    EV_SET(&event, socket_fd, filter, EV_ADD | EV_ENABLE | EV_ONESHOT, 0, 0, socket_info);
-    if (kevent(this->kq, &event, 1, NULL, 0, NULL) == -1)
-    {
-        std::cerr << "kevent error" << std::endl;
-        throw std::runtime_error("kevent");
-    }
-}
-*/
-
 int Webserv::event_check(struct kevent *event, int kq_return)
 {
     std::cout << COLOR_BLUE << "EVENT CHECK" << COLOR_RESET << std::endl;
@@ -30,7 +17,7 @@ int Webserv::event_check(struct kevent *event, int kq_return)
             if (socket->socket_fd == -1)
             {
                 std::cerr << "accept error" << std::endl;
-                throw std::runtime_error("accept");
+                throw Webserv_err("accept");
             }
             else
             {
@@ -39,23 +26,11 @@ int Webserv::event_check(struct kevent *event, int kq_return)
             if (setsockopt(socket->socket_fd, SOL_SOCKET, SO_NOSIGPIPE, &option, sizeof(option)) == -1)
             {
                 std::cerr << "setsockopt error" << std::endl;
-                throw std::runtime_error("setsockopt");
+                throw Webserv_err("setsockopt");
             }
             if (fcntl(socket->socket_fd, F_SETFL, O_NONBLOCK) < 0)
             {
-                throw std::runtime_error("fcntl");
-            }
-            struct kevent event;
-            EV_SET(&event, socket->socket_fd, EVFILT_READ, EV_ADD, 0, 0,reinterpret_cast<void *>(socket));
-            
-            
-            int kq_return = kevent(this->kq, &event, 1, NULL, 0, NULL);
-            if (kq_return == -1)
-            {
-                std::cout << COLOR_BLUE << "KQ VALUE = " << this->kq << COLOR_RESET << std::endl;
-
-                std::cerr << "->kevent error!!!<-" << std::endl;
-                throw std::runtime_error("kevent");
+                throw Webserv_err("fnctl error");
             }
             //char str[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><body><h1>HELLO</h1></body></html>";
             //write(socket->socket_fd, str, strlen(str));
@@ -69,21 +44,14 @@ int Webserv::event_check(struct kevent *event, int kq_return)
 }
 
 void Webserv::run()
-{
-    struct kevent event[EVENT_LIST];
-    int kq_return = 0;
-    
+{  
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
-    std::setw(50) << "Server is running" << COLOR_RESET << std::endl;
+    std::setw(40) << "Server is running" << COLOR_RESET << std::endl;
     while (1337)
     {
-        kq_return = kevent(this->kq, NULL, 0, event, EVENT_LIST, &this->timeout);
-        if (kq_return == -1)
-            perror("kevent inside infinit loop");
-        else if (kq_return == 0)
-            std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
-        else
-            event_check(event, kq_return);
+        //system("leaks Webserv");
+        std::cout << std::endl << COLOR_BLUE << std::setw(40) << "MULTIPLEXING NEXT IS NEXT STEP" << COLOR_RESET << std::endl;
+        sleep(1);
     }
 }
 
@@ -92,15 +60,14 @@ Webserv::Webserv(char *config_file)
     // Parse config file and create a configurationSA object
     configurationSA config(config_file);
     
-    // Create a server object with the configurationSA object
-    Servers         server(config);
-    this->kq = server.kq;
-    
-    // set timeout value for kevent function
     this->timeout.tv_sec = 1;
     this->timeout.tv_nsec = 0;
 
-    std::cout << std::endl << COLOR_BLUE << "-> KQ VAL IN WEBSERV CONSTRUCTOR = " << this->kq << COLOR_RESET << std::endl << std::endl;
+    // Create a server object with the configurationSA object
+    Servers         server(config);
+    this->kq = server.kq;
+
+    //std::cout << std::endl << COLOR_BLUE << "-> KQ VAL IN WEBSERV CONSTRUCTOR = " << this->kq << COLOR_RESET << std::endl << std::endl;
 }
 
 // default destructor

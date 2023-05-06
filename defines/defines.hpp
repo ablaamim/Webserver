@@ -2,10 +2,11 @@
 
 #define DEFINES_HPP
 
-# define BUFFER_SIZE 1024
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>
+
+# define BUFFER_SIZE 1024
 # define EVENT_LIST 10000
 # define UNLIMITED_PARAMS 0
 # define SIZEOF(arr) sizeof(arr) / sizeof(*arr)

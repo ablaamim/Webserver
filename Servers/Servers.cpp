@@ -13,19 +13,19 @@ int Servers::get_kq()
 }
 */
 
+Servers::Servers()
+{
+}
+
 void     Servers::new_server_create_socket(std::string ip, std::string port)
 {
     socket_t    *socket_info = new socket_t;
-    struct kevent ev;
-
-
     
     socket_info->ip = ip;
     socket_info->port = port;
     socket_info->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     socket_info->option = 1;
     socket_info->success_flag = 1;
-
     if (!socket_info->socket_fd)
         throw Server_err(SOCKET_CREATE_ERR);
     
@@ -65,16 +65,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         close(socket_info->socket_fd);
         throw Server_err("fnctl error");
     }
-
-    
-    EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD, 0, 0, socket_info);
-    
-    if (kevent(this->kq, &ev, 1, NULL, 0, NULL) < 0)
-    {
-        
-        close(socket_info->socket_fd);
-        throw Server_err("kevent error!!!");
-    }
+    delete socket_info;
 }
 
 void Servers::listen_for_connections()

@@ -1,7 +1,7 @@
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
-#include "../Servers/Servers.hpp"
+#include "../MainInc/main.hpp"
 
 class Webserv
 {
@@ -13,10 +13,19 @@ class Webserv
 
         int     event_check(struct kevent *event, int kq_return);
         //int     accept_connection(Servers::socket_t *new_socket);
-
-    private :
         int             kq;
         struct timespec timeout;
+    
+    class Webserv_err : public std::exception
+    {
+        private :
+            std::string error;
+
+        public :
+            Webserv_err(std::string error) : error(error) {}
+            virtual const char *what() const throw() { return error.c_str(); }
+            ~Webserv_err() throw() {};
+    };
 };
 
 #endif
