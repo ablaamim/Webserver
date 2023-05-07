@@ -1,20 +1,8 @@
 #ifndef CONFIGURATION_PARSER_HPP // BEGIN OF CONFIGURATION_PARSER_HPP
 # define CONFIGURATION_PARSER_HPP
 
-# include <exception>
+
 # include "../MainInc/main.hpp"
-# include "debug.hpp"
-# include "libcpp.hpp"
-# include <iostream>
-# include <string>
-# include <vector>
-# include <map>
-# include <fstream>
-# include <sstream>
-# include <algorithm>
-# include <iterator>
-# include <set>
-# include <stdlib.h>
 
 class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 {
