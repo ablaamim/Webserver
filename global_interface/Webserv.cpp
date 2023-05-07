@@ -58,6 +58,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
     {
         if (this->clients[curr_event->ident] != "")
         {
+            std::cout <<this->clients[curr_event->ident].c_str() << std::endl;
             if (write(curr_event->ident, this->clients[curr_event->ident].c_str(),
                             this->clients[curr_event->ident].size()) == -1)
             {
