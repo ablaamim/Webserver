@@ -22,17 +22,14 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
 {
     int client_socket;
     char buf[1024];
-    struct kevent temp_event;
 
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw std::runtime_error("accept");
         std::cout << "accept new client: " << client_socket << std::endl;
-        EV_SET(&temp_event, client_socket, EVFILT_READ | EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        this->change_list.push_back(temp_event);
-        // change_events(this->change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        // change_events(this->change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        change_events(this->change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        change_events(this->change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         this->clients[client_socket] = "";
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
@@ -58,7 +55,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
     {
         if (this->clients[curr_event->ident] != "")
         {
-            std::cout <<this->clients[curr_event->ident].c_str() << std::endl;
             if (write(curr_event->ident, this->clients[curr_event->ident].c_str(),
                             this->clients[curr_event->ident].size()) == -1)
             {
@@ -99,8 +95,8 @@ void Webserv::run(std::vector<int> & fds_socket)
         this->change_list.clear();
         if (new_events == -1)
             perror("kevent");
-        else if (!new_events)
-            std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
+        // else if (!new_events)
+        //     std::cout << COLOR_YELLOW << "timeout" << COLOR_RESET << std::endl;
         else
             event_check(event_list, new_events, fds_socket);
     }
