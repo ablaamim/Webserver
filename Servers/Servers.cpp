@@ -30,6 +30,7 @@ Servers::Servers(configurationSA &config)
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
         }
+        print_socket_map();
 
     }
     catch (const std::exception& e)
@@ -61,7 +62,6 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info->port = port;
     socket_info->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     socket_info->option = 1;
-    socket_info->success_flag = 1;
 
     Servers::fd_vector.push_back((int)socket_info->socket_fd);
     if (socket_info->socket_fd < 0)
@@ -75,8 +75,10 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     socket_info->address.sin_addr.s_addr = inet_addr(ip.c_str());
     socket_info->address.sin_port = htons(atoi(port.c_str()));
     socket_info->address_len = sizeof(socket_info->address);
+    
     if (bind(socket_info->socket_fd, (struct sockaddr *) &socket_info->address, sizeof(socket_info->address)) < 0)
         throw Server_err(SOCKET_BINDING_ERR);
+    
     if (listen(socket_info->socket_fd, EVENT_LIST) < 0)
         thr_exce_close(SOCKET_LISTEN_ERR , socket_info->socket_fd);
     
@@ -86,4 +88,5 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     if (kevent(this->kq, &ev, 1, NULL, 0, NULL) == -1)
         throw Server_err("kqueue error");
+    socket_map.insert(std::make_pair(socket_info->socket_fd, socket_info));
 }
