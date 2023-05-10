@@ -30,6 +30,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
 {
     int client_socket;
     char buf[BUFFER_SIZE] = {0};
+    int n = 0;
 
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
@@ -42,12 +43,10 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
     {
-        int n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
+        n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
         //std::cout << "read " << n << " bytes from " << curr_event->ident << std::endl;
-        if (n <= 0)
+        if (n < 0)
         {
-            if (n < 0)
-                throw Webserv::Webserv_err("read error");
             delete_event(curr_event->ident, EVFILT_READ);
             disconnect_client(curr_event->ident, this->clients);
             return ;
@@ -58,20 +57,32 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             disconnect_client(curr_event->ident, this->clients);
             return ;
         }
-        //else
-        //{
-        buf[n] = '\0';
-        this->clients[curr_event->ident] = buf;
-        std::cout << "received data from " << curr_event->ident << ": " << this->clients[curr_event->ident] << std::endl;
+        else
+        {
+            buf[n] = '\0';
+            this->clients[curr_event->ident] = buf;
+        
+            std::cout << "received data from " << curr_event->ident << ": " << this->clients[curr_event->ident] << std::endl;
+
+        //char *temp = strdup(this->clients[curr_event->ident].c_str());
+        //std::cout << " **** " <<temp <<  "***" << std::endl;
+        
+        char *temp = ft_strdup(buf, n + 1);
+
+        std::cout << "********************************************************" << std::endl;
+        std::cout << "                  DUPLICATED REQUEST : " << std::endl << temp << std::endl;
+        std::cout << temp <<  "********************************************************" << std::endl;
+        
         
         // Parse HTTP request
         std::stringstream ss(buf);
-        std::string request_type, request_path, http_version;
-        ss >> request_type >> request_path >> http_version >> std::ws;
+        std::string request_type, request_path, http_version, request_body;
+        ss >> request_type >> request_path >> http_version >> request_body;
             
         std::cout << "request_type : " << request_type << std::endl;
         std::cout << "request_path : " << request_path << std::endl;
         std::cout << "http_version : " << http_version << std::endl;
+        std::cout << "request_body : " << request_body << std::endl;
             
         // Open picture file and read contents into memory
         std::ifstream picture_file("1337.jpeg", std::ios::binary);
@@ -84,13 +95,16 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
         response << "HTTP/1.1 200 OK\r\n";
         response << "Content-Type: image/jpeg\r\n";
         response << "Content-Length: " << picture_string.size() << "\r\n";
+        response << "request_body: " << request_body << "\r\n";
+        response << "Connection: close\r\n";
         response << "\r\n";
         response << picture_string;
+        
+
+        //std::cout << "PICTURE SIZE = " << picture_string.size() << std::endl;
             
         // Send HTTP response to client
         send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
-        
-        
             /*
             if (request_type == "GET")
             {
@@ -147,7 +161,9 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             // Send final chunk terminator
             send(curr_event->ident, "0\r\n\r\n", 5, 0);
             */
-       // }
+        
+        free (temp);
+        }
     }
 }
 
@@ -159,7 +175,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
         {
             if (write(curr_event->ident, this->clients[curr_event->ident].c_str(), this->clients[curr_event->ident].size()) < 0)
             {
-                throw Webserv::Webserv_err("write failed");
+                std::cout << "write error" << std::endl;
                 delete_event(curr_event->ident, EVFILT_WRITE);
                 disconnect_client(curr_event->ident, this->clients);
                 return ;  
@@ -201,6 +217,7 @@ void Webserv::run(std::vector<int> & fds_socket)
             throw Webserv::Webserv_err("kevent failed");
         else
             event_check(event_list, new_events, fds_socket);
+        //system("leaks Webserv");
     }
 }
 

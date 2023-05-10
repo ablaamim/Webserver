@@ -42,3 +42,12 @@ std::string to_string(int nbr)
     stream << nbr;
     return (stream.str());
 }
+
+char *ft_strdup(const char *str, size_t size)
+{
+    char *dup = new char[size];
+
+    for (size_t i = 0; i < size; i++)
+        dup[i] = str[i];
+    return dup;
+}

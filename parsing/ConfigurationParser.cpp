@@ -459,7 +459,7 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
     line_range.first++;
     
     go_to_next_word_in_file(line_range, file_range);
-    //result.print_none_unique_key();
+    result.print_none_unique_key(); // CGI DATA
     //result.print_unique_key();
     return (result);
 }
@@ -539,7 +539,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
     line_range.first++;
     result.location["/"].insert(server_location_config);
     result.location["/"].insert(configuration::_default_values);
-    //server_location_config.print_none_unique_key();
+    server_location_config.print_none_unique_key();
     //server_location_config.print_unique_key();
     //sleep(100);
     return (result);

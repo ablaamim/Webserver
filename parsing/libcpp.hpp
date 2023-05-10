@@ -14,4 +14,6 @@ std::vector<std::string> split(std::string str, std::string delim);
 
 std::string to_string(int nbr);
 
+char *ft_strdup(const char *str, size_t size);
+
 #endif

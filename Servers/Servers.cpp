@@ -67,6 +67,8 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     if (socket_info->socket_fd < 0)
         throw Server_err(SOCKET_CREATE_ERR);
 
+    // SOL_SOCKET - socket level
+    
     if (setsockopt(socket_info->socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_info->option, sizeof(socket_info->option)) < 0)
         thr_exce_close(SOCKET_OPTION_ERR , socket_info->socket_fd);
     
@@ -89,4 +91,5 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
     if (kevent(this->kq, &ev, 1, NULL, 0, NULL) == -1)
         throw Server_err("kqueue error");
     socket_map.insert(std::make_pair(socket_info->socket_fd, socket_info));
+    delete socket_info;
 }
