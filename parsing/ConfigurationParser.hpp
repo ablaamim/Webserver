@@ -22,6 +22,33 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
             
                 UniqueKey_t     UniqueKey;
                 NoneUniqueKey_t NoneUniqueKey;
+
+                void print_unique_key()
+                {
+                    for (UniqueKey_t::const_iterator it = UniqueKey.begin(); it != UniqueKey.end(); it++)
+                    {
+                        std::cout << it->first << " : ";
+                        for (std::vector<std::string>::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
+                            std::cout << *iter << " ";
+                        std::cout << std::endl;
+                    }
+                };
+
+                void print_none_unique_key()
+                {
+                    for (NoneUniqueKey_t::const_iterator it = NoneUniqueKey.begin(); it != NoneUniqueKey.end(); it++)
+                    {
+                        std::cout << it->first << " : ";
+                        for (std::map<std::string, std::vector<std::string> >::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
+                        {
+                            std::cout << iter->first << " : ";
+                            for (std::vector<std::string>::const_iterator ite = iter->second.begin(); ite != iter->second.end(); ite++)
+                                std::cout << *ite << " ";
+                            std::cout << std::endl;
+                        }
+                    }
+                };
+
                 // Insert a unique key in the location 
                 static void insert_unique_key(const UniqueKey_t &lval, UniqueKey_t &rval)
                 {

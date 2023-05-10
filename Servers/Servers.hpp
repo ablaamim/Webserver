@@ -34,7 +34,7 @@ class Servers
 
         void print_socket_map()
         {
-            std::cout << std::endl << "socket_map:" << std::endl;
+            //std::cout << std::endl << "                  socket_map : " << std::endl;
             for (std::map<int, socket_t*>::iterator iter = socket_map.begin(); iter != socket_map.end(); iter++)
             {
                 std::cout << "socket_fd: " << iter->first << std::endl;

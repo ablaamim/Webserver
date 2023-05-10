@@ -70,7 +70,7 @@ void configurationSA::configuration::initialize_data(void)
         std::make_pair("listen", raw_configuration(SERVER_KEYTYPE, &listen_format, 2)), // LISTEN PORT
         std::make_pair("return", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, returnCode, SIZEOF(returnCode))), // RETURN CODE
         std::make_pair("error_page", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, ErrorPages, SIZEOF(ErrorPages))), // ERROR PAGE
-        std::make_pair("cgi", raw_configuration(NONE_UNIQUE_KEYTYPE, &check_cgi, 1)), // CGI = OMMON GATEWAY INTERFACE
+        std::make_pair("cgi-bin", raw_configuration(NONE_UNIQUE_KEYTYPE, &check_cgi, 1)), // CGI = OMMON GATEWAY INTERFACE
         std::make_pair("auto_index", raw_configuration(UNIQUE_KEYTYPE, NULL, 1, autoindex, SIZEOF(autoindex))), // AUTOINDEX
         std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)), // UPLOAD
         std::make_pair("index", raw_configuration(UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)), // INDEX
@@ -423,6 +423,8 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
         throw ParsingErr(keyValueFirstCopy + " : " + e.what());
     }
     insertPoint[key_value.first] = key_value.second;
+    //Location.print_unique_key();
+    //Location.print_none_unique_key();
 }
 
 configurationSA::location configurationSA::new_location_creation(line_range_type &line_range, file_range_type &file_range)
@@ -437,7 +439,6 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
     while (file_range.first != file_range.second && !key_value.first.empty())
     {
         if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
-
             insert_keyvalue_location(result, key_value, start_last_line, *file_range.first);
 
         else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
@@ -458,7 +459,8 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
     line_range.first++;
     
     go_to_next_word_in_file(line_range, file_range);
-    
+    result.print_none_unique_key();
+    result.print_unique_key();
     return (result);
 }
 

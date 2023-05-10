@@ -55,8 +55,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             delete_event(curr_event->ident, EVFILT_READ);
             disconnect_client(curr_event->ident, this->clients);
         }
-        else
-        {
+        //else
+        //{
             buf[n] = '\0';
             this->clients[curr_event->ident] = buf;
             std::cout << "received data from " << curr_event->ident << ": " << this->clients[curr_event->ident] << std::endl;
@@ -66,12 +66,12 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             std::string request_type, request_path, http_version;
             ss >> request_type >> request_path >> http_version >> std::ws;
             
-            std::cout << "request_type: " << request_type << std::endl;
-            std::cout << "request_path: " << request_path << std::endl;
-            std::cout << "http_version: " << http_version << std::endl;
+            std::cout << "request_type : " << request_type << std::endl;
+            std::cout << "request_path : " << request_path << std::endl;
+            std::cout << "http_version : " << http_version << std::endl;
             
             // Open picture file and read contents into memory
-            std::ifstream picture_file("webservm.png", std::ios::binary);
+            std::ifstream picture_file("picture.jpeg", std::ios::binary);
             std::stringstream picture_data;
             picture_data << picture_file.rdbuf();
             std::string picture_string = picture_data.str();
@@ -79,13 +79,13 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             // Construct HTTP response    
             std::stringstream response;
             response << "HTTP/1.1 200 OK\r\n";
-            response << "Content-Type: image/png\r\n";
+            response << "Content-Type: image/jpeg\r\n";
             response << "Content-Length: " << picture_string.size() << "\r\n";
             response << "\r\n";
             response << picture_string;
             
             // Send HTTP response to client
-            send(curr_event->ident, response.str().c_str(), response.str().size(), 0);         
+            send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
             /*
             if (request_type == "GET")
             {
@@ -100,7 +100,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
                 std::cout << "Unknown request" << std::endl;
             }
             */
-        }
+        
             /*
             std::stringstream ss(buf);
             std::string request_type, request_path, http_version;
@@ -142,7 +142,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             // Send final chunk terminator
             send(curr_event->ident, "0\r\n\r\n", 5, 0);
             */
-        //}
+       // }
     }
 }
 
@@ -155,7 +155,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             if (write(curr_event->ident, this->clients[curr_event->ident].c_str(),
                             this->clients[curr_event->ident].size()) == -1)
             {
-                std::cerr << "client write error!" << std::endl;
+                throw Webserv::Webserv_err("write error");
                 delete_event(curr_event->ident, EVFILT_WRITE);
                 disconnect_client(curr_event->ident, this->clients);  
             }
@@ -176,8 +176,8 @@ void Webserv::event_check(struct kevent *event_list, int new_events, std::vector
             webserv_evfilt_read(&event_list[i], fds_s);
         else if (event_list[i].filter == EVFILT_WRITE)
             webserv_evfilt_write(&event_list[i]);
-        else
-            std::cout << COLOR_RED << "EVENT ERROR" << i << " " << event_list[i].filter << COLOR_RESET << std::endl;
+        //else
+            //std::cout << COLOR_RED << "EVENT ERROR" << i << " " << event_list[i].filter << COLOR_RESET << std::endl;
     }
 }
 
