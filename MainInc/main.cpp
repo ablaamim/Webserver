@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     }
     catch (std::exception &e)
     {
-        std::cerr << COLOR_RED << "Failed to init " << e.what() << COLOR_RESET <<std::endl;
+        std::cerr << COLOR_RED << "Failed to init : " << e.what() << COLOR_RESET <<std::endl;
         return (EXIT_FAILURE);
     }
 

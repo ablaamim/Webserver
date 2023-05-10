@@ -30,7 +30,7 @@ Servers::Servers(configurationSA &config)
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
         }
-        print_socket_map();
+        //print_socket_map();
 
     }
     catch (const std::exception& e)
@@ -83,7 +83,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
         thr_exce_close(SOCKET_LISTEN_ERR , socket_info->socket_fd);
     
     if (fcntl(socket_info->socket_fd, F_SETFL, O_NONBLOCK) < 0)
-        thr_exce_close("fnctl error" , socket_info->socket_fd);
+        thr_exce_close("fnctl failed" , socket_info->socket_fd);
 
     EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     if (kevent(this->kq, &ev, 1, NULL, 0, NULL) == -1)

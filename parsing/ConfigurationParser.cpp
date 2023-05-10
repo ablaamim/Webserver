@@ -75,7 +75,7 @@ void configurationSA::configuration::initialize_data(void)
         std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)), // UPLOAD
         std::make_pair("index", raw_configuration(UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)), // INDEX
         std::make_pair("root",   raw_configuration(UNIQUE_KEYTYPE, &check_root, 1)), // ROOT
-        std::make_pair("allow_methods", raw_configuration(UNIQUE_KEYTYPE, NULL, 3, allowedMethods, SIZEOF(allowedMethods))), // METHODS
+        std::make_pair("allowed_methods", raw_configuration(UNIQUE_KEYTYPE, NULL, 3, allowedMethods, SIZEOF(allowedMethods))), // METHODS
         std::make_pair("body_size", raw_configuration(UNIQUE_KEYTYPE, &check_body_size, 1)), // CLIENT BODY SIZE
 
     };
@@ -112,7 +112,7 @@ void configurationSA::configuration::initialize_default_values(void)
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "of")),
         std::make_pair("body_size", std::vector<std::string>(1, "1000000")),
-        std::make_pair("allow_methods", std::vector<std::string>(allow_methods, allow_methods + SIZEOF(allow_methods))),
+        std::make_pair("allowed_methods", std::vector<std::string>(allow_methods, allow_methods + SIZEOF(allow_methods))),
     };
     _default_values.UniqueKey.insert(uniqueKey, uniqueKey + SIZEOF(uniqueKey));
 }
@@ -362,9 +362,9 @@ bool    configurationSA::check_duplicated_parametters(std::vector<std::string> p
 
 bool configurationSA::check_valid_parametters(std::vector<std::string> parameters, std::set<std::string> validParamters, size_t &start_last_line, std::string &line)
 {
-    (void) line;
-    (void) start_last_line;
-    bool errStatus = false;
+    (void)  line;
+    (void)  start_last_line;
+    bool    errStatus = false;
 
     for (std::vector<std::string>::iterator it = parameters.begin(); it != parameters.end(); it++)
     {
@@ -459,8 +459,8 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
     line_range.first++;
     
     go_to_next_word_in_file(line_range, file_range);
-    result.print_none_unique_key();
-    result.print_unique_key();
+    //result.print_none_unique_key();
+    //result.print_unique_key();
     return (result);
 }
 
@@ -526,6 +526,8 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         go_to_next_word_in_file(line_range, file_range);
         start_last_line = (int) (line_range.first - file_range.first->begin());
         key_value = get_keyvalue(line_range);
+        //server_location_config.print_none_unique_key();
+        //server_location_config.print_unique_key();
     }
 
     if (*line_range.first == '{')
@@ -537,6 +539,9 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
     line_range.first++;
     result.location["/"].insert(server_location_config);
     result.location["/"].insert(configuration::_default_values);
+    //server_location_config.print_none_unique_key();
+    //server_location_config.print_unique_key();
+    //sleep(100);
     return (result);
 }
 
