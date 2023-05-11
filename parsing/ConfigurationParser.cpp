@@ -112,11 +112,7 @@ void configurationSA::configuration::initialize_default_values(void)
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "of")),
         std::make_pair("body_size", std::vector<std::string>(1, "1000000")),
-<<<<<<< HEAD
-        std::make_pair("allowed_methods", std::vector<std::string>(allow_methods, allow_methods + SIZEOF(allow_methods))),
-=======
         std::make_pair("allowed_methods", std::vector<std::string>(allowed_methods, allowed_methods + SIZEOF(allowed_methods))),
->>>>>>> origin
     };
     _default_values.UniqueKey.insert(uniqueKey, uniqueKey + SIZEOF(uniqueKey));
 }

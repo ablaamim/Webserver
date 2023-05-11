@@ -11,16 +11,15 @@ OBJ = $(SRC:.cpp=.o)
 
 CC = clang++
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 #-g3 -fsanitize=address
-
 all: $(NAME)
-
-CC = c++
 
 CFLAGS =  -std=c++98 -Wall -Wextra -Werror #-fsanitize=address -g3
 
 $(NAME): 
 	$(CC) $(CFLAGS) $(SRC) -o $(NAME)
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ)

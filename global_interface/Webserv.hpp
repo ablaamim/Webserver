@@ -9,7 +9,6 @@ class Webserv
         Webserv(char *config_file);
         ~Webserv();
 
-<<<<<<< HEAD
         void    webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & fds_s);
         void    webserv_evfilt_write(struct kevent *curr_event);
         void    change_events(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
@@ -25,23 +24,10 @@ class Webserv
         std::map<int, std::string> clients;
         struct kevent event_list[EVENT_LIST];
 
-=======
-        void    run();
-
-        int     event_check(struct kevent *event, int kq_return);
-        //int     accept_connection(Servers::socket_t *new_socket);
-        int             kq;
-        struct timespec timeout;
-    
->>>>>>> origin
     class Webserv_err : public std::exception
     {
         private :
             std::string error;
-<<<<<<< HEAD
-=======
-
->>>>>>> origin
         public :
             Webserv_err(std::string error) : error(error) {}
             virtual const char *what() const throw() { return error.c_str(); }

@@ -1,7 +1,6 @@
 
 #include "../MainInc/main.hpp"
 
-<<<<<<< HEAD
 void Webserv::change_events(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
         uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
 {
@@ -19,9 +18,6 @@ void Webserv::disconnect_client(int client_fd, std::map<int, std::string>& clien
 }
 
 void Webserv::delete_event(int fd, int16_t filter)
-=======
-int Webserv::event_check(struct kevent *event, int kq_return)
->>>>>>> origin
 {
     struct kevent temp_event;
 
@@ -112,12 +108,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             /*
             if (request_type == "GET")
             {
-<<<<<<< HEAD
                 std::cout << "GET request" << std::endl;
-=======
-                std::cerr << "accept error" << std::endl;
-                throw Webserv_err("accept");
->>>>>>> origin
             }
             else if (request_type == "POST")
             {
@@ -125,12 +116,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             }
             else
             {
-<<<<<<< HEAD
                 std::cout << "Unknown request" << std::endl;
-=======
-                std::cerr << "setsockopt error" << std::endl;
-                throw Webserv_err("setsockopt");
->>>>>>> origin
             }
             */
         
@@ -156,7 +142,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             char chunk_buffer[4096];
             while (!video_file.eof())
             {
-<<<<<<< HEAD
                 video_file.read(chunk_buffer, sizeof(chunk_buffer));
                 int chunk_size = video_file.gcount();
 
@@ -194,9 +179,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
                 delete_event(curr_event->ident, EVFILT_WRITE);
                 disconnect_client(curr_event->ident, this->clients);
                 return ;  
-=======
-                throw Webserv_err("fnctl error");
->>>>>>> origin
             }
             else
                 this->clients[curr_event->ident].clear();
@@ -220,20 +202,14 @@ void Webserv::event_check(struct kevent *event_list, int new_events, std::vector
     }
 }
 
-<<<<<<< HEAD
 void Webserv::run(std::vector<int> & fds_socket)
 {
     int new_events;
     
-=======
-void Webserv::run()
-{  
->>>>>>> origin
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(40) << "Server is running" << COLOR_RESET << std::endl;
     while (1337)
     {
-<<<<<<< HEAD
         new_events = kevent(this->kq, &this->change_list[0], this->change_list.size(), this->event_list, EVENT_LIST, &this->timeout);
         //std::cout << "KEVENt RETURN = " << new_events << std::endl;
         this->change_list.clear();
@@ -242,11 +218,6 @@ void Webserv::run()
         else
             event_check(event_list, new_events, fds_socket);
         //system("leaks Webserv");
-=======
-        //system("leaks Webserv");
-        std::cout << std::endl << COLOR_BLUE << std::setw(40) << "MULTIPLEXING NEXT IS NEXT STEP" << COLOR_RESET << std::endl;
-        sleep(1);
->>>>>>> origin
     }
 }
 
@@ -254,23 +225,13 @@ Webserv::Webserv(char *config_file)
 {
     // Parse config file and create a configurationSA object
     configurationSA config(config_file);
-<<<<<<< HEAD
     this->timeout.tv_sec = 3;
-=======
-    
-    this->timeout.tv_sec = 1;
->>>>>>> origin
     this->timeout.tv_nsec = 0;
 
     // Create a server object with the configurationSA object
     Servers         server(config);
     this->kq = server.kq;
-<<<<<<< HEAD
-    this->run(Servers::fd_vector, Servers::location );
-=======
-
-    //std::cout << std::endl << COLOR_BLUE << "-> KQ VAL IN WEBSERV CONSTRUCTOR = " << this->kq << COLOR_RESET << std::endl << std::endl;
->>>>>>> origin
+    this->run(Servers::fd_vector);
 }
 
 // default destructor

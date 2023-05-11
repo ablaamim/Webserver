@@ -12,10 +12,10 @@ class Servers
         int                     kq;
         static std::vector<int> fd_vector;
         
-        Servers(configurationSA &config);
-        ~Servers();
+        //Servers(configurationSA &config);
+        //~Servers();
         
-        void    new_server_create_socket(std::string ip, std::string port);
+        //void    new_server_create_socket(std::string ip, std::string port);
         void    thr_exce_close(std::string str, int socket_fd);
 
         
@@ -32,13 +32,12 @@ class Servers
 
     // map of socket_t with the key being the socket file descriptor
     typedef std::map<int, socket_t> socket_type;
+    socket_type socket_map;
     struct      timespec timeout;
-    
-    private :
 
-        socket_type socket_ip_port;
-        void        new_server_create_socket(std::string ip, std::string port);
-        void        listen_for_connections();
+    socket_type socket_ip_port;
+    void        new_server_create_socket(std::string ip, std::string port);
+    //void        listen_for_connections();
 
 
     public :
