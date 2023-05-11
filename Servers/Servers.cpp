@@ -1,6 +1,93 @@
 
 #include "../MainInc/main.hpp"
 
+<<<<<<< HEAD
+=======
+Servers::socket_type Servers::get_socket_ip_port(void)
+{
+    return (socket_ip_port);
+}
+
+/*
+int Servers::get_kq()
+{
+    return (kq);
+}
+*/
+
+Servers::Servers()
+{
+}
+
+void     Servers::new_server_create_socket(std::string ip, std::string port)
+{
+    socket_t    *socket_info = new socket_t;
+    
+    socket_info->ip = ip;
+    socket_info->port = port;
+    socket_info->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    socket_info->option = 1;
+    socket_info->success_flag = 1;
+    if (!socket_info->socket_fd)
+        throw Server_err(SOCKET_CREATE_ERR);
+    
+    // SOL_SOCKET is the socket layer itself
+
+    // SO_REUSEADDR allows the local address to be reused when the server is restarted
+    
+    // setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &socket_info.option, sizeof(socket_info.option));
+    
+    // std::cout << "Socket fd = " << socket_fd << std::endl;
+    // std::cout << "Socket option = " << socket_info.option << std::endl;
+    
+    // ONCE I THROW AN EXCEPTION HERE, I CAN'T RECOVER FROM IT AND THE SERVER CRASHES !!!!!!!!!!!!!!!!!!!!!!!!!
+
+    if (setsockopt(socket_info->socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_info->option, sizeof(socket_info->option)) < 0)
+    {
+        close(socket_info->socket_fd);
+        throw Server_err(SOCKET_OPTION_ERR);
+    }
+    
+    memset(socket_info->address.sin_zero, '\0', sizeof(socket_info->address.sin_zero));    
+    socket_info->address.sin_family = AF_INET;
+    socket_info->address.sin_addr.s_addr = inet_addr(ip.c_str());
+    socket_info->address.sin_port = htons(atoi(port.c_str()));
+    socket_info->address_len = sizeof(socket_info->address);
+    if (bind(socket_info->socket_fd, (struct sockaddr *) &socket_info->address, sizeof(socket_info->address)) < 0)
+        throw Server_err(SOCKET_BINDING_ERR);
+    
+    if (listen(socket_info->socket_fd, TIMEOUT) < 0)
+    {
+        close(socket_info->socket_fd);
+        throw Server_err(SOCKET_LISTEN_ERR);
+    }
+    
+    if (fcntl(socket_info->socket_fd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        close(socket_info->socket_fd);
+        throw Server_err("fnctl error");
+    }
+    delete socket_info;
+}
+
+void Servers::listen_for_connections()
+{
+    /*
+    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "Listening for connections" << std::endl;
+    std::cout << "----------------------------------------" << std::endl;
+    */
+    for (Servers::socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
+    {
+        //std::cout << "Listening for connections on socket " << iter->first << std::endl;
+        if (listen(iter->first, TIMEOUT) < 0)
+        {
+            close(iter->first);
+            throw Server_err(SOCKET_LISTEN_ERR);
+        }    
+    }
+}
+>>>>>>> origin
 
 Servers::Servers(configurationSA &config)
 {

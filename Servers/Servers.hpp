@@ -30,32 +30,35 @@ class Servers
                 std::string port;
         };
 
-        std::map<int, socket_t*>    socket_map;
+    // map of socket_t with the key being the socket file descriptor
+    typedef std::map<int, socket_t> socket_type;
+    struct      timespec timeout;
+    
+    private :
 
-        void print_socket_map()
-        {
-            //std::cout << std::endl << "                  socket_map : " << std::endl;
-            for (std::map<int, socket_t*>::iterator iter = socket_map.begin(); iter != socket_map.end(); iter++)
-            {
-                std::cout << "socket_fd: " << iter->first << std::endl;
-                std::cout << "ip: " << iter->second->ip << std::endl;
-                std::cout << "port: " << iter->second->port << std::endl;
-                std::cout << "address: " << inet_ntoa(iter->second->address.sin_addr) << std::endl;
-                std::cout << "-------------------------------------------------------" << std::endl;
-            }
-            std::cout << "-------------------------------------------------------" << std::endl;
-        }
+        socket_type socket_ip_port;
+        void        new_server_create_socket(std::string ip, std::string port);
+        void        listen_for_connections();
 
-        // Exceptions
-        class Server_err : public std::exception
-        {
-            private :
-                std::string error;
-            public :
-                Server_err(std::string error) : error(error) {}
-                virtual const char *what() const throw() { return error.c_str(); }
-                ~Server_err() throw() {};
-        };
+
+    public :
+        // Constructor
+        Servers(configurationSA &config);
+        ~Servers();
+        
+        Servers::socket_type get_socket_ip_port(void);
+
+    // Exceptions
+    class Server_err : public std::exception
+    {
+        private :
+            std::string error;
+
+        public :
+            Server_err(std::string error) : error(error) {}
+            virtual const char *what() const throw() { return error.c_str(); }
+            ~Server_err() throw() {};
+    };
 };
 
 #endif

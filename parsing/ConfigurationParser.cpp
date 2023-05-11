@@ -107,12 +107,16 @@ void configurationSA::configuration::initialize_default_values(void)
     };
     _default_values.NoneUniqueKey.insert(noneUniqueKey, noneUniqueKey + SIZEOF(noneUniqueKey));
     // UNIQUE KEY DEFAULT VALUES.
-    std::string allow_methods[] = {"GET", "POST", "DELETE"};
+    std::string allowed_methods[] = {"GET", "POST", "DELETE"};
     std::pair <std::string, std::vector<std::string> > uniqueKey[] =
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "of")),
         std::make_pair("body_size", std::vector<std::string>(1, "1000000")),
+<<<<<<< HEAD
         std::make_pair("allowed_methods", std::vector<std::string>(allow_methods, allow_methods + SIZEOF(allow_methods))),
+=======
+        std::make_pair("allowed_methods", std::vector<std::string>(allowed_methods, allowed_methods + SIZEOF(allowed_methods))),
+>>>>>>> origin
     };
     _default_values.UniqueKey.insert(uniqueKey, uniqueKey + SIZEOF(uniqueKey));
 }
@@ -167,11 +171,6 @@ void configurationSA::check_ip(std::vector<std::string> ip, size_t &start_last_l
             color_words_in_range(start_last_line, *it, line, COLOR_RED);
             throw configurationSA::ParsingErr(LISTEN_INTERVAL_ERR);
         }
-    }
-    if (ip[0] == "0" && ip[1] == "0" && ip[2] == "0" && ip[3] == "0")
-    {
-        color_words_in_range(start_last_line, ip[0], line, COLOR_RED);
-        throw configurationSA::ParsingErr(LISTEN_META_ADDR);
     }
 }
 
@@ -284,10 +283,10 @@ bool configurationSA::is_server_context(key_value_type key_value, line_range_typ
         return (false);
     go_to_next_word_in_file(line_range, file_range);
     if (!key_value.second.empty())
-        throw ParsingErr("Error : Does' take parameters");
+        throw ParsingErr(" : Does' take parameters");
     if (line_range.first != line_range.second && *line_range.first != '{')
     {
-        throw ParsingErr("Error : Server context should be followed by a '{'");
+        throw ParsingErr(" : Server context should be followed by a '{'");
     }
     return (true);
 }
@@ -412,7 +411,7 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
     }
 
     if (insertPoint.count(key_value.first))
-        throw ParsingErr("Already exists");
+        throw ParsingErr(" : Already exists");
    
     try
     {
@@ -442,19 +441,19 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
             insert_keyvalue_location(result, key_value, start_last_line, *file_range.first);
 
         else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
-            throw ParsingErr("Error : Server context should not be in a location context");
+            throw ParsingErr(" : Server context should not be in a location context");
         
         else
-            throw ParsingErr("Error : Unknown key " + key_value.first);
+            throw ParsingErr(" : Unknown key " + key_value.first);
 
         go_to_next_word_in_file(line_range, file_range);
         start_last_line = (size_t) (line_range.first - file_range.first->begin());
         key_value = get_keyvalue(line_range);
     }
     if (*line_range.first == '{')
-        throw ParsingErr("Error : Location context should not be followed by a '{'");
+        throw ParsingErr(" : Location context should not be followed by a '{'");
     if (file_range.first == file_range.second)
-        throw ParsingErr("Error : Location context should be closed by a '}'");
+        throw ParsingErr(" : Location context should be closed by a '}'");
 
     line_range.first++;
     
@@ -480,7 +479,7 @@ void  configurationSA::insert_keyvalue_server(Server &result, key_value_type &ke
         result.server_name.insert(key_value.second.begin(), key_value.second.end());
         
         if (result.server_name.size() != old_size + key_value.second.size())
-            throw ParsingErr("Error : Duplicated server_name");
+            throw ParsingErr(" : Duplicated server_name");
     }
 }
 
@@ -499,7 +498,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         if (is_location_context(key_value, line_range, file_range, start_last_line))
         {
            if (result.location.count(key_value.second[0]))
-                throw ParsingErr("Error : Location context already exists");
+                throw ParsingErr(" : Location context already exists");
            go_to_next_word_in_file(line_range, file_range);
            line_range.first++;
            if (key_value.second[0].size() > 1 && key_value.second[0][key_value.second[0].size() - 1] == '/')
@@ -510,7 +509,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
             }
             catch(ParsingErr &e)
             {
-                throw ParsingErr("Location context : " + key_value.second[0] + " : " + e.what());
+                throw ParsingErr(" : Location context : " + key_value.second[0] + " : " + e.what());
             }
         }
         else
@@ -520,7 +519,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
             else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
                 insert_keyvalue_server(result, key_value, start_last_line, *file_range.first);
             else
-                throw ParsingErr("Error : Unknown key '" + key_value.first + "'");
+                throw ParsingErr(" : Unknown key '" + key_value.first + "'");
 
         }
         go_to_next_word_in_file(line_range, file_range);
@@ -531,10 +530,10 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
     }
 
     if (*line_range.first == '{')
-        throw ParsingErr("Error : Server context should not be followed by a '{'");
+        throw ParsingErr(" : Server context should not be followed by a '{'");
     
     if (file_range.first == file_range.second)
-        throw ParsingErr("Error : Server context should be closed by a '}'");
+        throw ParsingErr(" : Server context should be closed by a '}'");
 
     line_range.first++;
     result.location["/"].insert(server_location_config);
@@ -622,7 +621,7 @@ configurationSA::configurationSA(char *config_file)
 
     if (!input.is_open())
     {
-       throw ParsingErr("Error: File is not open : " + std::string(config_file));
+       throw ParsingErr(" : File does not open : " + std::string(config_file));
     }
     // Read file line by line.
 
@@ -636,7 +635,6 @@ configurationSA::configurationSA(char *config_file)
     
     line_range_type line_range(fullFile.begin()->begin(), fullFile.begin()->end());
     file_range_type file_range(fullFile.begin(), fullFile.end());
-
     try
     {
         while (file_range.first != file_range.second)
@@ -657,14 +655,14 @@ configurationSA::configurationSA(char *config_file)
                 }
             }
             else if (file_range.first != file_range.second)
-                throw ParsingErr("Wrong server context");
+                throw ParsingErr(" : Wrong server context");
             
             go_to_next_word_in_file(line_range, file_range);
         }
     }
     catch (ParsingErr &e)
     {
-        throw ParsingErr(std::string(e.what()) + " :\n" + "line " + std::to_string(fullFile.size() - (file_range.second - file_range.first) + 1) + " : " + \
+        throw ParsingErr(std::string(e.what()) + "\n" + "line " + std::to_string(fullFile.size() - (file_range.second - file_range.first) + 1) + " : " + \
         ((file_range.first == file_range.second) ? *(file_range.first - 1) : *file_range.first));
     }
     input.close();
