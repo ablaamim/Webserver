@@ -11,13 +11,7 @@ class Servers
         
         int                     kq;
         static std::vector<int> fd_vector;
-        
-        //Servers(configurationSA &config);
-        //~Servers();
-        
-        //void    new_server_create_socket(std::string ip, std::string port);
         void    thr_exce_close(std::string str, int socket_fd);
-
         
         class socket_t
         {
@@ -35,17 +29,26 @@ class Servers
     socket_type socket_map;
     struct      timespec timeout;
 
+    void print_socket_map()
+    {
+        std::cout << std::endl << std::endl << COLOR_BLUE << "Socket map" << COLOR_RESET << std::endl;
+        for (socket_type::iterator iter = socket_map.begin(); iter != socket_map.end(); iter++)
+        {
+            std::cout << "fd: " << iter->first << " ip: " << iter->second.ip << " port: " << iter->second.port << std::endl;
+        }
+    };
     socket_type socket_ip_port;
     void        new_server_create_socket(std::string ip, std::string port);
-    //void        listen_for_connections();
-
 
     public :
         // Constructor
         Servers(configurationSA &config);
         ~Servers();
         
-        Servers::socket_type get_socket_ip_port(void);
+        Servers::socket_type get_socket_ip_port(void)
+        {
+            return socket_ip_port;
+        }
 
     // Exceptions
     class Server_err : public std::exception

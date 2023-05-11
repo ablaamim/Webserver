@@ -186,7 +186,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
     }
 }
 
-
 void Webserv::event_check(struct kevent *event_list, int new_events, std::vector<int> & fds_s)
 {
     for (int i = 0; i < new_events; i++)
