@@ -70,7 +70,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
         char *temp = ft_strdup(buf, n + 1);
 
         std::cout << "********************************************************" << std::endl;
-        std::cout << "                  DUPLICATED REQUEST : " << std::endl << temp << std::endl;
+        std::cout << "                  DUPLICATED REQUEST DATA : " << std::endl << temp << std::endl;
         std::cout << temp <<  "********************************************************" << std::endl;
         
         
@@ -231,7 +231,7 @@ Webserv::Webserv(char *config_file)
     // Create a server object with the configurationSA object
     Servers         server(config);
     this->kq = server.kq;
-    this->run(Servers::fd_vector);
+    this->run(Servers::fd_vector, Servers::location );
 }
 
 // default destructor
