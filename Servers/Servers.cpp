@@ -1,6 +1,8 @@
 
 #include "../MainInc/main.hpp"
 
+<<<<<<< HEAD
+=======
 Servers::socket_type Servers::get_socket_ip_port(void)
 {
     return (socket_ip_port);
@@ -85,17 +87,17 @@ void Servers::listen_for_connections()
         }    
     }
 }
+>>>>>>> origin
 
 Servers::Servers(configurationSA &config)
 {
     configurationSA::data_type conf = config.get_data();
     std::set <std::pair<std::string, std::string> > bind_sockets_list;
-    this->kq = kqueue();
-    
-    if (this->kq < 0)
-        throw Server_err("kqueue error");
     try
     {
+        this->kq = kqueue();
+        if (this->kq < 0)
+            throw Server_err("kqueue error");
         for (configurationSA::data_type::iterator iterConf = conf.begin(); iterConf != conf.end(); iterConf++)
         { 
             for (configurationSA::Server::type_listen::iterator iterListen = iterConf->listen.begin(); iterListen != iterConf->listen.end(); iterListen++)
@@ -114,22 +116,67 @@ Servers::Servers(configurationSA &config)
                 }
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
-        }     
+        }
+        //print_socket_map();
+
     }
     catch (const std::exception& e)
     {
-        for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
-            close(iter->first);
+        for (std::vector<int>::iterator iter = fd_vector.begin(); iter != fd_vector.end(); iter++)
+            close(*iter);
         throw Server_err(e.what());
     }
 }
 
 Servers::~Servers()
 {
-    //std::cout << "Servers destructor called" << std::endl;
-    for (socket_type::iterator iter = socket_ip_port.begin(); iter != socket_ip_port.end(); iter++)
-    {
-        close(iter->first);
-    }
-    //std::cout << "----------------------------------------" << std::endl;
+    for (std::vector<int>::iterator iter = fd_vector.begin(); iter != fd_vector.end(); iter++)
+        close(*iter);
+}
+
+void    Servers::thr_exce_close(std::string str, int socket_fd)
+{
+    close(socket_fd);
+    throw Server_err(str);
+}
+
+void     Servers::new_server_create_socket(std::string ip, std::string port)
+{
+    socket_t    *socket_info = new socket_t;
+    struct kevent ev;
+    
+    socket_info->ip = ip;
+    socket_info->port = port;
+    socket_info->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    socket_info->option = 1;
+
+    Servers::fd_vector.push_back((int)socket_info->socket_fd);
+    if (socket_info->socket_fd < 0)
+        throw Server_err(SOCKET_CREATE_ERR);
+
+    // SOL_SOCKET - socket level
+    
+    if (setsockopt(socket_info->socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_info->option, sizeof(socket_info->option)) < 0)
+        thr_exce_close(SOCKET_OPTION_ERR , socket_info->socket_fd);
+    
+    memset(socket_info->address.sin_zero, '\0', sizeof(socket_info->address.sin_zero));    
+    socket_info->address.sin_family = AF_INET;
+    socket_info->address.sin_addr.s_addr = inet_addr(ip.c_str());
+    socket_info->address.sin_port = htons(atoi(port.c_str()));
+    socket_info->address_len = sizeof(socket_info->address);
+    
+    if (bind(socket_info->socket_fd, (struct sockaddr *) &socket_info->address, sizeof(socket_info->address)) < 0)
+        throw Server_err(SOCKET_BINDING_ERR);
+    
+    if (listen(socket_info->socket_fd, EVENT_LIST) < 0)
+        thr_exce_close(SOCKET_LISTEN_ERR , socket_info->socket_fd);
+    
+    if (fcntl(socket_info->socket_fd, F_SETFL, O_NONBLOCK) < 0)
+        thr_exce_close("fnctl failed" , socket_info->socket_fd);
+
+    EV_SET(&ev, socket_info->socket_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+    if (kevent(this->kq, &ev, 1, NULL, 0, NULL) == -1)
+        throw Server_err("kqueue error");
+    socket_map.insert(std::make_pair(socket_info->socket_fd, socket_info));
+    delete socket_info;
 }

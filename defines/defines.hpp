@@ -2,18 +2,22 @@
 
 #define DEFINES_HPP
 
+<<<<<<< HEAD
+# define BUFFER_SIZE 1025
+=======
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>
 
 # define BUFFER_SIZE 1024
+>>>>>>> origin
 # define EVENT_LIST 10000
 # define UNLIMITED_PARAMS 0
 # define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
 # define DEFAULT_LISTEN_INTERFACE "0.0.0.0"
 # define DEFAULT_LISTEN_PORT "8080"
 # define PORT_MAX_VALUE 65535
-# define MAX_BODY_SIZE 10000000
+# define MAX_BODY_SIZE 1000000000
 # define COLOR_RED "\033[1;31m"
 # define COLOR_GREEN "\033[1;32m"
 # define COLOR_RESET "\033[0m"
