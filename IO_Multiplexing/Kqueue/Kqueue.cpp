@@ -49,8 +49,7 @@ Kqueue::Kqueue(Servers &servers)
     this->kqueue_return = kevent(kqfd, NULL, 0, event, 10000, &timeout);
     if (kqueue_return == -1)
     {
-        std::cerr << "kevent failed" << std::endl;
-        //throw std::runtime_error("kevent failed");
+        throw 
     }
     //std::cout << "kqueue_return: " << kqueue_return << std::endl;
     check_events(event, kqueue_return);

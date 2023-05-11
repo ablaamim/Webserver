@@ -8,7 +8,17 @@ class configurationSA;
 class Servers
 {
     public :  
-        int     kq;
+        
+        int                     kq;
+        static std::vector<int> fd_vector;
+        
+        Servers(configurationSA &config);
+        ~Servers();
+        
+        void    new_server_create_socket(std::string ip, std::string port);
+        void    thr_exce_close(std::string str, int socket_fd);
+
+        
         class socket_t
         {
             public :
@@ -18,8 +28,6 @@ class Servers
                 int         address_len;
                 std::string ip;
                 std::string port;
-                size_t      data_s;
-                int         success_flag;
         };
 
     // map of socket_t with the key being the socket file descriptor
@@ -36,7 +44,6 @@ class Servers
     public :
         // Constructor
         Servers(configurationSA &config);
-        Servers();
         ~Servers();
         
         Servers::socket_type get_socket_ip_port(void);

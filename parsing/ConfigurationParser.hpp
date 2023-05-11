@@ -1,20 +1,8 @@
 #ifndef CONFIGURATION_PARSER_HPP // BEGIN OF CONFIGURATION_PARSER_HPP
 # define CONFIGURATION_PARSER_HPP
 
-# include <exception>
+
 # include "../MainInc/main.hpp"
-# include "debug.hpp"
-# include "libcpp.hpp"
-# include <iostream>
-# include <string>
-# include <vector>
-# include <map>
-# include <fstream>
-# include <sstream>
-# include <algorithm>
-# include <iterator>
-# include <set>
-# include <stdlib.h>
 
 class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 {
@@ -34,6 +22,33 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
             
                 UniqueKey_t     UniqueKey;
                 NoneUniqueKey_t NoneUniqueKey;
+
+                void print_unique_key()
+                {
+                    for (UniqueKey_t::const_iterator it = UniqueKey.begin(); it != UniqueKey.end(); it++)
+                    {
+                        std::cout << it->first << " : ";
+                        for (std::vector<std::string>::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
+                            std::cout << *iter << " ";
+                        std::cout << std::endl;
+                    }
+                };
+
+                void print_none_unique_key()
+                {
+                    for (NoneUniqueKey_t::const_iterator it = NoneUniqueKey.begin(); it != NoneUniqueKey.end(); it++)
+                    {
+                        std::cout << "          " << it->first << std::endl;
+                        for (std::map<std::string, std::vector<std::string> >::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
+                        {
+                            std::cout << iter->first << " : " ;
+                            for (std::vector<std::string>::const_iterator ite = iter->second.begin(); ite != iter->second.end(); ite++)
+                                std::cout << *ite << " ";
+                            std::cout << std::endl;
+                        }
+                    }
+                };
+
                 // Insert a unique key in the location 
                 static void insert_unique_key(const UniqueKey_t &lval, UniqueKey_t &rval)
                 {
@@ -118,8 +133,27 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 
     public :
         typedef std::vector<Server> data_type;    
+    
     private :
         data_type   _data;
+        void print_data_type()
+        {
+            for (data_type::const_iterator it = _data.begin(); it != _data.end(); it++)
+            {
+                std::cout << "Server name : " << std::endl;
+                for (std::set<std::string>::const_iterator iter = it->server_name.begin(); iter != it->server_name.end(); iter++)
+                    std::cout << *iter << " ";
+                std::cout << std::endl;
+                std::cout << "Listen : " << std::endl;
+                for (Server::type_listen::const_iterator iter = it->listen.begin(); iter != it->listen.end(); iter++)
+                {
+                    std::cout << "          " << iter->first << std::endl;
+                    for (std::set<std::string>::const_iterator ite = iter->second.begin(); ite != iter->second.end(); ite++)
+                        std::cout << "                  " << *ite << std::endl;
+                }
+                std::cout << "Location : " << std::endl;
+            }
+        };
 /////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
     static void     listen_format(key_value_type &key_value, size_t &start_last_line, std::string &line);
     static void     check_port(std::string str, size_t &start_last_line, std::string &line);
