@@ -45,13 +45,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
     {
         n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
         //std::cout << "read " << n << " bytes from " << curr_event->ident << std::endl;
-        if (n < 0)
-        {
-            delete_event(curr_event->ident, EVFILT_READ);
-            disconnect_client(curr_event->ident, this->clients);
-            return ;
-        }
-        else if (n == 0)
+        if (n <= 0)
         {
             delete_event(curr_event->ident, EVFILT_READ);
             disconnect_client(curr_event->ident, this->clients);
@@ -69,7 +63,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
         
         char *temp = ft_strdup(buf, n + 1);
 
-        std::cout << "********************************************************" << std::endl;
+        /*std::cout << "********************************************************" << std::endl;
         std::cout << "                  DUPLICATED REQUEST DATA : " << std::endl << temp << std::endl;
         std::cout << temp <<  "********************************************************" << std::endl;
         
@@ -98,13 +92,13 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
         response << "request_body: " << request_body << "\r\n";
         response << "Connection: close\r\n";
         response << "\r\n";
-        response << picture_string;
+        response << picture_string;*/
         
 
         //std::cout << "PICTURE SIZE = " << picture_string.size() << std::endl;
             
         // Send HTTP response to client
-        send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
+        /*send(curr_event->ident, response.str().c_str(), response.str().size(), 0);*/
             /*
             if (request_type == "GET")
             {
