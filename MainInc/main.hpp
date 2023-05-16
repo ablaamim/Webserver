@@ -27,12 +27,11 @@
 # include "../parsing/debug.hpp"
 # include "../parsing/libcpp.hpp"
 # include "../parsing/ConfigurationParser.hpp"
+# include "../response/Response.hpp"
 # include "../parsing/debug.hpp"
 # include "../defines/defines.hpp"
 # include "../Servers/Servers.hpp"
 # include "../global_interface/Webserv.hpp"
 # include "../defines/defines.hpp"
-
-void check_param_nbr(int argc);
 
 #endif
