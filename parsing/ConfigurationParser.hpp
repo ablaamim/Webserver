@@ -4,6 +4,8 @@
 
 # include "../MainInc/main.hpp"
 
+class Webserv;
+
 class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 {
     private :
@@ -179,9 +181,11 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 ///////////////////////////////// END PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
     public :
         // CONSTRUCTORS AND DESTRUCTORS :
-        //configurationSA();
+        configurationSA()
+        {
+            std::cout << "default constructor" << std::endl;
+        };
         configurationSA(char *config_file);
-        //static int kq;
         ~configurationSA();
                 
         // GETTERS AND SETTERS :
@@ -207,4 +211,5 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                 }
         };
 }; // END OF CONFIGURATIONSA
+
 #endif // CONFIGURATIONSA_HPP

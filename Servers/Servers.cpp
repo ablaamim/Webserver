@@ -30,8 +30,7 @@ Servers::Servers(configurationSA &config)
             }
             std::cout << "\rServer "  << iterConf - conf.begin() << COLOR_GREEN <<"      Up               " << COLOR_RESET << std::endl;
         }
-        print_socket_map();
-
+        //print_socket_map();
     }
     catch (const std::exception& e)
     {
