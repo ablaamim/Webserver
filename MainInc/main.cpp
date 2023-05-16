@@ -16,7 +16,8 @@ int main(int argc, char **argv)
     }
     try
     {
-        Webserv webserv(argv[1]);
+        configurationSA config(argv[1]);
+        Webserv webserv(config);
     }
     catch (std::exception &e)
     {

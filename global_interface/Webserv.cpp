@@ -54,12 +54,13 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             delete_event(curr_event->ident, EVFILT_READ, "read evfil");
             disconnect_client(curr_event->ident, this->clients, "read");
         }
-        while((n = read(curr_event->ident, buf, BUFFER_SIZE - 1)) > 0)
+        while(n > 0)
         {
             buf[n] = '\0';
             this->clients[curr_event->ident] += buf;
             std::cout << "received data from " << curr_event->ident << ": " 
             << std::endl << this->clients[curr_event->ident] << std::endl;
+            
             n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
         }
     }
@@ -118,13 +119,13 @@ void Webserv::run(std::vector<int> & fds_socket)
         else
             event_check(new_events, fds_socket);
     }
-    std::cout << "Wesaaal lehenaa " << std::endl;
+    //std::cout << "Wesaaal lehenaa " << std::endl;
 }
 
-Webserv::Webserv(char *config_file)
+Webserv::Webserv(configurationSA &config)
 {
     // Parse config file and create a configurationSA object
-    configurationSA config(config_file);
+    //configurationSA config(config_file);
     this->timeout.tv_sec = 3;
     this->timeout.tv_nsec = 0;
 
