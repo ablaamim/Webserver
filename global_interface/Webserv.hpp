@@ -2,8 +2,9 @@
 # define WEBSERV_HPP
 
 #include "../MainInc/main.hpp"
+#include "../parsing/ConfigurationParser.hpp"
 
-class Webserv
+class Webserv : public configurationSA
 {
     public :
         Webserv(char *config_file);
