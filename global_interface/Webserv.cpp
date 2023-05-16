@@ -57,112 +57,18 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             disconnect_client(curr_event->ident, this->clients);
             return ;
         }
-        else
+        while (n > 0)
         {
             buf[n] = '\0';
             this->clients[curr_event->ident] = buf;
         
             std::cout << "received data from " << curr_event->ident << ": " << this->clients[curr_event->ident] << std::endl;
+            n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
 
-        //char *temp = strdup(this->clients[curr_event->ident].c_str());
-        //std::cout << " **** " <<temp <<  "***" << std::endl;
-        
-        char *temp = ft_strdup(buf, n + 1);
+            int socket_filedes = curr_event->ident;
 
-        std::cout << "********************************************************" << std::endl;
-        std::cout << "                  DUPLICATED REQUEST DATA : " << std::endl << temp << std::endl;
-        std::cout << temp <<  "********************************************************" << std::endl;
-        
-        
-        // Parse HTTP request
-        std::stringstream ss(buf);
-        std::string request_type, request_path, http_version, request_body;
-        ss >> request_type >> request_path >> http_version >> request_body;
-            
-        std::cout << "request_type : " << request_type << std::endl;
-        std::cout << "request_path : " << request_path << std::endl;
-        std::cout << "http_version : " << http_version << std::endl;
-        std::cout << "request_body : " << request_body << std::endl;
-            
-        // Open picture file and read contents into memory
-        std::ifstream picture_file("1337.jpeg", std::ios::binary);
-        std::stringstream picture_data;
-        picture_data << picture_file.rdbuf();
-        std::string picture_string = picture_data.str();
-            
-        // Construct HTTP response    
-        std::stringstream response;
-        response << "HTTP/1.1 200 OK\r\n";
-        response << "Content-Type: image/jpeg\r\n";
-        response << "Content-Length: " << picture_string.size() << "\r\n";
-        response << "request_body: " << request_body << "\r\n";
-        response << "Connection: close\r\n";
-        response << "\r\n";
-        response << picture_string;
-        
-
-        //std::cout << "PICTURE SIZE = " << picture_string.size() << std::endl;
-            
-        // Send HTTP response to client
-        send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
-            /*
-            if (request_type == "GET")
-            {
-                std::cout << "GET request" << std::endl;
-            }
-            else if (request_type == "POST")
-            {
-                std::cout << "POST request" << std::endl;
-            }
-            else
-            {
-                std::cout << "Unknown request" << std::endl;
-            }
-            */
-        
-            /*
-            std::stringstream ss(buf);
-            std::string request_type, request_path, http_version;
-            ss >> request_type >> request_path >> http_version;
-
-            // Open video file
-            std::ifstream video_file("slayer.mp4", std::ios::binary);
-
-            // Construct HTTP response headers
-            std::stringstream response;
-            response << "HTTP/1.1 200 OK\r\n";
-            response << "Content-Type: video/mp4\r\n";
-            response << "Transfer-Encoding: chunked\r\n";
-            response << "\r\n";
-
-            // Send HTTP response headers to client
-            send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
-
-            // Send video data to client in chunks
-            char chunk_buffer[4096];
-            while (!video_file.eof())
-            {
-                video_file.read(chunk_buffer, sizeof(chunk_buffer));
-                int chunk_size = video_file.gcount();
-
-                // Send chunk size as hexadecimal string
-                std::stringstream chunk_size_ss;
-                chunk_size_ss << std::hex << chunk_size << "\r\n";
-                std::string chunk_size_str = chunk_size_ss.str();
-                send(curr_event->ident, chunk_size_str.c_str(), chunk_size_str.size(), 0);
-
-                // Send chunk data
-                send(curr_event->ident, chunk_buffer, chunk_size, 0);
-
-                // Send chunk terminator
-                send(curr_event->ident, "\r\n", 2, 0);
-            }
-
-            // Send final chunk terminator
-            send(curr_event->ident, "0\r\n\r\n", 5, 0);
-            */
-        
-        free (temp);
+            Response response(socket_filedes);
+            //std::cout << "response generated" << std::endl;
         }
     }
 }
@@ -224,6 +130,7 @@ Webserv::Webserv(char *config_file)
 {
     // Parse config file and create a configurationSA object
     configurationSA config(config_file);
+    //this->location = configurationSA::location();
     this->timeout.tv_sec = 3;
     this->timeout.tv_nsec = 0;
 

@@ -1,15 +1,32 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-# include "../MainInc/main.hpp"
 # include "utils.hpp"
+# include "../parsing/ConfigurationParser.hpp"
+# include <map>
+# include <string>
+# include <iostream>
+# include <utility>
+# include <vector>
+# include <algorithm>
+# include <sys/types.h>
+# include <sys/event.h>
 
-class Response 
+
+//class configurationSA;
+
+class Response : public configurationSA
 {
+    public :
+    
     // default Response constructor as for now, it will have 2 parameters, (request instance, sockedFd)
     Response();
+    Response(int fd);
     ~Response();
     
+
+    configurationSA::location    _location;
+
     /*
         resourceType is the requested resource type; that is a MACRO defined in defines folder (e.g. CGI_SCRIPT, FILE, DIRECTORY etc) 
         once the request.uri (e.g. "/directory/index.php") is matched with the desired location from the config

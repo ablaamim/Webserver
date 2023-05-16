@@ -2,7 +2,25 @@
 # define CONFIGURATION_PARSER_HPP
 
 
-# include "../MainInc/main.hpp"
+# include <iostream>
+# include <iomanip>
+# include <fstream>
+# include <fcntl.h>
+# include <sstream>
+# include <exception>
+# include <cstring>
+# include <algorithm>
+# include <iterator>
+# include <vector>
+# include <map>
+# include <set>
+# include <list>
+# include <unistd.h>
+# include "../defines/defines.hpp"
+# include "../parsing/debug.hpp"
+# include "../parsing/libcpp.hpp"
+
+//class Response;
 
 class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 {
@@ -12,6 +30,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
         typedef std::pair<line_iterator, line_iterator>           line_range_type; // pair of iterators for a line in configuration file
         typedef std::pair<file_iterator, file_iterator>           file_range_type; // pair of iterators for a file in configuration file
         typedef std::pair<std::string, std::vector<std::string> > key_value_type;  // pair of key and value in configuration file
+    
     public :
         // Location struct will contain a map of none unique keys and a map of unique keys
         class location // BEGININING OF LOCATION 
@@ -23,8 +42,20 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                 UniqueKey_t     UniqueKey;
                 NoneUniqueKey_t NoneUniqueKey;
 
+                location()
+                {
+                    //std::cout << "location constructor" << std::endl;
+                    this->UniqueKey.clear();
+                    this->NoneUniqueKey.clear();
+                }
+
                 void print_unique_key()
                 {
+                    if (UniqueKey.empty())
+                    {
+                        std::cout << "UniqueKey is empty" << std::endl;
+                        return ;
+                    }
                     for (UniqueKey_t::const_iterator it = UniqueKey.begin(); it != UniqueKey.end(); it++)
                     {
                         std::cout << it->first << " : ";
@@ -36,6 +67,11 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 
                 void print_none_unique_key()
                 {
+                    if (NoneUniqueKey.empty())
+                    {
+                        std::cout << "NoneUniqueKey is empty" << std::endl;
+                        return ;
+                    }
                     for (NoneUniqueKey_t::const_iterator it = NoneUniqueKey.begin(); it != NoneUniqueKey.end(); it++)
                     {
                         std::cout << "          " << it->first << std::endl;
@@ -179,7 +215,8 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 ///////////////////////////////// END PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
     public :
         // CONSTRUCTORS AND DESTRUCTORS :
-        //configurationSA();
+        configurationSA()
+        {};
         configurationSA(char *config_file);
         //static int kq;
         ~configurationSA();
