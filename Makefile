@@ -11,7 +11,7 @@ OBJ = $(SRC:.cpp=.o)
 
 CC = clang++
 
-CFLAGS =  -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g3
+CFLAGS =  -std=c++98 -Wall -Wextra -Werror #-fsanitize=address -g3
 
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@

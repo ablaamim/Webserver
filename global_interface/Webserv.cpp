@@ -54,7 +54,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             delete_event(curr_event->ident, EVFILT_READ, "read evfil");
             disconnect_client(curr_event->ident, this->clients, "read");
         }
-        while(n > 0)
+        while((n = read(curr_event->ident, buf, BUFFER_SIZE - 1)) > 0)
         {
             buf[n] = '\0';
             this->clients[curr_event->ident] += buf;
