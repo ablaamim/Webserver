@@ -2,11 +2,20 @@
 # define WEBSERV_HPP
 
 #include "../MainInc/main.hpp"
+#include "../parsing/ConfigurationParser.hpp"
+
+class configurationSA;
 
 class Webserv
 {
     public :
-        Webserv(char *config_file);
+        Webserv()
+        {
+            //std::cout << "Webserv default constructor" << std::endl;
+        };
+
+        Webserv(configurationSA &config);
+        
         ~Webserv();
 
         void    webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & fds_s);
