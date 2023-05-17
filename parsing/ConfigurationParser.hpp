@@ -38,6 +38,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
         class location // BEGININING OF LOCATION 
         {
             public :
+                
                 typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
                 typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
             
@@ -114,10 +115,55 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     type_listen                                           listen;       // map of listen ports and interfaces (ip, set<port>)
                     type_server_name                                      server_name;  // set of server names
                     type_location                                         location;     // map of locations
+                    
+                    //UniqueKey_t     UniqueKey;
+                    //NoneUniqueKey_t NoneUniqueKey;
+                    
+                    // void print_type_location()
+                    // {
+                    //     if (location.empty())
+                    //     {
+                    //         std::cout << "location is empty" << std::endl;
+                    //         return ;
+                    //     }
+                    //     for (type_location::const_iterator it = location.begin(); it != location.end(); it++)
+                    //     {
+                    //         std::cout << it->first << " : " << std::endl;
+                    //         it->second.print_unique_key();
+                    //         it->second.print_none_unique_key();
+                    //     }
+                    // }
+                    // void print_type_listen()
+                    // {
+                    //     if (listen.empty())
+                    //     {
+                    //         std::cout << "listen is empty" << std::endl;
+                    //         return ;
+                    //     }
+                    //     for (type_listen::const_iterator it = listen.begin(); it != listen.end(); it++)
+                    //     {
+                    //         std::cout << it->first << " : ";
+                    //         for (std::set<std::string>::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
+                    //             std::cout << *iter << " ";
+                    //         std::cout << std::endl;
+                    //     }
+                    // }
+
+                    // void print_type_server_name()
+                    // {
+                    //     if (server_name.empty())
+                    //     {
+                    //         std::cout << "server_name is empty" << std::endl;
+                    //         return ;
+                    //     }
+                    //     for (type_server_name::const_iterator it = server_name.begin(); it != server_name.end(); it++)
+                    //         std::cout << *it << " ";
+                    // }
              
             }; // END OF SERVER 
 
             private :
+                
                 // Configuration 
                 class configuration // BEGIN OF CONF 
                 {
@@ -151,6 +197,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                                 {
                         };
                 };
+
                 // map of raw_configuration, key = key name, value = raw_configuration :
                 typedef std::map<std::string, raw_configuration> data_type;
                 // map of rawConf, key = key name, value = rawConf s:
@@ -163,19 +210,26 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                 const static std::string               is_line_break;
                 const static std::string               is_comment;
                 const static std::string               is_scope;
+                
                 static KEYTYPE                        get_keytype(const std::string &key)
                 {
                     return ((_data.count(key)) ? _data[key].keyType : NONE_KEYTYPE);
                 }
+        
         }; // END OF CONF 
 
     public :
         typedef std::vector<Server> data_type;    
     
-    private :
         data_type   _data;
+        
         void print_data_type()
         {
+            if (_data.empty())
+            {
+                std::cout << "Data is empty" << std::endl;
+                return ;
+            }
             for (data_type::const_iterator it = _data.begin(); it != _data.end(); it++)
             {
                 std::cout << "Server name : " << std::endl;
@@ -185,11 +239,21 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                 std::cout << "Listen : " << std::endl;
                 for (Server::type_listen::const_iterator iter = it->listen.begin(); iter != it->listen.end(); iter++)
                 {
-                    std::cout << "          " << iter->first << std::endl;
+                    std::cout << iter->first << std::endl;
                     for (std::set<std::string>::const_iterator ite = iter->second.begin(); ite != iter->second.end(); ite++)
-                        std::cout << "                  " << *ite << std::endl;
+                        std::cout << *ite << std::endl;
                 }
                 std::cout << "Location : " << std::endl;
+                for (Server::type_location::const_iterator iter = it->location.begin(); iter != it->location.end(); iter++)
+                {
+                    std::cout << iter->first << std::endl;
+                }
+                /*
+                for (Server::type_location::UniqueKey::const_iterator iter = it->location.begin(); iter != it->location.end(); iter++)
+                {
+                    std::cout << iter->first << std::endl;
+                }
+                */
             }
         };
 /////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////

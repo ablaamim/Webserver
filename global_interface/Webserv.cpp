@@ -1,5 +1,6 @@
 
 #include "../MainInc/main.hpp"
+#include "../response/Response.hpp"
 
 void Webserv::change_events(uintptr_t ident, int16_t filter,
         uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
@@ -52,20 +53,56 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             delete_event(curr_event->ident, EVFILT_READ, "read evfil");
             disconnect_client(curr_event->ident, this->clients, "read");
         }
-        while (n > 0)
+        while(n > 0)
         {
             buf[n] = '\0';
-            this->clients[curr_event->ident] = buf;
-        
-            std::cout << "received data from " << curr_event->ident << ": " << this->clients[curr_event->ident] << std::endl;
+            this->clients[curr_event->ident] += buf;
+            
+            std::cout << "received data from " << curr_event->ident << ": " 
+            << std::endl << this->clients[curr_event->ident] << std::endl;
+            
             n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
 
-            int socket_filedes = curr_event->ident;
+            std::stringstream ss(buf);
+            std::string request_type, request_path, http_version;
+            ss >> request_type >> request_path >> http_version;
 
-            Response response(*this, *curr_event);
-            response.generate();
-            //std::cout << "response generated" << std::endl;
-        }
+            // Open video file
+            std::ifstream video_file("slayer.mp4", std::ios::binary);
+
+            // Construct HTTP response headers
+            std::stringstream response;
+            response << "HTTP/1.1 200 OK\r\n";
+            response << "Content-Type: video/mp4\r\n";
+            response << "Transfer-Encoding: chunked\r\n";
+            response << "\r\n";
+
+            // Send HTTP response headers to client
+            send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
+
+            // Send video data to client in chunks
+            char chunk_buffer[1024];
+            while (!video_file.eof())
+            {
+                video_file.read(chunk_buffer, sizeof(chunk_buffer));
+                int chunk_size = video_file.gcount();
+
+                // Send chunk size as hexadecimal string
+                std::stringstream chunk_size_ss;
+                chunk_size_ss << std::hex << chunk_size << "\r\n";
+                std::string chunk_size_str = chunk_size_ss.str();
+                send(curr_event->ident, chunk_size_str.c_str(), chunk_size_str.size(), 0);
+
+                // Send chunk data
+                send(curr_event->ident, chunk_buffer, chunk_size, 0);
+
+                // Send chunk terminator
+                send(curr_event->ident, "\r\n", 2, 0);
+            }
+
+            // Send final chunk terminator
+            send(curr_event->ident, "0\r\n\r\n", 5, 0);
+        }   
     }
 }
 
@@ -107,12 +144,13 @@ void Webserv::event_check(int new_events, std::vector<int> & fds_s)
     }
 }
 
-void Webserv::run(std::vector<int> & fds_socket)
+void Webserv::run(std::vector<int> & fds_socket, configurationSA &config)
 {
     int new_events;
     
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(40) << "Server is running size " << fds_socket.size() << COLOR_RESET << std::endl;
+    signal(SIGPIPE, SIG_IGN);
     while (1337)
     {
         new_events = kevent(this->kq, NULL, 0, this->event_list, fds_socket.size(), NULL);
@@ -120,38 +158,19 @@ void Webserv::run(std::vector<int> & fds_socket)
             throw Webserv::Webserv_err("kevent failed");
         else
             event_check(new_events, fds_socket);
+        //Response response(config);
     }
-    std::cout << "Wesaaal lehenaa " << std::endl;
+    //std::cout << "Wesaaal lehenaa " << std::endl;
 }
 
 Webserv::Webserv(configurationSA &config)
 {
-    // Parse config file and create a configurationSA object
-    configurationSA config(config_file);
-    //this->location = configurationSA::location();
-    this->timeout.tv_sec = 3;
-    this->timeout.tv_nsec = 0;
-
     // Create a server object with the configurationSA object
     Servers         server(config);
     this->kq = server.kq;
     this->event_list = new struct kevent [Servers::fd_vector.size()];
-    this->run(Servers::fd_vector);
+    this->run(Servers::fd_vector, config);
 }
 
 // default destructor
-Webserv::~Webserv(){}
-
-Webserv::Webserv(){}
-
-
-std::map<int, std::string>    &Webserv::get_clients()
-{
-    return (this->clients);
-}
-
-
-void    Webserv::delete_client(int id)
-{
-    this->clients[id].clear();
-}
+Webserv::~Webserv(){delete [] event_list;}
