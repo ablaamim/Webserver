@@ -22,6 +22,8 @@
 
 //class Response;
 
+class Webserv;
+
 class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 {
     private :
@@ -218,7 +220,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
         configurationSA()
         {};
         configurationSA(char *config_file);
-        //static int kq;
         ~configurationSA();
                 
         // GETTERS AND SETTERS :
@@ -244,4 +245,5 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                 }
         };
 }; // END OF CONFIGURATIONSA
+
 #endif // CONFIGURATIONSA_HPP
