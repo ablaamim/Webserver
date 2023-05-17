@@ -13,6 +13,9 @@ SRC = ./MainInc/main.cpp \
 	./response/methods/post.cpp \
 	./response/methods/delete.cpp
 
+all: $(NAME)
+
+
 OBJ = $(SRC:.cpp=.o)
 
 CC = clang++
@@ -26,7 +29,6 @@ $(NAME):
 
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
-
 
 clean:
 	rm -rf $(OBJ)
