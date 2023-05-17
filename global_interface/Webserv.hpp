@@ -7,6 +7,7 @@
 class Webserv : public configurationSA
 {
     public :
+        Webserv();
         Webserv(char *config_file);
         ~Webserv();
 
@@ -17,6 +18,9 @@ class Webserv : public configurationSA
         void    run(std::vector<int> & fds_socket);
         void    event_check(struct kevent *event, int kq_return, std::vector<int> & fds_socket);
         void    delete_event(int fd, int16_t filter);
+
+        void    delete_client(int id);
+        std::map<int, std::string>    &get_clients();
         
     private :
         int             kq;

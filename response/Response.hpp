@@ -3,6 +3,10 @@
 
 # include "utils.hpp"
 # include "../parsing/ConfigurationParser.hpp"
+# include "../global_interface/Webserv.hpp"
+# include "../defines/defines.hpp"
+
+# include "methods/methods.hpp"
 # include <map>
 # include <string>
 # include <iostream>
@@ -11,6 +15,7 @@
 # include <algorithm>
 # include <sys/types.h>
 # include <sys/event.h>
+# include <unistd.h>
 
 
 //class configurationSA;
@@ -20,12 +25,12 @@ class Response : public configurationSA
     public :
     
     // default Response constructor as for now, it will have 2 parameters, (request instance, sockedFd)
-    Response();
-    Response(int fd);
+    Response(Webserv& webserv, struct kevent& curr_event);
     ~Response();
     
-
-    configurationSA::location    _location;
+    Webserv&                        _webserv;
+    struct kevent&                  _curr_event;
+    configurationSA::location       _location;
 
     /*
         resourceType is the requested resource type; that is a MACRO defined in defines folder (e.g. CGI_SCRIPT, FILE, DIRECTORY etc) 
@@ -33,11 +38,20 @@ class Response : public configurationSA
         the fullPath should be filled along with resourceType.
     */
     // Request      requestObj;
-    int             socketFd;
+
+    bool            isCompleted; // whether the reponse has served 100% of resourceLength
+
+    int             resouceLength; // e.g. a video file 10mb 
+    int             length;
     int             resourceType;
+    std::string     method;
     std::string     fullPath;
     std::string     httpVersion;
     std::string     body;
+
+
+    // set this depending on matched location 
+    std::vector<std::string> allowedMethods;
 
     // list of status codes and their associated message it should be defined globaly in the main (for later ...)
     std::map<int, std::string>              statusList;
@@ -49,10 +63,22 @@ class Response : public configurationSA
     std::map    <std::string, std::string>  headers;
 
     // Extra arguments depending on resource type (e.g. in case of DIRECTORY, kwargs should contain autoindex as key and its value as value) 
+    
     std::map    <std::string, std::string>  kwargs;
     
-    // convert data members to a response message and write it to the socket
+    // handle client request
     void    generate();
+
+    // convert data members to a response message and write it to the socket
+    void    send();
+
+    // match the request uri with one of the locations
+    void    matchResourceWithLocation();
+
+    // handle possible request methods
+    void    handleGet();
+    void    handlePost();
+    void    handleDelete();
 };
 
 
