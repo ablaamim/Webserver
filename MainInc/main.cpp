@@ -16,6 +16,7 @@ int main(int argc, char **argv)
     }
     try
     {
+        signal(SIGPIPE, SIG_IGN);
         Webserv webserv(argv[1]);
     }
     catch (std::exception &e)
