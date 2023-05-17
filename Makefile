@@ -7,7 +7,7 @@ SRC = ./MainInc/main.cpp \
 	./Servers/Servers.cpp \
 	./global_interface/Webserv.cpp \
 	./response/Response.cpp \
-	./response/utils.cpp \
+	#./response/utils.cpp \
 	./response/cgi.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \
