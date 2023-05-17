@@ -4,23 +4,27 @@
 #include "../MainInc/main.hpp"
 #include "../parsing/ConfigurationParser.hpp"
 
-class Webserv : public configurationSA
+class configurationSA;
+
+class Webserv
 {
     public :
-        Webserv();
-        Webserv(char *config_file);
+        Webserv()
+        {
+            //std::cout << "Webserv default constructor" << std::endl;
+        };
+
+        Webserv(configurationSA &config);
+        
         ~Webserv();
 
         void    webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & fds_s);
         void    webserv_evfilt_write(struct kevent *curr_event);
         void    change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
         void    disconnect_client(int client_fd, std::map<int, std::string>& clients, std::string str);
-        void    run(std::vector<int> & fds_socket);
-        void    event_check(struct kevent *event, int kq_return, std::vector<int> & fds_socket);
-        void    delete_event(int fd, int16_t filter);
-
-        void    delete_client(int id);
-        std::map<int, std::string>    &get_clients();
+        void    run(std::vector<int> & fds_socket, configurationSA &config);
+        void    event_check(int even_num, std::vector<int> & fds_socket);
+        void    delete_event(int fd, int16_t filter, std::string str);
         
     private :
         int             kq;

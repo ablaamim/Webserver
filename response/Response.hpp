@@ -5,7 +5,6 @@
 # include "../parsing/ConfigurationParser.hpp"
 # include "../global_interface/Webserv.hpp"
 # include "../defines/defines.hpp"
-
 # include "methods/methods.hpp"
 # include <map>
 # include <string>
@@ -17,7 +16,6 @@
 # include <sys/event.h>
 # include <unistd.h>
 
-
 //class configurationSA;
 
 class Response : public configurationSA
@@ -25,12 +23,17 @@ class Response : public configurationSA
     public :
     
     // default Response constructor as for now, it will have 2 parameters, (request instance, sockedFd)
-    Response(Webserv& webserv, struct kevent& curr_event);
+    
+    // this constructor will have no use taking Webserver instance as a parameter!
+    Response(/*Webserv& webserv,  const struct kevent &curr_event*/configurationSA &config);
+    
     ~Response();
     
-    Webserv&                        _webserv;
-    struct kevent&                  _curr_event;
+    //Webserv&                        _webserv;
+    //struct kevent&                  _curr_event;
+    
     configurationSA::location       _location;
+    configurationSA::Server         _server;
 
     /*
         resourceType is the requested resource type; that is a MACRO defined in defines folder (e.g. CGI_SCRIPT, FILE, DIRECTORY etc) 
@@ -51,10 +54,10 @@ class Response : public configurationSA
 
 
     // set this depending on matched location 
-    std::vector<std::string> allowedMethods;
+    std::vector<std::string>    allowedMethods;
 
     // list of status codes and their associated message it should be defined globaly in the main (for later ...)
-    std::map<int, std::string>              statusList;
+    std::map<int, std::string>  statusList;
 
     // response status code + message (e.g. 200, OK), you can get it from reponseStatus object below
     std::pair   <std::string, std::string>  status;
@@ -79,6 +82,16 @@ class Response : public configurationSA
     void    handleGet();
     void    handlePost();
     void    handleDelete();
+
+    class  Response_err : public std::exception
+    {
+        public :
+            Response_err(std::string msg) : _msg(msg) {}
+            virtual ~Response_err() throw() {}
+            virtual const char* what() const throw() { return _msg.c_str(); }
+        private :
+            std::string _msg;
+    };
 };
 
 
