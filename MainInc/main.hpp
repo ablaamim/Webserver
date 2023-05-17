@@ -22,6 +22,7 @@
 #include <sys/event.h>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <signal.h>
 
 
 # include "../parsing/debug.hpp"

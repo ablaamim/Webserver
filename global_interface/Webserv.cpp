@@ -1,13 +1,12 @@
 
 #include "../MainInc/main.hpp"
 
-void Webserv::change_events(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
+void Webserv::change_events(uintptr_t ident, int16_t filter,
         uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
 {
     struct kevent temp_event;
 
     EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
-    change_list.push_back(temp_event);
     if (kevent(this->kq, &temp_event, 1, NULL, 0, NULL) == -1)
         throw Webserv::Webserv_err("kevent error change event");
 }
@@ -41,8 +40,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
         std::cout << "accept new client: " << client_socket << std::endl;
-        change_events(this->change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        change_events(this->change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         this->clients[client_socket] = "";
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
@@ -58,8 +56,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
         {
             buf[n] = '\0';
             this->clients[curr_event->ident] += buf;
-            std::cout << "received data from " << curr_event->ident << ": " 
-            << std::endl << this->clients[curr_event->ident] << std::endl;
+            /*std::cout << "received data from " << curr_event->ident << ": " 
+            << std::endl << this->clients[curr_event->ident] << std::endl;*/
             n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
         }
     }
@@ -108,31 +106,29 @@ void Webserv::run(std::vector<int> & fds_socket)
     int new_events;
     
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
-    std::setw(40) << "Server is running" << COLOR_RESET << std::endl;
+    std::setw(40) << "Server is running size " << fds_socket.size() << COLOR_RESET << std::endl;
     while (1337)
     {
-        new_events = kevent(this->kq, &this->change_list[0], this->change_list.size(), this->event_list, EVENT_LIST, &this->timeout);
-        this->change_list.clear();
+        new_events = kevent(this->kq, NULL, 0, this->event_list, fds_socket.size(), NULL);
         if (new_events == -1)
             throw Webserv::Webserv_err("kevent failed");
         else
             event_check(new_events, fds_socket);
     }
-    std::cout << "Wesaaal lehenaa " << std::endl;
 }
 
 Webserv::Webserv(char *config_file)
 {
     // Parse config file and create a configurationSA object
     configurationSA config(config_file);
-    this->timeout.tv_sec = 3;
-    this->timeout.tv_nsec = 0;
+
 
     // Create a server object with the configurationSA object
     Servers         server(config);
     this->kq = server.kq;
+    this->event_list = new struct kevent [Servers::fd_vector.size()];
     this->run(Servers::fd_vector);
 }
 
 // default destructor
-Webserv::~Webserv(){}
+Webserv::~Webserv(){delete [] event_list;}
