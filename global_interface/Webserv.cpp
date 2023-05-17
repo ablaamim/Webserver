@@ -120,11 +120,6 @@ void Webserv::run(std::vector<int> & fds_socket)
 
 Webserv::Webserv(configurationSA &config)
 {
-    // Parse config file and create a configurationSA object
-    configurationSA config(config_file);
-    this->timeout.tv_sec = 3;
-    this->timeout.tv_nsec = 0;
-
     // Create a server object with the configurationSA object
     Servers         server(config);
     this->kq = server.kq;
