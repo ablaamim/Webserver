@@ -67,7 +67,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
 
             int socket_filedes = curr_event->ident;
 
-            Response response(socket_filedes);
+            Response response(*this, *curr_event);
+            response.generate();
             //std::cout << "response generated" << std::endl;
         }
     }
@@ -142,3 +143,17 @@ Webserv::Webserv(char *config_file)
 
 // default destructor
 Webserv::~Webserv(){}
+
+Webserv::Webserv(){}
+
+
+std::map<int, std::string>    &Webserv::get_clients()
+{
+    return (this->clients);
+}
+
+
+void    Webserv::delete_client(int id)
+{
+    this->clients[id].clear();
+}
