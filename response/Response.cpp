@@ -3,7 +3,16 @@
 Response::Response(/*Webserv& webserv, struct kevent &curr_event, */configurationSA &config)  /* : _webserv(webserv), _curr_event(curr_event)*/
 {
     std::cout << "Response constructor" << std::endl;
-    
+
+    // begin of request attributes:
+
+    this->method = GET;
+    this->host_ip = "localhost";
+    this->host_port = "8088";
+    this->resoucePath = "/";
+
+    // end of request attributes
+
     configurationSA::data_type conf = config.get_data();
 
     if (conf.size() == 0)
@@ -21,13 +30,7 @@ Response::Response(/*Webserv& webserv, struct kevent &curr_event, */configuratio
             std::cout << "location : " << iterLocation->first << std::endl;
         }
     }
-    
-    
-    //this->print_data_type();
-    //this->_curr_event = curr_event;
 
-    this->method = GET;
-    
     /*
         this function will lookup and match the URI (resource path comming from requestObj) 
         and set the matched resource full path, type, length. 
@@ -44,24 +47,19 @@ Response::Response(/*Webserv& webserv, struct kevent &curr_event, */configuratio
 void    Response::matchResourceWithLocation()
 {
     /*
-    
-            SET THOSE ATTRIBUTES BELOW DEPENDING ON MATCHED LOCATION
-
+        LOOP TROUGH LOCATIONS AND FIND THE MATCHED LOCATION FOR THE RESOURCE PATH
+        SET THOSE ATTRIBUTES BELOW DEPENDING ON MATCHED LOCATION
+        FOR MORE:
+        https://www.digitalocean.com/community/tutorials/understanding-nginx-server-and-location-block-selection-algorithms
     */
 
-    this->fullPath = ""; // full path of the resouce
+    this->resourceFullPath = ""; // location root + the resourcePath
     this->resourceType = NONE; // see ./defines/defines.hpp for other possible types
-    this->resouceLength = 0; // the file size for example
-
-    /*
-        this is a dynamic map, needs to be filled with other attributes of the matched location
-        if resourceType is Directory it should be like this:
-        this->kwargs["autoindex"] = "OFF";
-        this->kwargs["index"] = "index.php"
-        ...
-    */
-    this->kwargs["autoindex"] = "OFF"; // this is just an example.
-    // this->allowedMethods, this should be filled with the matched location allowed methods
+    this->resouceLength = 0; // THE RESOURCE SIZE
+    std::vector<std::string> allowed_methods;
+    allowed_methods.push_back("GET");
+    allowed_methods.push_back("POST"); // THIS IS JUST AN EXAMPLE
+    this->kwargs["allowed_methods"] = allowed_methods;
 }
 
 void    Response::generate()
