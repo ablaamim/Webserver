@@ -53,6 +53,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             delete_event(curr_event->ident, EVFILT_READ, "read evfil");
             disconnect_client(curr_event->ident, this->clients, "read");
         }
+        
         while(n > 0)
         {
             buf[n] = '\0';
@@ -113,6 +114,9 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
         if (this->clients[curr_event->ident] != "")
         {
             delete_event(curr_event->ident, EVFILT_WRITE, "write evfil");
+            /*
+                so here we need to add client to the reponseList
+            */
             if (write(curr_event->ident, this->clients[curr_event->ident].c_str(), this->clients[curr_event->ident].size()) < 0)
             {
                 std::cout << "write error" << std::endl;
@@ -158,7 +162,7 @@ void Webserv::run(std::vector<int> & fds_socket, configurationSA &config)
             throw Webserv::Webserv_err("kevent failed");
         else
             event_check(new_events, fds_socket);
-        //Response response(config);
+        Response response(config);
     }
     //std::cout << "Wesaaal lehenaa " << std::endl;
 }
