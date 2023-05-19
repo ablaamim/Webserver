@@ -53,82 +53,45 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             delete_event(curr_event->ident, EVFILT_READ, "read evfil");
             disconnect_client(curr_event->ident, this->clients, "read");
         }
-        
-        while(n > 0)
+        else
         {
             buf[n] = '\0';
-            this->clients[curr_event->ident] += buf;
+            this->clients[curr_event->ident].append(buf);
             
             std::cout << "received data from " << curr_event->ident << ": " 
             << std::endl << this->clients[curr_event->ident] << std::endl;
             
-            n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
+           // n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
 
-            std::stringstream ss(buf);
-            std::string request_type, request_path, http_version;
-            ss >> request_type >> request_path >> http_version;
-
-            // Open video file
-            std::ifstream video_file("slayer.mp4", std::ios::binary);
-
-            // Construct HTTP response headers
-            std::stringstream response;
-            response << "HTTP/1.1 200 OK\r\n";
-            response << "Content-Type: video/mp4\r\n";
-            response << "Transfer-Encoding: chunked\r\n";
-            response << "\r\n";
-
-            // Send HTTP response headers to client
-            send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
-
-            // Send video data to client in chunks
-            char chunk_buffer[1024];
-            while (!video_file.eof())
-            {
-                video_file.read(chunk_buffer, sizeof(chunk_buffer));
-                int chunk_size = video_file.gcount();
-
-                // Send chunk size as hexadecimal string
-                std::stringstream chunk_size_ss;
-                chunk_size_ss << std::hex << chunk_size << "\r\n";
-                std::string chunk_size_str = chunk_size_ss.str();
-                send(curr_event->ident, chunk_size_str.c_str(), chunk_size_str.size(), 0);
-
-                // Send chunk data
-                send(curr_event->ident, chunk_buffer, chunk_size, 0);
-
-                // Send chunk terminator
-                send(curr_event->ident, "\r\n", 2, 0);
-            }
-
-            // Send final chunk terminator
-            send(curr_event->ident, "0\r\n\r\n", 5, 0);
+            //char *str = ft_strdup(buf, n + 1);
+            //std::cout << "n = " << n << std::endl;
         }   
     }
 }
 
-void Webserv::webserv_evfilt_write(struct kevent *curr_event)
+void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config)
 {
-    if (this->clients.find(curr_event->ident) != this->clients.end())
-    {
-        if (this->clients[curr_event->ident] != "")
-        {
-            delete_event(curr_event->ident, EVFILT_WRITE, "write evfil");
-            /*
-                so here we need to add client to the reponseList
-            */
-            if (write(curr_event->ident, this->clients[curr_event->ident].c_str(), this->clients[curr_event->ident].size()) < 0)
-            {
-                std::cout << "write error" << std::endl;
-                disconnect_client(curr_event->ident, this->clients, "write");
-            }
-            else
-                this->clients[curr_event->ident].clear();
-        }
-    }
+    
+    // if (this->clients.find(curr_event->ident) != this->clients.end())
+    // {
+    //     if (this->clients[curr_event->ident] != "")
+    //     {
+    //         delete_event(curr_event->ident, EVFILT_WRITE, "write evfil");
+    //         /*
+    //             so here we need to add client to the reponseList
+    //         */
+    //         if (write(curr_event->ident, this->clients[curr_event->ident].c_str(), this->clients[curr_event->ident].size()) < 0)
+    //         {
+    //             std::cout << "write error" << std::endl;
+    //             disconnect_client(curr_event->ident, this->clients, "write");
+    //         }
+    //         else
+    //             this->clients[curr_event->ident].clear();
+    //     }
+    // }
 }
 
-void Webserv::event_check(int new_events, std::vector<int> & fds_s)
+void Webserv::event_check(int new_events, std::vector<int> & fds_s, configurationSA &config)
 {
     for (int i = 0; i < new_events; i++)
     {
@@ -138,11 +101,12 @@ void Webserv::event_check(int new_events, std::vector<int> & fds_s)
         {
             delete_event(this->event_list[i].ident, EVFILT_READ, "read eof");
             disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
+            std::cout << "client disconnected" << std::endl;
         }
         else if (this->event_list[i].filter == EVFILT_READ)
             webserv_evfilt_read(&this->event_list[i], fds_s);
         else if (this->event_list[i].filter == EVFILT_WRITE)
-            webserv_evfilt_write(&this->event_list[i]);
+            webserv_evfilt_write(&this->event_list[i], config);
         else
             std::cout << COLOR_RED << "EVENT ERROR" << i << " " << this->event_list[i].filter << COLOR_RESET << std::endl;
     }
@@ -161,8 +125,8 @@ void Webserv::run(std::vector<int> & fds_socket, configurationSA &config)
         if (new_events == -1)
             throw Webserv::Webserv_err("kevent failed");
         else
-            event_check(new_events, fds_socket);
-        Response response(config);
+            event_check(new_events, fds_socket, configurationSA &config);
+        //Response response(config);
     }
     //std::cout << "Wesaaal lehenaa " << std::endl;
 }
