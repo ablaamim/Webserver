@@ -41,6 +41,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             throw Webserv::Webserv_err("accept error");
         std::cout << "accept new client: " << client_socket << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        change_events(client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         this->clients[client_socket] = "";
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
@@ -69,7 +70,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
     {
         if (this->clients[curr_event->ident] != "")
         {
-            delete_event(curr_event->ident, EVFILT_WRITE, "write evfil");
             if (write(curr_event->ident, this->clients[curr_event->ident].c_str(), this->clients[curr_event->ident].size()) < 0)
             {
                 std::cout << "write error" << std::endl;
@@ -77,6 +77,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             }
             else
                 this->clients[curr_event->ident].clear();
+            delete_event(curr_event->ident, EVFILT_WRITE, "write evfil");
         }
     }
 }
@@ -115,7 +116,6 @@ void Webserv::run(std::vector<int> & fds_socket)
         else
             event_check(new_events, fds_socket);
     }
-    std::cout << "Wesaaal lehenaa " << std::endl;
 }
 
 Webserv::Webserv(configurationSA &config)
