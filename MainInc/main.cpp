@@ -16,8 +16,8 @@ int main(int argc, char **argv)
     }
     try
     {
-        configurationSA config(argv[1]);
         signal(SIGPIPE, SIG_IGN);
+        configurationSA config(argv[1]);
         Webserv webserv(config);
     }
     catch (std::exception &e)
