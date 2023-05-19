@@ -26,7 +26,9 @@ class Servers
 
     // map of socket_t with the key being the socket file descriptor
     typedef std::map<int, socket_t> socket_type;
+    
     socket_type socket_map;
+    
     struct      timespec timeout;
 
     void print_socket_map()
@@ -38,7 +40,38 @@ class Servers
         }
     };
     socket_type socket_ip_port;
+
+    socket_type::iterator get_socket_by_fd(int fd)
+    {
+        for (socket_type::iterator iter = socket_map.begin(); iter != socket_map.end(); iter++)
+        {
+            if (iter->first == fd)
+                return iter;
+        }
+        return socket_map.end();
+    }
+
     void        new_server_create_socket(std::string ip, std::string port);
+
+    std::string find_ip_by_fd(int fd)
+    {
+        for (socket_type::iterator iter = socket_map.begin(); iter != socket_map.end(); iter++)
+        {
+            if (iter->first == fd)
+                return iter->second.ip;
+        }
+        return "";
+    }
+
+    std::string find_port_by_fd(int fd)
+    {
+        for (socket_type::iterator iter = socket_map.begin(); iter != socket_map.end(); iter++)
+        {
+            if (iter->first == fd)
+                return iter->second.port;
+        }
+        return "";
+    }
 
     public :
         // Constructor
