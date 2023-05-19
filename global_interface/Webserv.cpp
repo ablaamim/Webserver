@@ -119,7 +119,6 @@ void Webserv::run(std::vector<int> & fds_socket)
 
 Webserv::Webserv(configurationSA &config)
 {
-    // Create a server object with the configurationSA object
     Servers         server(config);
     this->kq = server.kq;
     this->event_list = new struct kevent [Servers::fd_vector.size()];
