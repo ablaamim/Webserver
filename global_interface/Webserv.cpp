@@ -33,7 +33,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
 {
     int client_socket;
     char buf[BUFFER_SIZE] = {0};
-    int n = 0;
+    int n = 0 , k = 1;
 
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
@@ -41,25 +41,22 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             throw Webserv::Webserv_err("accept error");
         std::cout << "accept new client: " << client_socket << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
     {
-        n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
-        this->clients[curr_event->ident] = "";
+        n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
         if (n <= 0)
         {
-            delete_event(curr_event->ident, EVFILT_READ, "read evfil");
+            std::cout << "read error " << strerror(errno) << std::endl;
             disconnect_client(curr_event->ident, this->clients, "read");
+            return ;
         }
-        while(n > 0)
-        {
-            buf[n] = '\0';
-            this->clients[curr_event->ident] += buf;
-            std::cout << "received data from " << curr_event->ident << ": " 
-            << std::endl << this->clients[curr_event->ident] << std::endl;
-            n = read(curr_event->ident, buf, BUFFER_SIZE - 1);
-        }
+        buf[n] = '\0';
+        this->clients[curr_event->ident].append(buf);
+        std::cout << "received data from " << curr_event->ident << ": " 
+             << std::endl << this->clients[curr_event->ident] << std::endl;
     }
 }
 
@@ -69,14 +66,22 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
     {
         if (this->clients[curr_event->ident] != "")
         {
-            if (write(curr_event->ident, this->clients[curr_event->ident].c_str(), this->clients[curr_event->ident].size()) < 0)
+            // std::cout << "received data from " << curr_event->ident << ": " 
+            // << std::endl << this->clients[curr_event->ident] << std::endl;
+            // if(this->clients[curr_event->ident].size() <= (3786 * (BUFFER_SIZE - 1)))
+            //     return ;
+            if (send(curr_event->ident, this->clients[curr_event->ident].c_str(), this->clients[curr_event->ident].size(), 0) < 0)
             {
-                std::cout << "write error" << std::endl;
-                disconnect_client(curr_event->ident, this->clients, "write");
+                std::cout << "error " << strerror(errno) << std::endl;
+                // std::cout << "write error" << curr_event->ident << std::endl;
+                // disconnect_client(curr_event->ident, this->clients, "write");
             }
             else
+            {
+                std::cout << "writed data to " << curr_event->ident << ": " \
+                << std::endl << this->clients[curr_event->ident] << std::endl;
                 this->clients[curr_event->ident].clear();
-            delete_event(curr_event->ident, EVFILT_WRITE, "write evfil");
+            }
         }
     }
 }
@@ -126,4 +131,4 @@ Webserv::Webserv(configurationSA &config)
 }
 
 // default destructor
-Webserv::~Webserv(){delete [] event_list;}
+Webserv::~Webserv(){delete [] this->event_list;}
