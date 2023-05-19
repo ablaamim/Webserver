@@ -41,7 +41,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & 
             throw Webserv::Webserv_err("accept error");
         std::cout << "accept new client: " << client_socket << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-        change_events(client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         this->clients[client_socket] = "";
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
