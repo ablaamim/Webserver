@@ -1,13 +1,45 @@
 
 #include "../MainInc/main.hpp"
 
-std::map<int, int> clients_list;                // map of (client_socket, server_socket)
-std::map<int, abstract_req> request_list;       // map of (client_socket, request_socket)
+std::map<int, int>               clients_list;                // map of (client_socket, server_socket)
+std::map<int, abstract_req>      request_list;       // map of (client_socket, request_socket)
 std::map<int, abstract_response> response_list; // map of (client_socket, response_socket)
+
+//////////////////////////////////////////////////////// DEBUG FUNCTIONS /////////////////////////////////////////////////////////
+
+void print_response_list(std::map<int, abstract_response> response_list)
+{
+    std::cout << std::endl << std::endl << COLOR_BLUE << "Response list :" << COLOR_RESET;
+    for (std::map<int, abstract_response>::iterator iter = response_list.begin(); iter != response_list.end(); iter++)
+    {
+        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " request socket : " << iter->second._req._fd << " ]" << COLOR_RESET << std::endl;
+        std::cout << COLOR_YELLOW << "client ip : " << iter->second._client_ip << COLOR_RESET << std::endl;
+    }
+}
+
+void print_client_list(std::map<int, int> clients_list)
+{
+    std::cout << std::endl << std::endl << COLOR_BLUE << "Client list : " << COLOR_RESET;
+    for (std::map<int, int>::iterator iter = clients_list.begin(); iter != clients_list.end(); iter++)
+    {
+        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " server_socket : " << iter->second << " ]" << COLOR_RESET << std::endl;
+    }
+}
+
+void print_request_list(std::map<int, abstract_req> request_list)
+{
+    std::cout << std::endl << std::endl << COLOR_BLUE << "Request list :" << COLOR_RESET;
+    for (std::map<int, abstract_req>::iterator iter = request_list.begin(); iter != request_list.end(); iter++)
+    {
+        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " request_socket : " << iter->second._fd << " ]" << COLOR_RESET << std::endl;
+    }
+}
+
+//////////////////////////////////////////////////////// END OF DEBUG FUNCTIONS /////////////////////////////////////////////////////////
 
 configurationSA::Server Select_server(configurationSA &config, std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname)
 {
-    std::cout << COLOR_GREEN <<  "                 -> Select_server <-          " << std::endl << std::endl;
+    //std::cout << COLOR_GREEN <<  "                 -> Select_server <-          " << std::endl << std::endl;
     
     configurationSA::data_type::iterator iter = Servers_vector.end();
     
@@ -41,7 +73,7 @@ configurationSA::Server Select_server(configurationSA &config, std::string ip, s
 
 configurationSA::location match_location(std::string trgt, configurationSA::Server server)
 {
-    std::cout << COLOR_GREEN <<  "                 -> match location <-          " << COLOR_RESET << std::endl << std::endl;
+    //std::cout << COLOR_GREEN <<  "                 -> match location <-          " << COLOR_RESET << std::endl << std::endl;
     
     configurationSA::location		result;
 
@@ -62,33 +94,6 @@ configurationSA::location match_location(std::string trgt, configurationSA::Serv
 	result.insert(server.location["/"]);
 	return (result);
 }
-
-//////////////////////////////////////////////////////// DEBUG FUNCTIONS /////////////////////////////////////////////////////////
-
-void print_response_list(std::map<int, abstract_response> response_list)
-{
-    // TO BE CONTINUED
-}
-
-void print_client_list(std::map<int, int> clients_list)
-{
-    std::cout << std::endl << std::endl << COLOR_BLUE << "Client list : " << COLOR_RESET;
-    for (std::map<int, int>::iterator iter = clients_list.begin(); iter != clients_list.end(); iter++)
-    {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " server_socket : " << iter->second << " ]" << COLOR_RESET << std::endl;
-    }
-}
-
-void print_request_list(std::map<int, abstract_req> request_list)
-{
-    std::cout << std::endl << std::endl << COLOR_BLUE << "Request list :" << COLOR_RESET;
-    for (std::map<int, abstract_req>::iterator iter = request_list.begin(); iter != request_list.end(); iter++)
-    {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " request_socket : " << iter->second._fd << " ]" << COLOR_RESET << std::endl;
-    }
-}
-
-//////////////////////////////////////////////////////// END OF DEBUG FUNCTIONS /////////////////////////////////////////////////////////
 
 void Webserv::change_events(uintptr_t ident, int16_t filter,
         uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
@@ -163,23 +168,24 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         //EV_SET(curr_event, curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
     }
     //print_env(env);
-                                        //// DEBUG ////
+                                        //// DISCOMMENT THIS TO SEE THE CURRENT DATA ////
     
-    // print_client_list(clients_list);
-    // print_request_list(request_list);
+    //print_client_list(clients_list);
+    //print_request_list(request_list);
 
     // std::endl(std::cout);
 
     // //std::cout << "write event" << std::endl;
-    // std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
+    std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
     // //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
     
     // //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
     
-    // std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
+    std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
     // //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
 
-    // configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "localhost");
+    configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "localhost");
+    
     // _obj_server.print_type_listen();
 
     // std::endl(std::cout);
@@ -188,11 +194,14 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
     // std::endl(std::cout);
     
-    // configurationSA::location   _obj_location = match_location("/", _obj_server);
+     configurationSA::location   _obj_location = match_location("/", _obj_server);
     
     // _obj_location.print_unique_key();
     
     // _obj_location.print_none_unique_key();
+    response_list.insert(std::make_pair(this->fd_accepted, abstract_response(pair_request->second, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
+
+    //print_response_list(response_list);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
