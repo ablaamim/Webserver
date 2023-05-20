@@ -156,34 +156,34 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
                                         //// DEBUG ////
     
-    print_client_list(clients_list);
-    print_request_list(request_list);
+    // print_client_list(clients_list);
+    // print_request_list(request_list);
 
-    std::endl(std::cout);
+    // std::endl(std::cout);
 
-    //std::cout << "write event" << std::endl;
-    std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
-    //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
+    // //std::cout << "write event" << std::endl;
+    // std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
+    // //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
     
-    //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
+    // //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
     
-    std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
-    //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
+    // std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
+    // //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
 
-    configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "localhost");
-    _obj_server.print_type_listen();
+    // configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "localhost");
+    // _obj_server.print_type_listen();
 
-    std::endl(std::cout);
+    // std::endl(std::cout);
 
-    _obj_server.print_server_name();
+    // _obj_server.print_server_name();
 
-    std::endl(std::cout);
+    // std::endl(std::cout);
     
-    configurationSA::location   _obj_location = match_location("/", _obj_server);
+    // configurationSA::location   _obj_location = match_location("/", _obj_server);
     
-    _obj_location.print_unique_key();
+    // _obj_location.print_unique_key();
     
-    _obj_location.print_none_unique_key();
+    // _obj_location.print_none_unique_key();
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server)

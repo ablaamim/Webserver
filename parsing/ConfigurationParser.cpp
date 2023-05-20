@@ -514,7 +514,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
                 throw ParsingErr(" : CGI should not be in a server context");
             // RETURN SHOULD NOT BE IN A SERVER CONTEXT
             else if (key_value.first == "return")
-                throw ParsingErr(" : Return should not be in a server context"
+                throw ParsingErr(" : Return should not be in a server context");
             else if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
                 insert_keyvalue_location(server_location_config, key_value, start_last_line, *file_range.first);
             else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
