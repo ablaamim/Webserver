@@ -2,7 +2,7 @@
 
 std::vector<int> Servers::fd_vector;
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **env)
 {
     if (argc != 2)
     {
@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     {
         configurationSA config(argv[1]);
         signal(SIGPIPE, SIG_IGN);  // ignore SIGPIPE
-        Webserv webserv(config);   // init Webserv
+        Webserv webserv(config, env);   // init Webserv
     }
     catch (std::exception &e)
     {
