@@ -1,7 +1,6 @@
 #ifndef CONFIGURATION_PARSER_HPP // BEGIN OF CONFIGURATION_PARSER_HPP
 # define CONFIGURATION_PARSER_HPP
 
-
 # include <iostream>
 # include <iomanip>
 # include <fstream>
@@ -48,22 +47,27 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                 location()
                 {
                     //std::cout << "location constructor" << std::endl;
-                    this->UniqueKey.clear();
-                    this->NoneUniqueKey.clear();
+                    //this->UniqueKey.clear();
+                    //this->NoneUniqueKey.clear();
+                }
+                
+                ~location()
+                {
+                    //std::cout << "location destructor" << std::endl;
                 }
 
                 void print_unique_key()
                 {
                     if (UniqueKey.empty())
                     {
-                        std::cout << "UniqueKey is empty" << std::endl;
+                        std::cout << COLOR_RED << "UniqueKey is empty" << COLOR_RESET << std::endl;
                         return ;
                     }
                     for (UniqueKey_t::const_iterator it = UniqueKey.begin(); it != UniqueKey.end(); it++)
                     {
-                        std::cout << it->first << " : ";
+                        std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET;
                         for (std::vector<std::string>::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
-                            std::cout << *iter << " ";
+                            std::cout << COLOR_YELLOW << *iter << " " << COLOR_RESET;
                         std::cout << std::endl;
                     }
                 };
@@ -72,17 +76,18 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                 {
                     if (NoneUniqueKey.empty())
                     {
-                        std::cout << "NoneUniqueKey is empty" << std::endl;
+                        std::cout << COLOR_RED << "NoneUniqueKey is empty" << COLOR_RESET << std::endl;
                         return ;
                     }
                     for (NoneUniqueKey_t::const_iterator it = NoneUniqueKey.begin(); it != NoneUniqueKey.end(); it++)
                     {
-                        std::cout << "          " << it->first << std::endl;
+                        std::cout << "          " << COLOR_GREEN << it->first << COLOR_RESET << std::endl;
+                        
                         for (std::map<std::string, std::vector<std::string> >::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
                         {
-                            std::cout << iter->first << " : " ;
+                            std::cout << COLOR_BLUE << iter->first << " : " << COLOR_RESET;
                             for (std::vector<std::string>::const_iterator ite = iter->second.begin(); ite != iter->second.end(); ite++)
-                                std::cout << *ite << " ";
+                                std::cout << COLOR_YELLOW << *ite << " " << COLOR_RESET;
                             std::cout << std::endl;
                         }
                     }
@@ -102,12 +107,24 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     for (NoneUniqueKey_t::const_iterator iter = otherInsert.NoneUniqueKey.begin(); iter != otherInsert.NoneUniqueKey.end(); iter++)
                         insert_unique_key(iter->second, NoneUniqueKey[iter->first]);
                 }
+            
             }; // END OF LOCATION 
             // Server struct will contain a map of locations and a set of server 
             // names and a map of listen ports.
             class Server // BEGIN OF SERVER
             {
                 public :
+
+                    Server()
+                    {
+                        //std::cout << "Server constructor" << std::endl;
+                    }
+
+                    ~Server()
+                    {
+                        //std::cout << "Server destructor" << std::endl;
+                    }
+
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
                     typedef std::set<std::string>                         type_server_name; // set of server names
@@ -116,49 +133,33 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     type_server_name                                      server_name;  // set of server names
                     type_location                                         location;     // map of locations
                     
-                    //UniqueKey_t     UniqueKey;
-                    //NoneUniqueKey_t NoneUniqueKey;
-                    
-                    // void print_type_location()
-                    // {
-                    //     if (location.empty())
-                    //     {
-                    //         std::cout << "location is empty" << std::endl;
-                    //         return ;
-                    //     }
-                    //     for (type_location::const_iterator it = location.begin(); it != location.end(); it++)
-                    //     {
-                    //         std::cout << it->first << " : " << std::endl;
-                    //         it->second.print_unique_key();
-                    //         it->second.print_none_unique_key();
-                    //     }
-                    // }
-                    // void print_type_listen()
-                    // {
-                    //     if (listen.empty())
-                    //     {
-                    //         std::cout << "listen is empty" << std::endl;
-                    //         return ;
-                    //     }
-                    //     for (type_listen::const_iterator it = listen.begin(); it != listen.end(); it++)
-                    //     {
-                    //         std::cout << it->first << " : ";
-                    //         for (std::set<std::string>::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
-                    //             std::cout << *iter << " ";
-                    //         std::cout << std::endl;
-                    //     }
-                    // }
+                    void print_type_listen()
+                    {
+                        if (listen.empty())
+                        {
+                            std::cout << COLOR_RED << "listen is empty" << COLOR_RESET << std::endl;
+                            exit(EXIT_FAILURE);
+                        }
+                        for (type_listen::const_iterator it = listen.begin(); it != listen.end(); it++)
+                        {
+                            std::cout << COLOR_BLUE << "IP / PORT     : " << COLOR_RESET << COLOR_YELLOW <<"[ "<< it->first << " : " << COLOR_RESET;
+                            for (auto iter = it->second.begin(); iter != it->second.end(); iter++)
+                                std::cout << COLOR_YELLOW << *iter << " ]" << COLOR_RESET;
+                            std::cout << std::endl;
+                        }
+                    };
 
-                    // void print_type_server_name()
-                    // {
-                    //     if (server_name.empty())
-                    //     {
-                    //         std::cout << "server_name is empty" << std::endl;
-                    //         return ;
-                    //     }
-                    //     for (type_server_name::const_iterator it = server_name.begin(); it != server_name.end(); it++)
-                    //         std::cout << *it << " ";
-                    // }
+                    void print_server_name()
+                    {
+                        if (server_name.empty())
+                        {
+                            std::cout << COLOR_RED << "server_name is empty" << COLOR_RESET << std::endl;
+                            exit(EXIT_FAILURE);
+                        }
+                        for (auto it = server_name.begin(); it != server_name.end(); it++)
+                            std::cout << COLOR_BLUE << "Server_name : " << COLOR_RESET << COLOR_YELLOW << " [" << *it << " ]" << COLOR_RESET;
+                        std::cout << std::endl;
+                    };
              
             }; // END OF SERVER 
 
@@ -186,7 +187,9 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                                 size_t                  max_Parameters;
                                 std::set<std::string>   validParametters;
 
-                                raw_configuration(void){};
+                                raw_configuration(){
+                                    //std::cout << "raw_configuration default constructor" << std::endl;
+                                };
                     
                                 raw_configuration(const KEYTYPE &keytype, void (*func)(key_value_type &, size_t &start_last_line, std::string &line), size_t maxParameters, std::string validParameterstab[], size_t validParamettersSize)
                                 : keyType(keytype), func(func), max_Parameters(maxParameters), validParametters(validParameterstab, validParameterstab + validParamettersSize)
@@ -219,6 +222,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
         }; // END OF CONF 
 
     public :
+        
         typedef std::vector<Server> data_type;    
     
         data_type   _data;
@@ -233,27 +237,18 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
             for (data_type::const_iterator it = _data.begin(); it != _data.end(); it++)
             {
                 std::cout << "Server name : " << std::endl;
+                
                 for (std::set<std::string>::const_iterator iter = it->server_name.begin(); iter != it->server_name.end(); iter++)
                     std::cout << *iter << " ";
                 std::cout << std::endl;
                 std::cout << "Listen : " << std::endl;
+                
                 for (Server::type_listen::const_iterator iter = it->listen.begin(); iter != it->listen.end(); iter++)
                 {
                     std::cout << iter->first << std::endl;
                     for (std::set<std::string>::const_iterator ite = iter->second.begin(); ite != iter->second.end(); ite++)
                         std::cout << *ite << std::endl;
                 }
-                std::cout << "Location : " << std::endl;
-                for (Server::type_location::const_iterator iter = it->location.begin(); iter != it->location.end(); iter++)
-                {
-                    std::cout << iter->first << std::endl;
-                }
-                /*
-                for (Server::type_location::UniqueKey::const_iterator iter = it->location.begin(); iter != it->location.end(); iter++)
-                {
-                    std::cout << iter->first << std::endl;
-                }
-                */
             }
         };
 /////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
@@ -283,7 +278,9 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
         // CONSTRUCTORS AND DESTRUCTORS :
         configurationSA()
         {};
+        
         configurationSA(char *config_file);
+        
         ~configurationSA();
                 
         // GETTERS AND SETTERS :
