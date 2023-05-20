@@ -69,14 +69,14 @@ void configurationSA::configuration::initialize_data(void)
         std::make_pair("server_name", raw_configuration(SERVER_KEYTYPE, NULL, UNLIMITED_PARAMS)), // SERVER NAME DOES NOT TAKE A PARAMETER
         std::make_pair("listen", raw_configuration(SERVER_KEYTYPE, &listen_format, 2)), // LISTEN PORT
         std::make_pair("return", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, returnCode, SIZEOF(returnCode))), // RETURN CODE
-        std::make_pair("error_page", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, ErrorPages, SIZEOF(ErrorPages))), // ERROR PAGE
+        std::make_pair("error_pages", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, ErrorPages, SIZEOF(ErrorPages))), // ERROR PAGE
         std::make_pair("cgi-bin", raw_configuration(NONE_UNIQUE_KEYTYPE, &check_cgi, 1)), // CGI = OMMON GATEWAY INTERFACE
         std::make_pair("auto_index", raw_configuration(UNIQUE_KEYTYPE, NULL, 1, autoindex, SIZEOF(autoindex))), // AUTOINDEX
         std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)), // UPLOAD
         std::make_pair("index", raw_configuration(UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)), // INDEX
         std::make_pair("root",   raw_configuration(UNIQUE_KEYTYPE, &check_root, 1)), // ROOT
         std::make_pair("allowed_methods", raw_configuration(UNIQUE_KEYTYPE, NULL, 3, allowedMethods, SIZEOF(allowedMethods))), // METHODS
-        std::make_pair("body_size", raw_configuration(UNIQUE_KEYTYPE, &check_body_size, 1)), // CLIENT BODY SIZE
+        std::make_pair("max_body_size", raw_configuration(UNIQUE_KEYTYPE, &check_body_size, 1)), // CLIENT BODY SIZE
 
     };
     // Insert data into the data collection.
@@ -111,7 +111,7 @@ void configurationSA::configuration::initialize_default_values(void)
     std::pair <std::string, std::vector<std::string> > uniqueKey[] =
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "of")),
-        std::make_pair("body_size", std::vector<std::string>(1, "1000000")),
+        std::make_pair("max_body_size", std::vector<std::string>(1, "100000000")),
         std::make_pair("allowed_methods", std::vector<std::string>(allowed_methods, allowed_methods + SIZEOF(allowed_methods))),
     };
     _default_values.UniqueKey.insert(uniqueKey, uniqueKey + SIZEOF(uniqueKey));
@@ -418,8 +418,6 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
         throw ParsingErr(keyValueFirstCopy + " : " + e.what());
     }
     insertPoint[key_value.first] = key_value.second;
-    //Location.print_unique_key();
-    //Location.print_none_unique_key();
 }
 
 configurationSA::location configurationSA::new_location_creation(line_range_type &line_range, file_range_type &file_range)
@@ -495,6 +493,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         {
            if (result.location.count(key_value.second[0]))
                 throw ParsingErr(" : Location context already exists");
+           
            go_to_next_word_in_file(line_range, file_range);
            line_range.first++;
            if (key_value.second[0].size() > 1 && key_value.second[0][key_value.second[0].size() - 1] == '/')
@@ -510,16 +509,26 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         }
         else
         {
-            if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
+            // CGI SHOULD NOT BE IN A SERVER CONTEXT
+            if (key_value.first == "cgi-bin")
+                throw ParsingErr(" : CGI should not be in a server context");
+            // RETURN SHOULD NOT BE IN A SERVER CONTEXT
+            else if (key_value.first == "return")
+                throw ParsingErr(" : Return should not be in a server context");
+            else if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
                 insert_keyvalue_location(server_location_config, key_value, start_last_line, *file_range.first);
             else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
                 insert_keyvalue_server(result, key_value, start_last_line, *file_range.first);
             else
                 throw ParsingErr(" : Unknown key '" + key_value.first + "'");
-
+            
+            //std::cout << "key_value.first : " << key_value.first << std::endl;
         }
+        
         go_to_next_word_in_file(line_range, file_range);
+        
         start_last_line = (int) (line_range.first - file_range.first->begin());
+        
         key_value = get_keyvalue(line_range);
         //server_location_config.print_none_unique_key();
         //server_location_config.print_unique_key();
@@ -536,7 +545,6 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
     result.location["/"].insert(configuration::_default_values);
     //server_location_config.print_none_unique_key();
     //server_location_config.print_unique_key();
-    //sleep(100);
     return (result);
 }
 
@@ -626,7 +634,8 @@ configurationSA::configurationSA(char *config_file)
         std::getline(input, line);
         fullFile.push_back(line);
     }
-    
+    // close fd
+    input.close();    
     // Check if file is empty.
     
     line_range_type line_range(fullFile.begin()->begin(), fullFile.begin()->end());
@@ -661,5 +670,5 @@ configurationSA::configurationSA(char *config_file)
         throw ParsingErr(std::string(e.what()) + "\n" + "line " + std::to_string(fullFile.size() - (file_range.second - file_range.first) + 1) + " : " + \
         ((file_range.first == file_range.second) ? *(file_range.first - 1) : *file_range.first));
     }
-    input.close();
+    //input.close();
 }
