@@ -179,7 +179,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
     std::endl(std::cout);
     
-    configurationSA::location   _obj_location = match_location("/www", _obj_server);
+    configurationSA::location   _obj_location = match_location("/", _obj_server);
     
     _obj_location.print_unique_key();
     
