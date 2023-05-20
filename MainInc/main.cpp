@@ -7,7 +7,7 @@ int main(int argc, char **argv)
     if (argc != 2)
     {
         std::cerr << INVALID_ARGS << std::endl;
-        return (EXIT_FAILURE);
+        exit (EXIT_FAILURE);
     }
     if (!strcmp(argv[1], "-h"))
     {
@@ -16,9 +16,9 @@ int main(int argc, char **argv)
     }
     try
     {
-        signal(SIGPIPE, SIG_IGN);
         configurationSA config(argv[1]);
-        Webserv webserv(config);
+        signal(SIGPIPE, SIG_IGN);  // ignore SIGPIPE
+        Webserv webserv(config);   // init Webserv
     }
     catch (std::exception &e)
     {
