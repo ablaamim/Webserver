@@ -626,7 +626,8 @@ configurationSA::configurationSA(char *config_file)
         std::getline(input, line);
         fullFile.push_back(line);
     }
-    
+    // close fd
+    input.close();    
     // Check if file is empty.
     
     line_range_type line_range(fullFile.begin()->begin(), fullFile.begin()->end());
@@ -661,5 +662,5 @@ configurationSA::configurationSA(char *config_file)
         throw ParsingErr(std::string(e.what()) + "\n" + "line " + std::to_string(fullFile.size() - (file_range.second - file_range.first) + 1) + " : " + \
         ((file_range.first == file_range.second) ? *(file_range.first - 1) : *file_range.first));
     }
-    input.close();
+    //input.close();
 }
