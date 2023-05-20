@@ -118,7 +118,16 @@ void Webserv::delete_event(int fd, int16_t filter, std::string str)
         throw Webserv::Webserv_err(str + "kevent error delete event");
 }
 
-void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &fds_s, configurationSA &config, Servers &server)
+void print_env(char **env)
+{
+    std::cout << std::endl << std::endl << COLOR_BLUE << "Env list :" << COLOR_RESET;
+    for (int i = 0; env[i]; i++)
+    {
+        std::cout << COLOR_YELLOW << "[ " << env[i] << " ]" << COLOR_RESET << std::endl;
+    }
+}
+
+void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env)
 {
     int client_socket;
     char buf[BUFFER_SIZE] = {0};
@@ -153,7 +162,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
              << std::endl << this->clients[curr_event->ident] << std::endl;
         //EV_SET(curr_event, curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
     }
-
+    //print_env(env);
                                         //// DEBUG ////
     
     // print_client_list(clients_list);
@@ -186,7 +195,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     // _obj_location.print_none_unique_key();
 }
 
-void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server)
+void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
 {
                                             //// DEBUG ////
     
@@ -223,7 +232,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
     }
 }
 
-void Webserv::event_check(int new_events, std::vector<int> &fds_s, configurationSA &config, Servers &server)
+void Webserv::event_check(int new_events, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env)
 {
     for (int i = 0; i < new_events; i++)
     {
@@ -235,18 +244,18 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
             disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
         else if (this->event_list[i].filter == EVFILT_READ)
-            webserv_evfilt_read(&this->event_list[i], fds_s, config, server);
+            webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);
         else if (this->event_list[i].filter == EVFILT_WRITE)
         {
             //std::cout << "write event" << std::endl;
-            webserv_evfilt_write(&this->event_list[i], config, server);
+            webserv_evfilt_write(&this->event_list[i], config, server, env);
         }
         else
             std::cout << COLOR_RED << "EVENT ERROR" << i << " " << this->event_list[i].filter << COLOR_RESET << std::endl;
     }
 }
 
-void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers &server)
+void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers &server, char **env)
 {
     int new_events;
     
@@ -258,17 +267,17 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
         if (new_events == -1)
             throw Webserv::Webserv_err("kevent failed");
         else
-            event_check(new_events, fds_socket, config, server);
+            event_check(new_events, fds_socket, config, server, env);
     }
 }
 
-Webserv::Webserv(configurationSA &config)
+Webserv::Webserv(configurationSA &config, char **env)
 {
     Servers         server(config);
     this->kq = server.kq;
     this->fd_accepted = 0;
     this->event_list = new struct kevent [Servers::fd_vector.size()];
-    this->run(Servers::fd_vector, config, server);
+    this->run(Servers::fd_vector, config, server, env);
 }
 
 // default destructor
