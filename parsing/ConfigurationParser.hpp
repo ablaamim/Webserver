@@ -38,8 +38,8 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
         {
             public :
                 
-                typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
-                typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
+                typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
+                typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;     // map of unique keys that have only one value
             
                 UniqueKey_t     UniqueKey;
                 NoneUniqueKey_t NoneUniqueKey;
@@ -69,7 +69,12 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                         for (std::vector<std::string>::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
                             std::cout << COLOR_YELLOW << *iter << " " << COLOR_RESET;
                         std::cout << std::endl;
+                        // if (it->first == "root")
+                        //     std::cout << COLOR_BLUE << "root : " << COLOR_RESET << COLOR_YELLOW << it->second[0] << COLOR_RESET << std::endl;
+                        // if (it->first == "upload")
+                        //     std::cout << COLOR_BLUE << "upload : " << COLOR_RESET << COLOR_YELLOW << it->second[0] << COLOR_RESET << std::endl;
                     }
+
                 };
 
                 void print_none_unique_key()
@@ -171,10 +176,10 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     public :
                         enum KEYTYPE
                         {
-                            NONE_KEYTYPE,
-                            SERVER_KEYTYPE,
-                            UNIQUE_KEYTYPE,
-                            NONE_UNIQUE_KEYTYPE
+                            NONE_KEYTYPE,           // NONE_KEYTYPE is used to check if the key is defined in the configuration file
+                            SERVER_KEYTYPE,         // SERVER_KEYTYPE is used to check if the key is a server key
+                            UNIQUE_KEYTYPE,         // UNIQUE_KEYTYPE is used to check if the key is a unique key
+                            NONE_UNIQUE_KEYTYPE     // NONE_UNIQUE_KEYTYPE is used to check if the key is a none unique key
                         };
                         // sub struct it contains information about each defined key 
                         // in the configuration file.
@@ -183,11 +188,12 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                             public :
 
                                 KEYTYPE                 keyType;
-                                void                    (*func)(key_value_type &, size_t &start_last_line, std::string &line);
+                                void                    (*func)(key_value_type &, size_t &start_last_line, std::string &line); // pointer to a function that will be used to check the key value
                                 size_t                  max_Parameters;
                                 std::set<std::string>   validParametters;
 
-                                raw_configuration(){
+                                raw_configuration()
+                                {
                                     //std::cout << "raw_configuration default constructor" << std::endl;
                                 };
                     
@@ -198,7 +204,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                                 raw_configuration(const KEYTYPE &keytype, void (*func)(key_value_type &, size_t &start_last_line, std::string &line), size_t maxParameters)
                                 : keyType(keytype), func(func), max_Parameters(maxParameters)
                                 {
-                        };
+                                };
                 };
 
                 // map of raw_configuration, key = key name, value = raw_configuration :

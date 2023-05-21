@@ -23,6 +23,17 @@ class abstract_response
         std::string               _client_ip;   // this is the client ip that will be used to create the response
         char                      **_env;       // this is the env that will be used to create the response
 
+         std::vector<char>          data;
+        // std::string               status;
+        std::string                 header;
+        // std::string               code;
+
+        // void construct_data()
+        // {
+        //     this->header = abstract_req._version + " " + abstract_req._code + " " + abstract_req._status + "\r\n";
+        //     std::cout << "header : " << header << std::endl;
+        // }
+
 		class response_err : public std::exception
         {
             public :
