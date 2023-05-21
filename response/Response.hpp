@@ -44,8 +44,8 @@ class Response : public configurationSA
     // begin of request attributes:
 
     std::string     method;
-    std::string     host_ip;
-    std::string     host_port;
+    std::string     client_ip;
+    std::string     client_port;
     std::string     resoucePath; // like /directory/index.html
 
     // end of request attributes

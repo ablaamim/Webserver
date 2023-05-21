@@ -66,19 +66,30 @@ void configurationSA::configuration::initialize_data(void)
     // Pair of key and value, key is a string that represents a configuration option, and value is an instance of the raw_configuration class.
     std::pair<std::string, raw_configuration> data[] =
     {
-        std::make_pair("server_name", raw_configuration(SERVER_KEYTYPE, NULL, UNLIMITED_PARAMS)), // SERVER NAME DOES NOT TAKE A PARAMETER
-        std::make_pair("listen", raw_configuration(SERVER_KEYTYPE, &listen_format, 2)), // LISTEN PORT
-        std::make_pair("return", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, returnCode, SIZEOF(returnCode))), // RETURN CODE
-        std::make_pair("error_pages", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, ErrorPages, SIZEOF(ErrorPages))), // ERROR PAGE
-        std::make_pair("cgi-bin", raw_configuration(NONE_UNIQUE_KEYTYPE, &check_cgi, 1)), // CGI = OMMON GATEWAY INTERFACE
-        std::make_pair("auto_index", raw_configuration(UNIQUE_KEYTYPE, NULL, 1, autoindex, SIZEOF(autoindex))), // AUTOINDEX
-        std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)), // UPLOAD
-        std::make_pair("index", raw_configuration(UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)), // INDEX
-        std::make_pair("root",   raw_configuration(UNIQUE_KEYTYPE, &check_root, 1)), // ROOT
-        std::make_pair("allowed_methods", raw_configuration(UNIQUE_KEYTYPE, NULL, 3, allowedMethods, SIZEOF(allowedMethods))), // METHODS
+        std::make_pair("server_name", raw_configuration(SERVER_KEYTYPE, NULL, UNLIMITED_PARAMS)),                               // SERVER NAME DOES NOT TAKE A PARAMETER
+        
+        std::make_pair("listen", raw_configuration(SERVER_KEYTYPE, &listen_format, 2)),                                         // LISTEN PORT
+        
+        std::make_pair("return", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, returnCode, SIZEOF(returnCode))),              // RETURN CODE
+        
+        std::make_pair("error_pages", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, ErrorPages, SIZEOF(ErrorPages))),         // ERROR PAGE
+        
+        std::make_pair("cgi-bin", raw_configuration(NONE_UNIQUE_KEYTYPE, &check_cgi, 1)),                                       // CGI = OMMON GATEWAY INTERFACE
+        
+        std::make_pair("auto_index", raw_configuration(UNIQUE_KEYTYPE, NULL, 1, autoindex, SIZEOF(autoindex))),                 // AUTOINDEX
+        
+        std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)),                                                   // UPLOAD
+        
+        std::make_pair("index", raw_configuration(UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)),                                     // INDEX
+        
+        std::make_pair("root",   raw_configuration(UNIQUE_KEYTYPE, &check_root, 1)),                                            // ROOT
+        
+        std::make_pair("allowed_methods", raw_configuration(UNIQUE_KEYTYPE, NULL, 3, allowedMethods, SIZEOF(allowedMethods))),  // METHODS
+        
         std::make_pair("max_body_size", raw_configuration(UNIQUE_KEYTYPE, &check_body_size, 1)), // CLIENT BODY SIZE
 
     };
+    
     // Insert data into the data collection.
     _data.insert(data, data + SIZEOF(data));
 }
@@ -95,25 +106,36 @@ void configurationSA::configuration::initialize_default_values(void)
     std::pair<std::string, std::vector<std::string> > return_tab[] =
     {
         std::make_pair("200", std::vector<std::string> (1, "OK")),
+        
         std::make_pair("403", std::vector<std::string> (1, "Forbidden")),
+        
         std::make_pair("404", std::vector<std::string> (1, "Not Found")),
+        
         std::make_pair("405", std::vector<std::string> (1, "Method Not Allowed")),
+        
         std::make_pair("413", std::vector<std::string> (1, "Request Entity Too Large")),
+        
         std::make_pair("500", std::vector<std::string> (1, "Internal Server Error")),
     };
     std::pair<std::string, std::map<std::string, std::vector<std::string> > > noneUniqueKey[] =
     {
         std::make_pair("return", std::map<std::string, std::vector<std::string> >(return_tab, return_tab + SIZEOF(return_tab))),
     };
+    
     _default_values.NoneUniqueKey.insert(noneUniqueKey, noneUniqueKey + SIZEOF(noneUniqueKey));
+    
     // UNIQUE KEY DEFAULT VALUES.
     std::string allowed_methods[] = {"GET", "POST", "DELETE"};
+    
     std::pair <std::string, std::vector<std::string> > uniqueKey[] =
     {
-        std::make_pair("auto_index", std::vector<std::string>(1, "of")),
+        std::make_pair("auto_index", std::vector<std::string>(1, "off")),
+        
         std::make_pair("max_body_size", std::vector<std::string>(1, "100000000")),
+        
         std::make_pair("allowed_methods", std::vector<std::string>(allowed_methods, allowed_methods + SIZEOF(allowed_methods))),
     };
+
     _default_values.UniqueKey.insert(uniqueKey, uniqueKey + SIZEOF(uniqueKey));
 }
 
@@ -441,18 +463,21 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
             throw ParsingErr(" : Unknown key " + key_value.first);
 
         go_to_next_word_in_file(line_range, file_range);
+        
         start_last_line = (size_t) (line_range.first - file_range.first->begin());
+        
         key_value = get_keyvalue(line_range);
     }
     if (*line_range.first == '{')
         throw ParsingErr(" : Location context should not be followed by a '{'");
+    
     if (file_range.first == file_range.second)
         throw ParsingErr(" : Location context should be closed by a '}'");
 
     line_range.first++;
     
     go_to_next_word_in_file(line_range, file_range);
-    //result.print_none_unique_key(); // CGI DATA PRINT
+    //result.print_none_unique_key();         // CGI / RETUN / ERROR PAGES
     //result.print_unique_key();
     return (result);
 }
@@ -513,12 +538,25 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
             if (key_value.first == "cgi-bin")
                 throw ParsingErr(" : CGI should not be in a server context");
             // RETURN SHOULD NOT BE IN A SERVER CONTEXT
+            
             else if (key_value.first == "return")
                 throw ParsingErr(" : Return should not be in a server context");
+            
+            else if (key_value.first == "index")
+                throw ParsingErr(" : index should not be in server context");
+            
+            else if (key_value.first == "root")
+                throw ParsingErr(" : root should not be in server context");
+
+            else if (key_value.first == "auto_index")
+                throw ParsingErr(" : auto index should not be in server context");
+            
             else if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
                 insert_keyvalue_location(server_location_config, key_value, start_last_line, *file_range.first);
+            
             else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
                 insert_keyvalue_server(result, key_value, start_last_line, *file_range.first);
+            
             else
                 throw ParsingErr(" : Unknown key '" + key_value.first + "'");
             
