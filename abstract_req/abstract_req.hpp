@@ -19,15 +19,17 @@ class abstract_req
         }
 
         int         _fd;
+    
         
         //std::string target;
         
-        // std::string method = "GET";
-        // std::string version = "HTTP/1.1";
+        std::string method = "GET";
+        std::string version = "HTTP/1.1";
+        size_t max_header_size = 8000;
+        
         // std::string host_ip = "127.0.0.1";
         // std::string host_port = "8080";
         // std::string path = "/";
-        // size_t max_header_size = 8000;
         // size_t max_body_size = 1000000;
 
 };

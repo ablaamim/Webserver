@@ -6,7 +6,7 @@
 # define EVENT_LIST 10000
 # define UNLIMITED_PARAMS 0
 # define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
-# define DEFAULT_LISTEN_INTERFACE "0.0.0.0"
+# define DEFAULT_LISTEN_INTERFACE "127.0.0.1"
 # define DEFAULT_LISTEN_PORT "8080"
 # define PORT_MAX_VALUE 65535
 # define MAX_BODY_SIZE 1000000000
