@@ -41,4 +41,17 @@
 # define SOCKET_OPTION_ERR "Failed setting socket options"
 # define SOCKET_LISTEN_ERR "Failed listening on socket"
 
+/* 
+    Response defines;
+*/
+
+# define GET "GET"
+# define POST "POST"
+# define DELETE "DELETE"
+
+# define NONE -1
+# define IS_FILE 1
+# define IS_CGI_SCRIPT 2
+# define IS_DIRECTORY 3
+
 #endif
