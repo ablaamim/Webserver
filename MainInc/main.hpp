@@ -33,6 +33,7 @@
 # include "../Servers/Servers.hpp"
 # include "../global_interface/Webserv.hpp"
 # include "../defines/defines.hpp"
+# include "../tools/tools.hpp"
 
 void check_param_nbr(int argc);
 
