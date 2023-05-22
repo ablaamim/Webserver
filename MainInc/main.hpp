@@ -28,6 +28,7 @@
 # include "../parsing/debug.hpp"
 # include "../parsing/libcpp.hpp"
 # include "../parsing/ConfigurationParser.hpp"
+# include "../response/Response.hpp"
 # include "../parsing/debug.hpp"
 # include "../defines/defines.hpp"
 # include "../Servers/Servers.hpp"
