@@ -4,18 +4,10 @@ std::vector<int> Servers::fd_vector;
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
-    {
-        std::cerr << INVALID_ARGS << std::endl;
-        return (EXIT_FAILURE);
-    }
-    if (!strcmp(argv[1], "-h"))
-    {
-        std::cerr << HELP << std::endl;
-        return (EXIT_SUCCESS);
-    }
     try
     {
+        invalid_argc(argc);
+        get_help(argv);
         signal(SIGPIPE, SIG_IGN);
         configurationSA config(argv[1]);
         Webserv webserv(config);
