@@ -8,9 +8,9 @@ void   invalid_argc(int argc)
         exit(EXIT_FAILURE);
     }
 }
-void   get_help(char **argv)
+void   get_help(char *argv)
 {
-    if (!strcmp(argv[1], "-h"))
+    if (!std::strcmp(argv, "-h"))
     {
         std::cerr << HELP << std::endl;
         exit (EXIT_SUCCESS);

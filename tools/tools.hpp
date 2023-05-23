@@ -2,6 +2,6 @@
 # define TOOLS_H
 
 void   invalid_argc(int argc);
-void   get_help(char **argv);
+void   get_help(char *argv);
 
 #   endif
