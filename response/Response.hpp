@@ -18,10 +18,20 @@ class Response
 {
     public:
 
-        Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), _location(location), _client_ip(_client_ip) , _env(env)
+        Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), clientSocket(id) ,_location(location), _client_ip(_client_ip) , _env(env)
         {
+            // init method map
+            if (!this->_methods.empty())
+                this->_methods.clear();
+            this->_methods.insert(std::pair<std::string, void(Response::*)()>("GET", &Response::handleGet));
+            this->_methods.insert(std::pair<std::string, void(Response::*)()>("POST", &Response::handlePost));
+            this->_methods.insert(std::pair<std::string, void(Response::*)()>("DELETE", &Response::handleDelete));
             //std::cout << this->_client_ip << std::endl;
             //std::cout << "Webserv constructor" << std::endl;
+        };
+        Response(void)
+        {
+            //std::cout << "Webserv default constructor" << std::endl;
         };
         Response(int id);
         Response(const Response &other);
@@ -31,6 +41,19 @@ class Response
         configurationSA::location                               _location;    // this is the location object that will be used to create the response
         std::string                                             _client_ip;   // this is the client ip that will be used to create the response
         char                                                    **_env;
+
+
+        std::map<std::string, void(Response::*)()>              _methods;     // this is the map that will be used to call the right method
+
+        void print_methods()
+        {
+            std::map<std::string, void(Response::*)()>::iterator it = this->_methods.begin();
+            while (it != this->_methods.end())
+            {
+                std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
+                it++;
+            }
+        }
 
         std::map    <std::string, std::vector<std::string> >    kwargs;
 
@@ -59,7 +82,7 @@ class Response
         int                                                     currentLength; 
         int                                                     resourceType; 
 
-        std::string                                             resourceFullPath; 
+        std::string                                             resourceFullPath = "/www";
         std::string                                             httpVersion; 
         std::string                                             body; 
 
@@ -68,7 +91,7 @@ class Response
 
         void constructData()
         {
-
+            // CONSTRUCT DATA HERE
         }
         
         //void    generate();

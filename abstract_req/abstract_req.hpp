@@ -18,19 +18,37 @@ class abstract_req
             //std::cout << "Webserv default destructor" << std::endl;
         }
 
+        std::string getMethod() const
+        {
+            return (this->method);
+        }
+
+        std::string getVersion() const
+        {
+            return (this->version);
+        }
+
+        std::string getResourceFullPath() const
+        {
+            return (this->resourceFullPath);
+        }
+
+        size_t getMaxBodySize() const
+        {
+            return (this->max_body_size);
+        }
+
         int         _fd;
     
+        private :
         
         //std::string target;
         
         std::string method = "GET";
         std::string version = "HTTP/1.1";
         size_t max_header_size = 8000;
-        
-        // std::string host_ip = "127.0.0.1";
-        // std::string host_port = "8080";
-        // std::string path = "/";
-        // size_t max_body_size = 1000000;
+        std::string resourceFullPath = "/www";
+        size_t max_body_size = 1000000;
 
 };
 
