@@ -214,9 +214,9 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             return ;
         }
         
-        _obj_location.print_unique_key();
+        //_obj_location.print_unique_key();
         
-        _obj_location.print_none_unique_key();
+        //_obj_location.print_none_unique_key();
         
         // response_list.insert(std::make_pair(this->fd_accepted, abstract_response(pair_request->second, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
         // //response_list[this->fd_accepted].construct_data();
@@ -226,30 +226,36 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         // PROTOTYPE : Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), _location(location), _client_ip(_client_ip) , _env(env)
 
         responsePool.insert(std::make_pair(this->fd_accepted, Response(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
-        // std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted, _obj_location, env);
         
-        // if (it != responsePool.end())
-        // {
-        //     std::cout << "existing response found" << std::endl;
-        //     if (it->second.isCompleted)
-        //     {
-        //         std::cout << "response completed" << std::endl;
-        //         disconnect_client(curr_event->ident, this->clients, "read");
-        //         responsePool.erase(it);
-        //     }
+        std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
+        
+        if (it != responsePool.end())
+        {
+            std::cout << "existing response found" << std::endl;
+            
+            if (it->second.isCompleted)
+            {
+                std::cout << "response completed" << std::endl;
+                disconnect_client(curr_event->ident, this->clients, "read");
+                responsePool.erase(it);
+            }
                 
-        //     else
-        //         it->second.serve();
-        // }
-        // else
-        // {
-        //     std::cout << "new response created" << std::endl;
-        //     std::cout << "fd_accepted = " << this->fd_accepted << std::endl;
-        //     Response newResponse(this->fd_accepted);
-        //     responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
-        //     std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
-        //     it->second.serve();
-        // }
+            else
+                it->second.serve();
+        }
+        else
+        {
+            std::cout << "new response created" << std::endl;
+            std::cout << "fd_accepted = " << this->fd_accepted << std::endl;
+            
+            Response newResponse(this->fd_accepted);
+            
+            responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
+            
+            std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
+            
+            it->second.serve();
+        }
 
         print_responsePool(responsePool);
     }
