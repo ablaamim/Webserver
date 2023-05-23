@@ -51,7 +51,7 @@ void    Response::init()
 
 Response::Response(int id)
 {
-    this->clientSocket = id;
+    //this->clientSocket = id;
     this->isCompleted = false;
     this->currentLength = 0;
     this->resouceLength = 0;
@@ -66,7 +66,7 @@ Response::Response(int id)
 
 Response::~Response()
 {
-     std::cout << "Response destructor" << std::endl;
+     //std::cout << "Response destructor" << std::endl;
 }
 
 
