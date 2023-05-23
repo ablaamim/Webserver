@@ -33,7 +33,6 @@ void Request::get_firstline(std::string line)
     int                 i = 0;
 
     std::cout << "          Parsing First line " << std::endl;
-    std::getline(file, str);
     while (std::getline(file, str, ' '))
     {
         switch (i)
@@ -77,12 +76,12 @@ int Request::get_headers(std::string str)
     // std::cout << "Parsing headers " << std::endl;
     // if (this->headers)
     //     this->get_chuncked_msg(str);
-    if (!std::getline(file, line, '\r'))
+    if (!std::getline(file, line, '\n'))
         return _ERR_PARSE_REQUEST;
     if (!this->first_line)
-        this->get_firstline(line);
-    while(std::getline(file, line, '\r'))
-        this->get_other_lines(line);
+        this->get_firstline(line.size() - 1);
+    while(std::getline(file, line, '\n'))
+        this->get_other_lines(line.substr(0, line.size() - 1));
     // if (check_readed_bytes())
     //     return 1;
     return 0;

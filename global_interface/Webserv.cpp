@@ -69,8 +69,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         // if (!k)
         this->request.print_params();
         //std::cout << "k : " << k << "r : " << r << std::endl;
-        // if (!k)
-        //     change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        if (!k)
+            change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         // std::cout << "received data from " << curr_event->ident << ": " 
         //      << std::endl << this->clients[curr_event->ident] << std::endl;
     }
