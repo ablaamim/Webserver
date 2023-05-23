@@ -53,6 +53,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
+        this->request.fd_accept = client_socket;
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
     {
@@ -65,12 +66,13 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         }
         buf[n] = '\0';
         this->clients[curr_event->ident].append(buf);
-        k = this->request.get_headers(buf);
-        // if (!k)
-        this->request.print_params();
-        //std::cout << "k : " << k << "r : " << r << std::endl;
+        std::cout << " k :" << k << std::endl;
+        k = this->request.parse_request(buf);
         if (!k)
+        {
+            this->request.print_params();
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        }
         // std::cout << "received data from " << curr_event->ident << ": " 
         //      << std::endl << this->clients[curr_event->ident] << std::endl;
     }
@@ -83,7 +85,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
     {
         if (this->clients[curr_event->ident] != "")
         {
-            std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nFirst Response!";
+            std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello World!";
             if (send(curr_event->ident, hello.c_str(), hello.size(), 0) < 0)
             {
                 std::cout << "error " << strerror(errno) << std::endl;
