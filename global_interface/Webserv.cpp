@@ -53,7 +53,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
-        this->request.fd_accept = client_socket;
+        this->request[client_socket].fd_accept = client_socket;
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
     {
@@ -67,10 +67,10 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         buf[n] = '\0';
         this->clients[curr_event->ident].append(buf);
         std::cout << " k :" << k << std::endl;
-        k = this->request.parse_request(buf);
+        k = this->request[curr_event->ident].parse_request(buf);
         if (!k)
         {
-            this->request.print_params();
+            this->request[curr_event->ident].print_params();
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         }
         // std::cout << "received data from " << curr_event->ident << ": " 
