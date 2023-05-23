@@ -9,10 +9,10 @@ class Webserv
 {
     public :
 
-        int                        kq;
-        struct kevent*             event_list;
-        std::map<int, std::string> clients;
-        Request                     request;
+        int                         kq;
+        struct kevent*              event_list;
+        std::map<int, std::string>  clients;
+        std::map<int, Request>      request;
 
         Webserv();
         Webserv(configurationSA &config);
