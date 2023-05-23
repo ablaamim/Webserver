@@ -2,20 +2,17 @@
 #include "../MainInc/main.hpp"
 
 std::map<int, int>               clients_list;                // map of (client_socket, server_socket)
-std::map<int, abstract_req>      request_list;       // map of (client_socket, request_socket)
-std::map<int, abstract_response> response_list; // map of (client_socket, response_socket)
-
-std::map<int, Response>            responsePool; // vector of response objects
+std::map<int, abstract_req>      request_list;                // map of (client_socket, request_socket)
+std::map<int, Response>          responsePool;                // mapp of (client_socket, Response)
 
 //////////////////////////////////////////////////////// DEBUG FUNCTIONS /////////////////////////////////////////////////////////
 
-void print_response_list(std::map<int, abstract_response> response_list)
+void print_responsePool(std::map<int, Response> responsePool)
 {
-    std::cout << std::endl << std::endl << COLOR_BLUE << "Response list :" << COLOR_RESET;
-    for (std::map<int, abstract_response>::iterator iter = response_list.begin(); iter != response_list.end(); iter++)
+    std::cout << std::endl << std::endl << COLOR_BLUE << "ResponsePool list :" << COLOR_RESET;
+    for (std::map<int, Response>::iterator iter = responsePool.begin(); iter != responsePool.end(); iter++)
     {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " request socket : " << iter->second._req._fd << " ]" << COLOR_RESET << std::endl;
-        std::cout << COLOR_YELLOW << "client ip : " << iter->second._client_ip << COLOR_RESET << std::endl;
+        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " ]" << COLOR_RESET << std::endl;
     }
 }
 
@@ -80,21 +77,31 @@ configurationSA::location match_location(std::string trgt, configurationSA::Serv
     configurationSA::location		result;
 
     std::vector<std::string>	splited_trgt = split(trgt, "/");
-	
+
 	for (std::vector<std::string>::reverse_iterator	re_it = splited_trgt.rbegin(); re_it != splited_trgt.rend(); re_it++)
 	{
 		std::string	current_location;
 		for (std::vector<std::string>::iterator it = splited_trgt.begin(); std::reverse_iterator< std::vector<std::string>::iterator >(it) != re_it; it++)
 			current_location += "/" + *it;
-		if (server.location.count(current_location))
+		
+        if (server.location.count(current_location))
 		{
 			result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, current_location)));
 			result.insert(server.location[current_location]);
 		}
 	}
-	result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, "")));
-	result.insert(server.location["/"]);
-	return (result);
+	
+    result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, "")));
+	
+    result.insert(server.location["/"]);
+
+    // std::cout << std::endl << std::endl << COLOR_BLUE << "-----> Result list :" << COLOR_RESET << std::endl;
+    // result.print_none_unique_key();
+    // result.print_unique_key();
+
+    // std::cout << std::endl << std::endl << COLOR_BLUE << "-----> END" << COLOR_RESET << std::endl;
+	
+    return (result);
 }
 
 void Webserv::change_events(uintptr_t ident, int16_t filter,
@@ -147,7 +154,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         
         this->fd_accepted = client_socket;
         clients_list.insert(std::make_pair(client_socket, curr_event->ident));
-        //request_list.insert(std::make_pair(client_socket, abstract_req(client_socket)));
+        request_list.insert(std::make_pair(client_socket, abstract_req(client_socket)));
         
         std::cout << "accept new client: " << client_socket << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -180,15 +187,15 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     try
     {
         // // //std::cout << "write event" << std::endl;
-        //std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
+        std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
         //// // //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
         //
         //// // //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
         //
-        //// std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
+        std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
         //// // //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
 //
-        //configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+        configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
         //
         //// // _obj_server.print_type_listen();
 //
@@ -198,39 +205,53 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 //
         //// // std::endl(std::cout);
         //
-        //configurationSA::location   _obj_location = match_location("/www", _obj_server);
+        configurationSA::location   _obj_location = match_location("/www", _obj_server);
         
-        // _obj_location.print_unique_key();
+        if (_obj_location.error_if_empty_keys())
+        {
+            std::cerr << "Empty location" << std::endl;
+            disconnect_client(curr_event->ident, this->clients, "read");
+            return ;
+        }
         
-        // _obj_location.print_none_unique_key();
+        _obj_location.print_unique_key();
+        
+        _obj_location.print_none_unique_key();
         
         // response_list.insert(std::make_pair(this->fd_accepted, abstract_response(pair_request->second, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
         // //response_list[this->fd_accepted].construct_data();
         // //print_response_list(response_list);
         // check if ResponsePool has this fd in it already
-        std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted, location, env);
-        if (it != responsePool.end())
-        {
-            std::cout << "existing response found" << std::endl;
-            if (it->second.isCompleted)
-            {
-                std::cout << "response completed" << std::endl;
-                disconnect_client(curr_event->ident, this->clients, "read");
-                responsePool.erase(it);
-            }
+        
+        // PROTOTYPE : Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), _location(location), _client_ip(_client_ip) , _env(env)
+
+        responsePool.insert(std::make_pair(this->fd_accepted, Response(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
+        // std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted, _obj_location, env);
+        
+        // if (it != responsePool.end())
+        // {
+        //     std::cout << "existing response found" << std::endl;
+        //     if (it->second.isCompleted)
+        //     {
+        //         std::cout << "response completed" << std::endl;
+        //         disconnect_client(curr_event->ident, this->clients, "read");
+        //         responsePool.erase(it);
+        //     }
                 
-            else
-                it->second.serve();
-        }
-        else
-        {
-            std::cout << "new response created" << std::endl;
-            std::cout << "fd_accepted = " << this->fd_accepted << std::endl;
-            Response newResponse(this->fd_accepted);
-            responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
-            std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
-            it->second.serve();
-        }
+        //     else
+        //         it->second.serve();
+        // }
+        // else
+        // {
+        //     std::cout << "new response created" << std::endl;
+        //     std::cout << "fd_accepted = " << this->fd_accepted << std::endl;
+        //     Response newResponse(this->fd_accepted);
+        //     responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
+        //     std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
+        //     it->second.serve();
+        // }
+
+        print_responsePool(responsePool);
     }
     catch(const std::exception& e)
     {

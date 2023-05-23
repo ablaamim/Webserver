@@ -12,6 +12,9 @@ class abstract_response
         {
             //std::cout << "Webserv constructor" << std::endl;
         };
+        {
+            //std::cout << "Webserv constructor" << std::endl;
+        };
 
         ~abstract_response()
         {
@@ -22,6 +25,7 @@ class abstract_response
         configurationSA::location _location;    // this is the location object that will be used to create the response
         std::string               _client_ip;   // this is the client ip that will be used to create the response
         char                      **_env;       // this is the env that will be used to create the response
+        std::string               _client_port; // this is the client port that will be used to create the response
 
         std::vector<char>          data;
         // std::string               status;

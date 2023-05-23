@@ -3,6 +3,7 @@
 
 #include "../MainInc/main.hpp"
 #include <dirent.h>
+#include "../abstract_req/abstract_req.hpp"
 
 # define CHUNK_SIZE 1024
 # define NONE -1
@@ -17,13 +18,20 @@ class Response
 {
     public:
 
-        Response(int id, configurationSA::location location, char **env);
+        Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), _location(location), _client_ip(_client_ip) , _env(env)
+        {
+            //std::cout << this->_client_ip << std::endl;
+            //std::cout << "Webserv constructor" << std::endl;
+        };
         Response(int id);
         Response(const Response &other);
         ~Response();
-        
-        configurationSA::location                               location;
 
+        abstract_req              _req;         // this is the request object that will be used to create the response
+        configurationSA::location _location;    // this is the location object that will be used to create the response
+        std::string               _client_ip;   // this is the client ip that will be used to create the response
+        char                      **_env;                                                          
+        
         int                                                     clientSocket;
         bool                                                    isCompleted; // true if the response is completed
         int                                                     resouceLength; 
@@ -38,7 +46,7 @@ class Response
         std::map    <std::string, std::string>                  headers;
         std::map    <std::string, std::vector<std::string> >    kwargs;
         
-        void    generate();
+        //void    generate();
         void    serve();
 
         void    handleGet();
