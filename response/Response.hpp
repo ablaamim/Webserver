@@ -27,13 +27,34 @@ class Response
         Response(const Response &other);
         ~Response();
 
-        abstract_req              _req;         // this is the request object that will be used to create the response
-        configurationSA::location _location;    // this is the location object that will be used to create the response
-        std::string               _client_ip;   // this is the client ip that will be used to create the response
-        char                      **_env;                                                          
+        abstract_req                                            _req;         // this is the request object that will be used to create the response
+        configurationSA::location                               _location;    // this is the location object that will be used to create the response
+        std::string                                             _client_ip;   // this is the client ip that will be used to create the response
+        char                                                    **_env;
+
+        std::map    <std::string, std::vector<std::string> >    kwargs;
+
+        void insert_Location_kwargs(std::string key, std::vector<std::string> value)
+        {
+            this->kwargs.insert(std::pair<std::string, std::vector<std::string> >(key, value));
+        }
+
+        void print_kwargs()
+        {
+            std::map<std::string, std::vector<std::string> >::iterator it = this->kwargs.begin();
+            while (it != this->kwargs.end())
+            {
+                std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET;
+                for (size_t i = 0; i < it->second.size(); i++)
+                    std::cout << COLOR_YELLOW << it->second[i] << " " << COLOR_RESET;
+                std::cout << std::endl;
+                it++;
+            }
+        }
+                                                          
         
         int                                                     clientSocket;
-        bool                                                    isCompleted; // true if the response is completed
+        bool                                                    isCompleted = false; // true if the response is completed
         int                                                     resouceLength; 
         int                                                     currentLength; 
         int                                                     resourceType; 
@@ -44,7 +65,11 @@ class Response
 
         std::pair   <std::string, std::string>                  status; 
         std::map    <std::string, std::string>                  headers;
-        std::map    <std::string, std::vector<std::string> >    kwargs;
+
+        void constructData()
+        {
+
+        }
         
         //void    generate();
         void    serve();

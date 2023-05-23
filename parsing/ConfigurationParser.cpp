@@ -654,7 +654,7 @@ configurationSA::configurationSA(char *config_file)
     configuration::initialize_data();
     
     // init default values.
-    //configuration::initialize_default_values();
+    configuration::initialize_default_values();
 
     std::ifstream            input(config_file);
     std::vector<std::string> fullFile;
