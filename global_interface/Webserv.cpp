@@ -66,8 +66,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         }
         buf[n] = '\0';
         this->clients[curr_event->ident].append(buf);
-        std::cout << " k :" << k << std::endl;
         k = this->request[curr_event->ident].parse_request(buf);
+        std::cout << " k :" << k << std::endl;
         if (!k)
         {
             this->request[curr_event->ident].print_params();
