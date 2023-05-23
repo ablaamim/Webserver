@@ -3,5 +3,4 @@
 void    Response::handleGet()
 {
     this->body = "<h1>Hello from get function</h1>";
-    this->length = body.length();
 }

@@ -5,6 +5,8 @@ std::map<int, int>               clients_list;                // map of (client_
 std::map<int, abstract_req>      request_list;       // map of (client_socket, request_socket)
 std::map<int, abstract_response> response_list; // map of (client_socket, response_socket)
 
+std::map<int, Response>            responsePool; // vector of response objects
+
 //////////////////////////////////////////////////////// DEBUG FUNCTIONS /////////////////////////////////////////////////////////
 
 void print_response_list(std::map<int, abstract_response> response_list)
@@ -145,7 +147,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         
         this->fd_accepted = client_socket;
         clients_list.insert(std::make_pair(client_socket, curr_event->ident));
-        request_list.insert(std::make_pair(client_socket, abstract_req(client_socket)));
+        //request_list.insert(std::make_pair(client_socket, abstract_req(client_socket)));
         
         std::cout << "accept new client: " << client_socket << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -177,34 +179,58 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
     try
     {
-        // //std::cout << "write event" << std::endl;
-        std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
-        // //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
+        // // //std::cout << "write event" << std::endl;
+        //std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
+        //// // //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
+        //
+        //// // //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
+        //
+        //// std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
+        //// // //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
+//
+        //configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+        //
+        //// // _obj_server.print_type_listen();
+//
+        //// // std::endl(std::cout);
+//
+        //// // _obj_server.print_server_name();
+//
+        //// // std::endl(std::cout);
+        //
+        //configurationSA::location   _obj_location = match_location("/www", _obj_server);
         
-        // //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
+        // _obj_location.print_unique_key();
         
-        std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
-        // //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
-
-        configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+        // _obj_location.print_none_unique_key();
         
-        // _obj_server.print_type_listen();
-
-        // std::endl(std::cout);
-
-        // _obj_server.print_server_name();
-
-        // std::endl(std::cout);
-        
-        configurationSA::location   _obj_location = match_location("/www", _obj_server);
-        
-        _obj_location.print_unique_key();
-        
-        _obj_location.print_none_unique_key();
-        
-        response_list.insert(std::make_pair(this->fd_accepted, abstract_response(pair_request->second, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
-        //response_list[this->fd_accepted].construct_data();
-        //print_response_list(response_list);
+        // response_list.insert(std::make_pair(this->fd_accepted, abstract_response(pair_request->second, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
+        // //response_list[this->fd_accepted].construct_data();
+        // //print_response_list(response_list);
+        // check if ResponsePool has this fd in it already
+        std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted, location, env);
+        if (it != responsePool.end())
+        {
+            std::cout << "existing response found" << std::endl;
+            if (it->second.isCompleted)
+            {
+                std::cout << "response completed" << std::endl;
+                disconnect_client(curr_event->ident, this->clients, "read");
+                responsePool.erase(it);
+            }
+                
+            else
+                it->second.serve();
+        }
+        else
+        {
+            std::cout << "new response created" << std::endl;
+            std::cout << "fd_accepted = " << this->fd_accepted << std::endl;
+            Response newResponse(this->fd_accepted);
+            responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
+            std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
+            it->second.serve();
+        }
     }
     catch(const std::exception& e)
     {
