@@ -56,6 +56,15 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     //std::cout << "location destructor" << std::endl;
                 }
 
+                bool error_if_empty_keys()
+                {
+                    if (UniqueKey.empty() || NoneUniqueKey.empty())         
+                    {
+                        return 1;
+                    }
+                    return 0;
+                };
+
                 void print_unique_key()
                 {
                     if (UniqueKey.empty())
