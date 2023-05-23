@@ -2,16 +2,16 @@
 
 std::vector<int> Servers::fd_vector;
 
-int main(int argc, char **argv, char **env)
+int main(int argc, char **argv)
 {
     try
     {
         invalid_argc(argc);
-        get_help(argv);
+        get_help(argv[1]);
         signal(SIGPIPE, SIG_IGN);
         configurationSA config(argv[1]);
         signal(SIGPIPE, SIG_IGN);  // ignore SIGPIPE
-        Webserv webserv(config, env);   // init Webserv
+        Webserv webserv(config);   // init Webserv
     }
     catch (std::exception &e)
     {

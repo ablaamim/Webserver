@@ -1,13 +1,15 @@
 NAME = Webserv
 
 SRC = ./MainInc/main.cpp \
+	./tools/tools.cpp \
 	./parsing/ConfigurationParser.cpp \
+	./Request/Request.cpp \
 	./parsing/debug.cpp \
 	./parsing/libcpp.cpp \
 	./Servers/Servers.cpp \
 	./global_interface/Webserv.cpp \
-	./response/Response.cpp \
-	./abstract_req/abstract_req.cpp \
+	#./response/Response.cpp \
+	#./abstract_req/abstract_req.cpp \
 	./abstract_response/abstract_response.cpp \
 	#./response/utils.cpp \
 	./response/cgi.cpp \
@@ -24,7 +26,7 @@ CC = clang++
 
 all: $(NAME)
 
-CFLAGS =  -std=c++11 #-Wall -Wextra -Werror #-fsanitize=address -g3
+CFLAGS =  -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g3
 
 $(NAME): 
 	$(CC) $(CFLAGS) $(SRC) -o $(NAME)

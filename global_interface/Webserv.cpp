@@ -1,100 +1,6 @@
 
 #include "../MainInc/main.hpp"
 
-std::map<int, int>               clients_list;                // map of (client_socket, server_socket)
-std::map<int, abstract_req>      request_list;       // map of (client_socket, request_socket)
-std::map<int, abstract_response> response_list; // map of (client_socket, response_socket)
-
-//////////////////////////////////////////////////////// DEBUG FUNCTIONS /////////////////////////////////////////////////////////
-
-void print_response_list(std::map<int, abstract_response> response_list)
-{
-    std::cout << std::endl << std::endl << COLOR_BLUE << "Response list :" << COLOR_RESET;
-    for (std::map<int, abstract_response>::iterator iter = response_list.begin(); iter != response_list.end(); iter++)
-    {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " request socket : " << iter->second._req._fd << " ]" << COLOR_RESET << std::endl;
-        std::cout << COLOR_YELLOW << "client ip : " << iter->second._client_ip << COLOR_RESET << std::endl;
-    }
-}
-
-void print_client_list(std::map<int, int> clients_list)
-{
-    std::cout << std::endl << std::endl << COLOR_BLUE << "Client list : " << COLOR_RESET;
-    for (std::map<int, int>::iterator iter = clients_list.begin(); iter != clients_list.end(); iter++)
-    {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " server_socket : " << iter->second << " ]" << COLOR_RESET << std::endl;
-    }
-}
-
-void print_request_list(std::map<int, abstract_req> request_list)
-{
-    std::cout << std::endl << std::endl << COLOR_BLUE << "Request list :" << COLOR_RESET;
-    for (std::map<int, abstract_req>::iterator iter = request_list.begin(); iter != request_list.end(); iter++)
-    {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " request_socket : " << iter->second._fd << " ]" << COLOR_RESET << std::endl;
-    }
-}
-
-//////////////////////////////////////////////////////// END OF DEBUG FUNCTIONS /////////////////////////////////////////////////////////
-
-configurationSA::Server Select_server(configurationSA &config, std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname)
-{
-    //std::cout << COLOR_GREEN <<  "                 -> Select_server <-          " << std::endl << std::endl;
-    
-    configurationSA::data_type::iterator iter = Servers_vector.end();
-    
-    for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
-    {
-        //std::cout << it->listen.count(ip) << std::endl;
-        
-        //std::cout << it->listen[ip].count(port) << std::endl;
-
-        if (!it->listen.count(ip) || !it->listen[ip].count(port))
-            continue ;
-        
-        //if (it->server_name.count(hostname))
-            //return (*it);
-        
-        else if (iter == Servers_vector.end())
-            iter = it;
-        
-        if (iter == Servers_vector.end())
-        {
-            std::cout << "ip" << ip << std::endl
-            << "port" << port << std::endl
-            << "hostname" << hostname << std::endl;
-            throw Webserv::Webserv_err("Select_server : no server found");
-        }
-
-        //config.print_data_type();
-    }
-    return (*iter);
-}
-
-configurationSA::location match_location(std::string trgt, configurationSA::Server server)
-{
-    //std::cout << COLOR_GREEN <<  "                 -> match location <-          " << COLOR_RESET << std::endl << std::endl;
-    
-    configurationSA::location		result;
-
-    std::vector<std::string>	splited_trgt = split(trgt, "/");
-	
-	for (std::vector<std::string>::reverse_iterator	re_it = splited_trgt.rbegin(); re_it != splited_trgt.rend(); re_it++)
-	{
-		std::string	current_location;
-		for (std::vector<std::string>::iterator it = splited_trgt.begin(); std::reverse_iterator< std::vector<std::string>::iterator >(it) != re_it; it++)
-			current_location += "/" + *it;
-		if (server.location.count(current_location))
-		{
-			result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, current_location)));
-			result.insert(server.location[current_location]);
-		}
-	}
-	result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, "")));
-	result.insert(server.location["/"]);
-	return (result);
-}
-
 void Webserv::change_events(uintptr_t ident, int16_t filter,
         uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
 {
@@ -132,7 +38,7 @@ void print_env(char **env)
     }
 }
 
-void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env)
+void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &fds_s)
 {
     int client_socket;
     char buf[BUFFER_SIZE] = {0};
@@ -142,10 +48,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-        
-        this->fd_accepted = client_socket;
-        clients_list.insert(std::make_pair(client_socket, curr_event->ident));
-        request_list.insert(std::make_pair(client_socket, abstract_req(client_socket)));
         
         std::cout << "accept new client: " << client_socket << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -163,85 +65,42 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         }
         buf[n] = '\0';
         this->clients[curr_event->ident].append(buf);
-        std::cout << "received data from " << curr_event->ident << ": " 
-             << std::endl << this->clients[curr_event->ident] << std::endl;
-        //EV_SET(curr_event, curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        k = this->request.get_headers(buf);
+        // if (!k)
+        this->request.print_params();
+        //std::cout << "k : " << k << "r : " << r << std::endl;
+        // if (!k)
+        //     change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        // std::cout << "received data from " << curr_event->ident << ": " 
+        //      << std::endl << this->clients[curr_event->ident] << std::endl;
     }
-    //print_env(env);
-                                        //// DISCOMMENT THIS TO SEE THE CURRENT DATA ////
-    
-    //print_client_list(clients_list);
-    //print_request_list(request_list);
-
-    // std::endl(std::cout);
-
-    // //std::cout << "write event" << std::endl;
-    std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
-    // //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
-    
-    // //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
-    
-    std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
-    // //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
-
-    configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "localhost");
-    
-    // _obj_server.print_type_listen();
-
-    // std::endl(std::cout);
-
-    // _obj_server.print_server_name();
-
-    // std::endl(std::cout);
-    
-     configurationSA::location   _obj_location = match_location("/", _obj_server);
-    
-    // _obj_location.print_unique_key();
-    
-    // _obj_location.print_none_unique_key();
-    response_list.insert(std::make_pair(this->fd_accepted, abstract_response(pair_request->second, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
-
-    //print_response_list(response_list);
 }
 
-void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
+void Webserv::webserv_evfilt_write(struct kevent *curr_event)
 {
-                                            //// DEBUG ////
-    
-    // print_client_list(clients_list);
-    // print_request_list(request_list);
-
-    // //std::cout << "write event" << std::endl;
-    // std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
-    // std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
-    // std::map<int, abstract_req>::iterator pair_request = request_list.find(this->fd_accepted);
-    // std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
+    std::cout << "ja l write" << std::endl;
     if (this->clients.find(curr_event->ident) != this->clients.end())
     {
-        delete_event(curr_event->ident, EVFILT_READ, "delete read event");
         if (this->clients[curr_event->ident] != "")
         {
-            // std::cout << "received data from " << curr_event->ident << ": " 
-            // << std::endl << this->clients[curr_event->ident] << std::endl;
-            // if(this->clients[curr_event->ident].size() <= (3786 * (BUFFER_SIZE - 1)))
-            //     return ;
-            if (send(curr_event->ident, this->clients[curr_event->ident].c_str(), this->clients[curr_event->ident].size(), 0) < 0)
+            std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nFirst Response!";
+            if (send(curr_event->ident, hello.c_str(), hello.size(), 0) < 0)
             {
                 std::cout << "error " << strerror(errno) << std::endl;
-                // std::cout << "write error" << curr_event->ident << std::endl;
-                // disconnect_client(curr_event->ident, this->clients, "write");
+                disconnect_client(curr_event->ident, this->clients, "write");
             }
             else
             {
-                std::cout << "writed data to " << curr_event->ident << ": " \
-                << std::endl << this->clients[curr_event->ident] << std::endl;
+                // std::cout << "writed data to " << curr_event->ident << ": " \
+                // << std::endl << this->clients[curr_event->ident] << std::endl;
+                delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
                 this->clients[curr_event->ident].clear();
             }
         }
     }
 }
 
-void Webserv::event_check(int new_events, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env)
+void Webserv::event_check(int new_events, std::vector<int> &fds_s)
 {
     for (int i = 0; i < new_events; i++)
     {
@@ -253,18 +112,15 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
             disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
         else if (this->event_list[i].filter == EVFILT_READ)
-            webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);
+            webserv_evfilt_read(&this->event_list[i], fds_s);
         else if (this->event_list[i].filter == EVFILT_WRITE)
-        {
-            //std::cout << "write event" << std::endl;
-            webserv_evfilt_write(&this->event_list[i], config, server, env);
-        }
+            webserv_evfilt_write(&this->event_list[i]);
         else
             std::cout << COLOR_RED << "EVENT ERROR" << i << " " << this->event_list[i].filter << COLOR_RESET << std::endl;
     }
 }
 
-void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers &server, char **env)
+void Webserv::run(std::vector<int> &fds_socket)
 {
     int new_events;
     
@@ -276,18 +132,18 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
         if (new_events == -1)
             throw Webserv::Webserv_err("kevent failed");
         else
-            event_check(new_events, fds_socket, config, server, env);
+            event_check(new_events, fds_socket);
     }
 }
 
-Webserv::Webserv(configurationSA &config, char **env)
+Webserv::Webserv(configurationSA &config)
 {
     Servers         server(config);
     this->kq = server.kq;
-    this->fd_accepted = 0;
     this->event_list = new struct kevent [Servers::fd_vector.size()];
-    this->run(Servers::fd_vector, config, server, env);
+    this->run(Servers::fd_vector);
 }
 
 // default destructor
 Webserv::~Webserv(){delete [] this->event_list;}
+Webserv::Webserv(){}
