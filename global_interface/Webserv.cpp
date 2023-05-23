@@ -9,10 +9,10 @@ std::map<int, Response>          responsePool;                // mapp of (client
 
 void print_responsePool(std::map<int, Response> responsePool)
 {
-    std::cout << std::endl << std::endl << COLOR_BLUE << "ResponsePool list :" << COLOR_RESET;
+    std::cout << std::endl << std::endl << COLOR_BLUE << "ResponsePool list :" << COLOR_RESET << std::endl;
     for (std::map<int, Response>::iterator iter = responsePool.begin(); iter != responsePool.end(); iter++)
     {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " ]" << COLOR_RESET << std::endl;
+        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Response client socket : " << iter->second.clientSocket << " ]" << COLOR_RESET << std::endl;
     }
 }
 
@@ -30,7 +30,7 @@ void print_request_list(std::map<int, abstract_req> request_list)
     std::cout << std::endl << std::endl << COLOR_BLUE << "Request list :" << COLOR_RESET;
     for (std::map<int, abstract_req>::iterator iter = request_list.begin(); iter != request_list.end(); iter++)
     {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " request_socket : " << iter->second._fd << " ]" << COLOR_RESET << std::endl;
+        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Request client socket : " << iter->second._fd << " ]" << COLOR_RESET << std::endl;
     }
 }
 
@@ -206,7 +206,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         //// // std::endl(std::cout);
         //
         
-        configurationSA::location   _obj_location = match_location("/www", _obj_server);
+        configurationSA::location   _obj_location = match_location(pair_request->second.getResourceFullPath(), _obj_server);
         
         // if (_obj_location.error_if_empty_keys())
         // {
@@ -228,9 +228,9 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
         // insert Unique key in kwargs
 
-
         responsePool.insert(std::make_pair(this->fd_accepted, Response(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
         
+        //std::cout << "FD ACCEPTED = " << this->fd_accepted << std::endl;
         
         std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
         
@@ -240,16 +240,17 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             
             Response newResponse(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env);
 
-            // Insert none unique key in kwargs
+            // Insert none UniqueKeys in kwargs map
 
             for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
             {
                 newResponse.kwargs.insert(std::make_pair(it->first, it->second));
             }
 
-            // Insert NoneUniqueKey key in kwargs
+            // Insert NoneUniqueKey key in kwargs map
 
             typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
+            typedef std::map<std::string, std::vector<std::string> > NoneUniqueKe_t; // map of none unique keys that have more than one value
 
             for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
             {
@@ -259,15 +260,17 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
                 }
             }
 
-            // Insert Server_name in kwargs
+            // Insert Server_name in kwargs map
 
             for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
             {
                 newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             }
 
-            newResponse.print_kwargs();
+            //Print kwargs to check if everything is ok
 
+            newResponse.print_kwargs();
+            //newResponse.print_methods();
 
             if (it->second.isCompleted)
             {
@@ -284,7 +287,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             std::cout << "new response created" << std::endl;
             std::cout << "fd_accepted = " << this->fd_accepted << std::endl;
             
-            Response newResponse(this->fd_accepted);
+            // Better use this constructor here !
+            Response newResponse(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env);
             
             responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
             
@@ -292,7 +296,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             
             it->second.serve();
         }
-
         print_responsePool(responsePool);
     }
     catch(const std::exception& e)
