@@ -205,14 +205,15 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 //
         //// // std::endl(std::cout);
         //
+        
         configurationSA::location   _obj_location = match_location("/www", _obj_server);
         
-        if (_obj_location.error_if_empty_keys())
-        {
-            std::cerr << "Empty location" << std::endl;
-            disconnect_client(curr_event->ident, this->clients, "read");
-            return ;
-        }
+        // if (_obj_location.error_if_empty_keys())
+        // {
+        //     std::cerr << "Empty location" << std::endl;
+        //     disconnect_client(curr_event->ident, this->clients, "read");
+        //     return ;
+        // }
         
         //_obj_location.print_unique_key();
         
@@ -225,14 +226,49 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         
         // PROTOTYPE : Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), _location(location), _client_ip(_client_ip) , _env(env)
 
+        // insert Unique key in kwargs
+
+
         responsePool.insert(std::make_pair(this->fd_accepted, Response(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
+        
         
         std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
         
         if (it != responsePool.end())
         {
-            std::cout << "existing response found" << std::endl;
+            std::cout << COLOR_GREEN <<" >>>>>>>>>>> existing response found <<<<<<<<<<<<" << std::endl << std::endl << COLOR_RESET;
             
+            Response newResponse(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env);
+
+            // Insert none unique key in kwargs
+
+            for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
+            {
+                newResponse.kwargs.insert(std::make_pair(it->first, it->second));
+            }
+
+            // Insert NoneUniqueKey key in kwargs
+
+            typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
+
+            for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
+            {
+                for (std::map<std::string, std::vector<std::string> >::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
+                {
+                    newResponse.kwargs.insert(std::make_pair(it2->first, it2->second));
+                }
+            }
+
+            // Insert Server_name in kwargs
+
+            for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
+            {
+                newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
+            }
+
+            newResponse.print_kwargs();
+
+
             if (it->second.isCompleted)
             {
                 std::cout << "response completed" << std::endl;
