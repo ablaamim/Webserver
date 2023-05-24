@@ -80,12 +80,11 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)
 {
-    std::cout << "ja l write" << std::endl;
     if (this->clients.find(curr_event->ident) != this->clients.end())
     {
         if (this->clients[curr_event->ident] != "")
         {
-            std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello World!";
+            std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello Wor12!";
             if (send(curr_event->ident, hello.c_str(), hello.size(), 0) < 0)
             {
                 std::cout << "error " << strerror(errno) << std::endl;

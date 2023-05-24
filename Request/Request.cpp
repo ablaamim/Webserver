@@ -32,11 +32,16 @@ int Request::check_readed_bytes()
 {
     if (this->params.find("Content-Length") != this->params.end())
     {
-        // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
-        // std::cout << "_CONTENT_: " << this->params[_CONTENT_].size() << std::endl;
-        this->is_chuncked = true;
-        return(std::stoi(this->params["Content-Length"]) != \
-        static_cast<int>(this->params[_CONTENT_].size()));
+        if (std::stoi(this->params["Content-Length"]) != \
+        static_cast<int>(this->params[_CONTENT_].length()))
+        {
+            // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
+            // std::cout << "_CONTENT_: " << this->params[_CONTENT_].length() << std::endl;
+            this->is_chuncked = true;
+            return _CHUNCKED_REQUEST;
+        }
+        else
+            this->is_chuncked = false;
     }
     return _PARSE_REQUEST_DONE;
 }
@@ -69,13 +74,16 @@ void Request::get_other_lines(std::string line)
     std::string         str1, str2;
     std::stringstream   file(line);
 
-    // std::cout << "Parsing Other lines " << line << std::endl;
+    //std::cout << "Parsing Other lines '" << line << "'" << std::endl;
     if (std::getline(file, str1, ':'))
     {
         if (std::getline(file, str2, ':'))
             this->params[str1] = str2.substr(1);
         else
+        {
+            //std::cout << COLOR_YELLOW << "Parsing Other here  '" << str1 << "'" << COLOR_RESET <<std::endl;
             this->params[_CONTENT_].append(str1);
+        }
     }
 }
 
@@ -99,13 +107,33 @@ int Request::get_headers(char * str)
     return (check_readed_bytes());
 }
 
+int Request::get_chuncked_msg(char * str)
+{
+    char *line;
+
+    std::cout << "Parsing chuncked messages " << std::endl;
+    // std::cout << COLOR_RED << "----------------------------------" << std::endl;
+    // std::cout << COLOR_GREEN << str << std::endl << std::endl;
+    // std::cout << COLOR_RED << "----------------------------------" << std::endl;
+    line = std::strtok(str, "0\r\n\r\n");
+    if (!line)
+        return _ERR_PARSE_REQUEST;
+    this->params[_CONTENT_].append(std::string(line));
+    // std::cout << COLOR_RED << "----------------------------------" << std::endl;
+    // std::cout << COLOR_BLUE << this->params[_CONTENT_] << std::endl << std::endl;
+    // std::cout << COLOR_YELLOW << std::strlen(line) << "   " << std::strlen(str) << std::endl << std::endl;
+    // std::cout << COLOR_RED << "----------------------------------" << std::endl;
+    // return (check_readed_bytes());
+    return (0);
+}
+
 int Request::parse_request(char * str)
 {
     if (!str)
         return _ERR_PARSE_REQUEST;
     else if (!this->headers_done)
         return (this->get_headers(str));
-    // else if (this->is_chuncked)
-    //     return(this->get_chuncked_msg(str))
-    return _PARSE_REQUEST_DONE;
+    else if (this->is_chuncked)
+        return(this->get_chuncked_msg(str));
+    return 1;
 }
