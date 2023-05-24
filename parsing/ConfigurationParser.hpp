@@ -157,7 +157,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                         for (type_listen::const_iterator it = listen.begin(); it != listen.end(); it++)
                         {
                             std::cout << COLOR_BLUE << "IP / PORT     : " << COLOR_RESET << COLOR_YELLOW <<"[ "<< it->first << " : " << COLOR_RESET;
-                            for (auto iter = it->second.begin(); iter != it->second.end(); iter++)
+                            for (std::set<std::string>::iterator iter = it->second.begin(); iter != it->second.end(); iter++)
                                 std::cout << COLOR_YELLOW << *iter << " ]" << COLOR_RESET;
                             std::cout << std::endl;
                         }
@@ -170,7 +170,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                             std::cout << COLOR_RED << "server_name is empty" << COLOR_RESET << std::endl;
                             exit(EXIT_FAILURE);
                         }
-                        for (auto it = server_name.begin(); it != server_name.end(); it++)
+                        for (type_server_name::iterator it = server_name.begin(); it != server_name.end(); it++)
                             std::cout << COLOR_BLUE << "Server_name : " << COLOR_RESET << COLOR_YELLOW << " [" << *it << " ]" << COLOR_RESET;
                         std::cout << std::endl;
                     };

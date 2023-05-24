@@ -2,23 +2,16 @@
 
 std::vector<int> Servers::fd_vector;
 
-int main(int argc, char **argv, char **env)
+int main(int argc, char **argv)
 {
-    if (argc != 2)
-    {
-        std::cerr << INVALID_ARGS << std::endl;
-        exit (EXIT_FAILURE);
-    }
-    if (!strcmp(argv[1], "-h"))
-    {
-        std::cerr << HELP << std::endl;
-        return (EXIT_SUCCESS);
-    }
     try
     {
+        invalid_argc(argc);
+        get_help(argv[1]);
+        signal(SIGPIPE, SIG_IGN);
         configurationSA config(argv[1]);
         signal(SIGPIPE, SIG_IGN);  // ignore SIGPIPE
-        Webserv webserv(config, env);   // init Webserv
+        Webserv webserv(config, argv);   // init Webserv
     }
     catch (std::exception &e)
     {
