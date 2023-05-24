@@ -25,12 +25,14 @@
 #include <signal.h>
 
 
+# include "../tools/tools.hpp"
 # include "../parsing/debug.hpp"
 # include "../parsing/libcpp.hpp"
 # include "../parsing/ConfigurationParser.hpp"
 # include "../response/Response.hpp"
 # include "../parsing/debug.hpp"
 # include "../defines/defines.hpp"
+# include "../Request/Request.hpp"
 # include "../Servers/Servers.hpp"
 # include "../global_interface/Webserv.hpp"
 # include "../defines/defines.hpp"

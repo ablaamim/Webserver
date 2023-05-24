@@ -2,7 +2,7 @@
 
 #define DEFINES_HPP
 
-# define BUFFER_SIZE 1024
+# define BUFFER_SIZE 2048
 # define EVENT_LIST 10000
 # define UNLIMITED_PARAMS 0
 # define SIZEOF(arr) sizeof(arr) / sizeof(*arr)
@@ -40,6 +40,10 @@
 # define SOCKET_BINDING_ERR "Failed binding socket"
 # define SOCKET_OPTION_ERR "Failed setting socket options"
 # define SOCKET_LISTEN_ERR "Failed listening on socket"
+# define _ERR_PARSE_REQUEST 1
+# define _PARSE_REQUEST_DONE 0
+# define _CHUNCKED_REQUEST 2
+# define _CONTENT_ "Content_mytxt"
 
 /* 
     Response defines;

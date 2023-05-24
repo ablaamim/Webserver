@@ -3,9 +3,7 @@
 
 #include "../MainInc/main.hpp"
 #include <dirent.h>
-#include "../abstract_req/abstract_req.hpp"
-
-# define CHUNK_SIZE 1024
+#include "../Request/Request.hpp"
 # define NONE -1
 # define FILE 0
 # define DIRECTORY 1
@@ -18,20 +16,30 @@ class Response
 {
     public:
 
-        Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env);
+        Response(Request req, int id, configurationSA::location location, std::string _client_ip, char **env);
+        
         Response(void)
         {
             //std::cout << "Webserv default constructor" << std::endl;
         };
-        Response(int id);
+        
+        //Response(int id);
+        
         Response(const Response &other);
+        
         ~Response();
 
-        abstract_req                                            _req;         // this is the request object that will be used to create the response
+        Request                                                 _req;         // this is the request object that will be used to create the response
         configurationSA::location                               _location;    // this is the location object that will be used to create the response
         std::string                                             _client_ip;   // this is the client ip that will be used to create the response
         char                                                    **_env;
-
+        
+        void print_request()
+        {
+            // print params map from request
+            std::cout << COLOR_GREEN << "Request :" << COLOR_RESET << std::endl;
+            this->_req.print_params();
+        }
 
         std::map<std::string, void(Response::*)()>              _methods;     // this is the map that will be used to call the right method
 
