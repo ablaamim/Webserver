@@ -20,25 +20,40 @@ int getFileSize(std::string path)
     return f.tellg();
 }
 
-Response::Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), clientSocket(id) ,_location(location), _client_ip(_client_ip) , _env(env)
+Response::Response(Request req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), clientSocket(id) ,_location(location), _client_ip(_client_ip) , _env(env)
 {
-    // init method map
+    //std::cout << "Response constructor" << std::endl;
     if (!this->_methods.empty())
         this->_methods.clear();
+    
     this->_methods.insert(std::pair<std::string, void(Response::*)()>("GET", &Response::handleGet));
     this->_methods.insert(std::pair<std::string, void(Response::*)()>("POST", &Response::handlePost));
     this->_methods.insert(std::pair<std::string, void(Response::*)()>("DELETE", &Response::handleDelete));
 
-    this->resourceFullPath = "/Users/afaris/Desktop/Webserver/response/example.html";
-    this->resouceLength = getFileSize(this->resourceFullPath);
-    this->currentLength = 0;
-    this->lastChunkSize = 0;
-    this->isCompleted = false;
-    this->httpVersion = "HTTP/1.1";
-    this->headers.insert(std::pair<std::string, std::string>("Server", "webserv"));
-    this->status = std::pair<std::string, std::string>("200", "OK");
-    this->fd = open(this->resourceFullPath.c_str(), O_RDONLY);
-    std::cout << "fd: " << this->fd << std::endl;
+    // print method from request
+
+    // if (this->_req.params["Method"] == "GET")
+    //     std::cout << "Method is GET" << std::endl;
+    // else if (this->_req.params["Method"] == "POST")
+    //     std::cout << "Method is POST" << std::endl;
+    // else if (this->_req.params["Method"] == "DELETE")
+    //     std::cout << "Method is DELETE" << std::endl;
+    // else
+    //     std::cout << "Method is not GET, POST or DELETE" << std::endl;
+    // print params map from request
+    
+    //this->_req.print_params();
+
+    // this->resourceFullPath = "/Users/afaris/Desktop/Webserver/response/example.html";
+    // this->resouceLength = getFileSize(this->resourceFullPath);
+    // this->currentLength = 0;
+    // this->lastChunkSize = 0;
+    // this->isCompleted = false;
+    // this->httpVersion = "HTTP/1.1";
+    // this->headers.insert(std::pair<std::string, std::string>("Server", "webserv"));
+    // this->status = std::pair<std::string, std::string>("200", "OK");
+    // this->fd = open(this->resourceFullPath.c_str(), O_RDONLY);
+    // std::cout << "fd: " << this->fd << std::endl;
 };
 
 bool isDirectory(std::string path)
@@ -91,29 +106,29 @@ void    Response::generateBody()
 
 void    Response::serve()
 {
-    std::string responseMessage;
-    this->headers["transfer-encoding"] = "chunked";
-    this->headers["content-type"] = "text/html";
-    responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
-    std::map<std::string, std::string>::iterator it = this->headers.begin();
-    while (it != this->headers.end())
-    {
-        responseMessage += it->first + ": " + it->second + "\r\n";
-        it++;
-    }
-    generateBody();
-    responseMessage += "\r\n";
-    responseMessage += intToHexString(this->lastChunkSize) + "\r\n";
-    responseMessage.append(this->body) + "\r\n";
-    responseMessage += "0\r\n\r\n";
-    send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
-    if (this->currentLength >= this->resouceLength)
-        this->isCompleted = true;
+    // std::string responseMessage;
+    // this->headers["transfer-encoding"] = "chunked";
+    // this->headers["content-type"] = "text/html";
+    // responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
+    // std::map<std::string, std::string>::iterator it = this->headers.begin();
+    // while (it != this->headers.end())
+    // {
+    //     responseMessage += it->first + ": " + it->second + "\r\n";
+    //     it++;
+    // }
+    // generateBody();
+    // responseMessage += "\r\n";
+    // responseMessage += intToHexString(this->lastChunkSize) + "\r\n";
+    // responseMessage.append(this->body) + "\r\n";
+    // responseMessage += "0\r\n\r\n";
+    // send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
+    // if (this->currentLength >= this->resouceLength)
+    //     this->isCompleted = true;
 }
 
 Response::Response(const Response &other)
 {
-    std::cout << "Response copy constructor" << std::endl;
+    //std::cout << "Response copy constructor" << std::endl;
     // copy all the attributes of the other object to this object
     this->clientSocket = other.clientSocket;
     this->resourceFullPath = other.resourceFullPath;

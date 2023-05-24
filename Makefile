@@ -1,7 +1,9 @@
 NAME = Webserv
 
 SRC = ./MainInc/main.cpp \
+	./tools/tools.cpp \
 	./parsing/ConfigurationParser.cpp \
+	./Request/Request.cpp \
 	./parsing/debug.cpp \
 	./parsing/libcpp.cpp \
 	./Servers/Servers.cpp \
