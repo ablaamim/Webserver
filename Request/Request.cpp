@@ -9,20 +9,32 @@ Request::Request()
 }
 Request::~Request(){};
 
-void Request::print_params()
+std::ostream & operator<<(std::ostream & o, Request const & ref)
 {
+    param para =  ref.params;
     std::cout << std::endl << COLOR_GREEN << "Request :" << COLOR_RESET << std::endl;
-    for(std::map<std::string , std::string>::iterator it = this->params.begin(); it != this->params.end(); it++ )
+    std::cout << "Server fd :" << ref.fd_server <<  "  Client fd : " << ref.fd_accept << std::endl;
+    for(it_param it = para.begin(); it != para.end(); it++ )
         std::cout << it->first << " : '" << it->second << "'" << std::endl;
+    return o;
+}
+
+void    Request::reset_request()
+{
+    this->headers_done = false;
+    this->first_line = false;
+    this->is_chuncked = false;
+    this->params.clear();
+    this->params[_CONTENT_] = "";
 }
 
 int Request::check_readed_bytes()
 {
     if (this->params.find("Content-Length") != this->params.end())
     {
+        // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
+        // std::cout << "_CONTENT_: " << this->params[_CONTENT_].size() << std::endl;
         this->is_chuncked = true;
-        std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
-        std::cout << "_CONTENT_: " << this->params[_CONTENT_].size() << std::endl;
         return(std::stoi(this->params["Content-Length"]) != \
         static_cast<int>(this->params[_CONTENT_].size()));
     }
