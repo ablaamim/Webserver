@@ -42,7 +42,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 {
     int client_socket;
     char buf[BUFFER_SIZE] = {0};
-    int n = 0, k = 1;
+    int n = 0, k = 120;
 
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
@@ -54,6 +54,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
         this->request[client_socket].fd_accept = client_socket;
+        this->request[client_socket].fd_server = curr_event->ident;
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
     {
@@ -67,10 +68,9 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         buf[n] = '\0';
         this->clients[curr_event->ident].append(buf);
         k = this->request[curr_event->ident].parse_request(buf);
-        std::cout << " k :" << k << std::endl;
         if (!k)
         {
-            this->request[curr_event->ident].print_params();
+            std::cout << this->request[curr_event->ident] << std::endl; 
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         }
         // std::cout << "received data from " << curr_event->ident << ": " 
@@ -93,9 +93,8 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             }
             else
             {
-                // std::cout << "writed data to " << curr_event->ident << ": " \
-                // << std::endl << this->clients[curr_event->ident] << std::endl;
                 delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
+                this->request[curr_event->ident].reset_request();
                 this->clients[curr_event->ident].clear();
             }
         }
