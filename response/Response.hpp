@@ -18,17 +18,7 @@ class Response
 {
     public:
 
-        Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), clientSocket(id) ,_location(location), _client_ip(_client_ip) , _env(env)
-        {
-            // init method map
-            if (!this->_methods.empty())
-                this->_methods.clear();
-            this->_methods.insert(std::pair<std::string, void(Response::*)()>("GET", &Response::handleGet));
-            this->_methods.insert(std::pair<std::string, void(Response::*)()>("POST", &Response::handlePost));
-            this->_methods.insert(std::pair<std::string, void(Response::*)()>("DELETE", &Response::handleDelete));
-            //std::cout << this->_client_ip << std::endl;
-            //std::cout << "Webserv constructor" << std::endl;
-        };
+        Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env);
         Response(void)
         {
             //std::cout << "Webserv default constructor" << std::endl;
@@ -74,14 +64,14 @@ class Response
                 it++;
             }
         }
-                                                          
-        
-        int                                                     clientSocket;
-        bool                                                    isCompleted = false; // true if the response is completed
-        int                                                     resouceLength; 
-        int                                                     currentLength; 
-        int                                                     resourceType; 
 
+        int                                                     fd; // this is the file descriptor that will be used to read / track the file                                                  
+        int                                                     clientSocket;
+        int                                                     resouceLength; 
+        int                                                     currentLength;
+        int                                                     lastChunkSize;
+        int                                                     resourceType; 
+        bool                                                    isCompleted;
         std::string                                             resourceFullPath = "/www";
         std::string                                             httpVersion; 
         std::string                                             body; 
@@ -89,12 +79,7 @@ class Response
         std::pair   <std::string, std::string>                  status; 
         std::map    <std::string, std::string>                  headers;
 
-        void constructData()
-        {
-            // CONSTRUCT DATA HERE
-        }
-        
-        //void    generate();
+        void    generateBody();
         void    serve();
 
         void    handleGet();

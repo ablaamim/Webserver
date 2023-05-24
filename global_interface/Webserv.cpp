@@ -226,22 +226,27 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         
         // PROTOTYPE : Response(abstract_req req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), _location(location), _client_ip(_client_ip) , _env(env)
 
-        // insert Unique key in kwargs
-
-        responsePool.insert(std::make_pair(this->fd_accepted, Response(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
-        
-        //std::cout << "FD ACCEPTED = " << this->fd_accepted << std::endl;
-        
+        // insert Unique key in kwargs  
         std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
-        
         if (it != responsePool.end())
         {
-            std::cout << COLOR_GREEN <<" >>>>>>>>>>> existing response found <<<<<<<<<<<<" << std::endl << std::endl << COLOR_RESET;
+            while(!it->second.isCompleted)
+            {
+                it->second.serve();
+            }
+            if (it->second.isCompleted)
+            {
+                std::cout << COLOR_GREEN <<" >>>>>>>>>>> Response is Served Successfully!! :D <<<<<<<<<<<<" << std::endl << std::endl << COLOR_RESET;
+                disconnect_client(curr_event->ident, this->clients, "read");
+                responsePool.erase(it);
+            }
+        }
+        else
+        {
+            std::cout << COLOR_GREEN <<" >>>>>>>>>>> New Response Is Being Created <<<<<<<<<<<<" << std::endl << std::endl << COLOR_RESET;
             
+            // Better use this constructor here !
             Response newResponse(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env);
-
-            // Insert none UniqueKeys in kwargs map
-
             for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
             {
                 newResponse.kwargs.insert(std::make_pair(it->first, it->second));
@@ -266,35 +271,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             {
                 newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             }
-
-            //Print kwargs to check if everything is ok
-
-            newResponse.print_kwargs();
-            //newResponse.print_methods();
-
-            if (it->second.isCompleted)
-            {
-                std::cout << "response completed" << std::endl;
-                disconnect_client(curr_event->ident, this->clients, "read");
-                responsePool.erase(it);
-            }
-                
-            else
-                it->second.serve();
-        }
-        else
-        {
-            std::cout << "new response created" << std::endl;
-            std::cout << "fd_accepted = " << this->fd_accepted << std::endl;
-            
-            // Better use this constructor here !
-            Response newResponse(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env);
-            
             responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
-            
-            std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
-            
-            it->second.serve();
+            std::cout << "fd responsePool: " << responsePool[this->fd_accepted].httpVersion << std::endl;
         }
         print_responsePool(responsePool);
     }
