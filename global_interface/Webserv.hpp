@@ -14,6 +14,16 @@ class Webserv
         std::map<int, std::string>  clients;
         std::map<int, Request>      request;
 
+        void print_request()
+        {
+            std::map<int, Request>::iterator it = this->request.begin();
+            while (it != this->request.end())
+            {
+                this->request[it->first].print_params();
+                it++;
+            }
+        }
+
         
         int                         fd_accepted;
 
