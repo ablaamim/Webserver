@@ -2,7 +2,7 @@
 #include "../MainInc/main.hpp"
 
 std::map<int, int>               clients_list;                // map of (client_socket, server_socket)
-std::map<int, Request>           request_list;                // map of (client_socket, request_socket)
+//std::map<int, Request>           request_list;                // map of (client_socket, request_socket)
 std::map<int, Response>          responsePool;                // map of (client_socket, Response)
 
 //////////////////////////////////////////////////////// DEBUG FUNCTIONS /////////////////////////////////////////////////////////
@@ -22,15 +22,6 @@ void print_client_list(std::map<int, int> clients_list)
     for (std::map<int, int>::iterator iter = clients_list.begin(); iter != clients_list.end(); iter++)
     {
         std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Server Socket : " << iter->second << " ]" << COLOR_RESET << std::endl;
-    }
-}
-
-void print_request_list(std::map<int, Request> req)
-{
-    std::cout << std::endl << std::endl << COLOR_BLUE << " -> Request list :" << COLOR_RESET << std::endl;
-    for (std::map<int, Request>::iterator iter = req.begin(); iter != req.end(); iter++)
-    {
-        request_list[iter->first].print_params();
     }
 }
 
@@ -146,6 +137,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     char buf[BUFFER_SIZE] = {0};
     int n = 0, k = 120;
 
+
+    // first connection
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
@@ -163,6 +156,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
     {
+        // already connected
         n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
         if (n <= 0)
         {
@@ -174,96 +168,77 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         
         this->clients[curr_event->ident].append(buf);
         k = this->request[curr_event->ident].parse_request(buf);
-        request_list.insert(std::make_pair(curr_event->ident, this->request[curr_event->ident]));
-
-        //print_request_list(request_list);
-
-        //sleep(5);
 
         
-        //this->request[curr_event->ident].print_params();
-        
-        //this->print_request();
-        
-        //sleep(120);
 
-        // copy request to request_list
-
-        //request_list.insert(std::make_pair(curr_event->ident, this->request[curr_event->ident]));
-
+        // if read is finished
+        // this is the door of response Pool, have a good swin :p
         if (!k)
         {
-            std::cout << this->request[curr_event->ident] << std::endl; 
+            std::cout << this->request[curr_event->ident] << std::endl;
+            Request request = this->request[curr_event->ident];
+            std::cout << "request parsed" << std::endl;
+            request.print_params();
+            std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
+            configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+            // find url in request obj
+            std::string url = request.params["Url"];
+            configurationSA::location   _obj_location = match_location(url, _obj_server); 
+            Response newResponse(request, this->fd_accepted, _obj_location, env);
+            for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
+            {
+                newResponse.kwargs.insert(std::make_pair(it->first, it->second));
+            }
+            // Insert NoneUniqueKey key in kwargs map
+            typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
+            typedef std::map<std::string, std::vector<std::string> > NoneUniqueKe_t; // map of none unique keys that have more than one value
+            for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
+            {
+                for (std::map<std::string, std::vector<std::string> >::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
+                {
+                    newResponse.kwargs.insert(std::make_pair(it2->first, it2->second));
+                }
+            }
+            for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
+                newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
+            //newResponse.print_kwargs();
+            responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+            //delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
         }
-        // std::cout << "received data from " << curr_event->ident << ": " 
-        //      << std::endl << this->clients[curr_event->ident] << std::endl;
     }
+    //print_client_list(clients_list);
+    //print_request_list(request_list);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
 {
-    std::cout << COLOR_RED << "----> WRITE EVENT" << COLOR_RESET <<std::endl;
+    // std::cout << COLOR_RED << "----> WRITE EVENT" << COLOR_RESET <<std::endl;
 
-    // // //std::cout << "write event" << std::endl;
-    std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
-    //// // //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
-    //// // //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
-    std::map<int, Request>::iterator pair_request = request_list.find(this->fd_accepted);
-    //// // //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
-    configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    //// // _obj_server.print_type_listen();
-    //// // std::endl(std::cout);
-    //// // _obj_server.print_server_name();
-    //// // std::endl(std::cout);
-    configurationSA::location   _obj_location = match_location("/www", _obj_server);   
+    // // // //std::cout << "write event" << std::endl;
+      
     
     if (this->clients.find(curr_event->ident) != this->clients.end())
     {
+        // print client with his id
         if (this->clients[curr_event->ident] != "")
         {
-            std::cout << "Client fd = " << curr_event->ident << std::endl;
-            responsePool.insert(std::make_pair(this->fd_accepted, Response(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
-            std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
-            if (it != responsePool.end())
+            std::cout << COLOR_GREEN << "Client has been joined the response pool his info is: " << COLOR_RESET << std::endl;
+            // find the client in the response pool
+            std::map<int, Response>::iterator it = responsePool.find(curr_event->ident);
+            // debug
+            if (it->second.isCompleted)
             {
-                std::cout << COLOR_GREEN <<" >>>>>>>>>>> existing response found <<<<<<<<<<<<" << std::endl << std::endl << COLOR_RESET;
-                Response newResponse(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env);
-                // Insert none UniqueKeys in kwargs map
-                for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
-                {
-                    newResponse.kwargs.insert(std::make_pair(it->first, it->second));
-                }
-                // Insert NoneUniqueKey key in kwargs map
-                typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
-                typedef std::map<std::string, std::vector<std::string> > NoneUniqueKe_t; // map of none unique keys that have more than one value
-                for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
-                {
-                    for (std::map<std::string, std::vector<std::string> >::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
-                    {
-                        newResponse.kwargs.insert(std::make_pair(it2->first, it2->second));
-                    }
-                }
-                            // Insert Server_name in kwargs map
-                for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
-                    newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
-                //newResponse.print_kwargs();
-
-                responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
+                std::cout << COLOR_GREEN << "Client has been already served" << COLOR_RESET << std::endl;
+                responsePool.erase(it);
+                disconnect_client(curr_event->ident, this->clients, "write");
+                clients_list.erase(curr_event->ident);
+                delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
             }
-            //print_responsePool(responsePool);
-            //  std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello World!";
-            //  if (send(curr_event->ident, hello.c_str(), hello.size(), 0) < 0)
-            //  {
-            //      std::cout << "error " << strerror(errno) << std::endl;
-            //      disconnect_client(curr_event->ident, this->clients, "write");
-            //  }
-            // else
-            // {
-            //     delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
-            //     this->request[curr_event->ident].reset_request();
-            //     this->clients[curr_event->ident].clear();
-            // }
+            else
+            {
+                it->second.isCompleted = true;
+            }
         }
     }
 }
@@ -278,6 +253,9 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
         {
             delete_event(this->event_list[i].ident, EVFILT_READ, "read eof");
             disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
+            // clients_list.erase(this->fd_accepted);
+            // request_list.erase(this->fd_accepted);
+            // responsePool.erase(this->fd_accepted);
         }
         else if (this->event_list[i].filter == EVFILT_READ)
         {

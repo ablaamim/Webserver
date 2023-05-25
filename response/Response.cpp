@@ -6,6 +6,29 @@
 #include <sstream>
 #include <iomanip>
 
+
+// void    Response::checkRequest()
+// {
+//     std::vector<std::string> allowedMethods = this->kwargs["allowed_methods"];
+//     if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.params["Method"]) == allowedMethods.end())
+//         this->serve(std::pair<std::string, std::string>("405", "Method Not Allowed"));
+//     // if request method == POST
+//     if (this->_req.params["Method"] == "POST")
+//     {
+
+//     }
+// }
+
+void    Response::serve(std::pair<std::string, std::string> status)
+{
+    std::string responseMessage;
+    responseMessage += this->httpVersion + " " + status.first + " " + status.second + "\r\n";
+    for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+        responseMessage += it->first + ": " + it->second + "\r\n";
+    responseMessage += "\r\n";
+    send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
+}
+
 std::string intToHexString(int number) {
     std::stringstream stream;
     stream << std::hex << number;
@@ -20,31 +43,34 @@ int getFileSize(std::string path)
     return f.tellg();
 }
 
-Response::Response(Request req, int id, configurationSA::location location, std::string _client_ip, char **env) : _req(req), clientSocket(id) ,_location(location), _client_ip(_client_ip) , _env(env)
+Response::Response(Request req, int id, configurationSA::location location, char **env) : _req(req), clientSocket(id) ,_location(location), _env(env)
 {
-    //std::cout << "Response constructor" << std::endl;
-    if (!this->_methods.empty())
-        this->_methods.clear();
+    std::cout << "Response constructor" << std::endl;
+
+    //if (req.params["Method"] == "GET")
+    //{
+    //    std::cout << "Method is GET" << std::endl;
+    //    this->handleGet();
+    //}
+    //else if (req.params["Method"] == "POST")
+    //    this->handlePost();
+    //else if (req.params["Method"] == "DELETE")
+    //    this->handleDelete();
+    //else
+    //    std::cout << "Method is not GET, POST or DELETE" << std::endl;
+    ////std::cout << "Response constructor" << std::endl;
+    //
+    //if (!this->_methods.empty())
+    //    this->_methods.clear();
+    //
+    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("GET", &Response::handleGet));
+    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("POST", &Response::handlePost));
+    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("DELETE", &Response::handleDelete));
     
-    this->_methods.insert(std::pair<std::string, void(Response::*)()>("GET", &Response::handleGet));
-    this->_methods.insert(std::pair<std::string, void(Response::*)()>("POST", &Response::handlePost));
-    this->_methods.insert(std::pair<std::string, void(Response::*)()>("DELETE", &Response::handleDelete));
+    this->_req.print_params();
 
-    // print method from request
-
-    // if (this->_req.params["Method"] == "GET")
-    //     std::cout << "Method is GET" << std::endl;
-    // else if (this->_req.params["Method"] == "POST")
-    //     std::cout << "Method is POST" << std::endl;
-    // else if (this->_req.params["Method"] == "DELETE")
-    //     std::cout << "Method is DELETE" << std::endl;
-    // else
-    //     std::cout << "Method is not GET, POST or DELETE" << std::endl;
-    // print params map from request
-    
-    //this->_req.print_params();
-
-    // this->resourceFullPath = "/Users/afaris/Desktop/Webserver/response/example.html";
+    // this->resourceFullPath = "/Users/afaris/Desktop/Webserver-1/slayer.mp4";
+    // this->headers["content-type"] = "video/mp4";
     // this->resouceLength = getFileSize(this->resourceFullPath);
     // this->currentLength = 0;
     // this->lastChunkSize = 0;
@@ -54,6 +80,42 @@ Response::Response(Request req, int id, configurationSA::location location, std:
     // this->status = std::pair<std::string, std::string>("200", "OK");
     // this->fd = open(this->resourceFullPath.c_str(), O_RDONLY);
     // std::cout << "fd: " << this->fd << std::endl;
+};
+
+Response::Response(int id) : clientSocket(id)
+{
+    ////std::cout << "Response constructor" << std::endl;
+    //if (!this->_methods.empty())
+    //    this->_methods.clear();
+    //
+    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("GET", &Response::handleGet));
+    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("POST", &Response::handlePost));
+    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("DELETE", &Response::handleDelete));
+//
+    //// print method from request
+//
+    //if (this->_req.params["Method"] == "GET")
+    //    std::cout << "Method is GET" << std::endl;
+    //else if (this->_req.params["Method"] == "POST")
+    //    std::cout << "Method is POST" << std::endl;
+    //else if (this->_req.params["Method"] == "DELETE")
+    //    std::cout << "Method is DELETE" << std::endl;
+    //else
+    //    std::cout << "Method is not GET, POST or DELETE" << std::endl;
+    //
+    //this->_req.print_params();
+
+    this->resourceFullPath = "/Users/afaris/Desktop/Webserver-1/slayer.mp4";
+    this->headers["content-type"] = "video/mp4";
+    this->resouceLength = getFileSize(this->resourceFullPath);
+    this->currentLength = 0;
+    this->lastChunkSize = 0;
+    this->isCompleted = false;
+    this->httpVersion = "HTTP/1.1";
+    this->headers.insert(std::pair<std::string, std::string>("Server", "webserv"));
+    this->status = std::pair<std::string, std::string>("200", "OK");
+    this->fd = open(this->resourceFullPath.c_str(), O_RDONLY);
+    std::cout << "fd: " << this->fd << std::endl;
 };
 
 bool isDirectory(std::string path)
@@ -94,36 +156,41 @@ Response::~Response()
 
 void    Response::generateBody()
 {
-    char buf[BUFFER_SIZE] = {0};
-    this->lastChunkSize = read(this->fd, buf, BUFFER_SIZE - 1);
-    std::cout << "last chunk size: " << this->lastChunkSize << std::endl;
-    buf[this->lastChunkSize] = '\0';
-    if (this->lastChunkSize == -1)
-        throw std::runtime_error("Error reading file");
+    char buf[CHUNCK_SIZE + 1] = {0};
+    std::ifstream f;
+    f.open(this->resourceFullPath.c_str(), std::ios::in | std::ios::binary);
+    f.seekg(this->currentLength, std::ios::beg);
+    f.read(buf, CHUNCK_SIZE);
+    this->lastChunkSize = f.gcount();
     this->currentLength += this->lastChunkSize;
-    this->body.append(buf);
+    this->body = std::string(buf);
+    std::cout << "body: " << this->body << std::endl;
 }
 
 void    Response::serve()
 {
-    // std::string responseMessage;
-    // this->headers["transfer-encoding"] = "chunked";
-    // this->headers["content-type"] = "text/html";
-    // responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
-    // std::map<std::string, std::string>::iterator it = this->headers.begin();
-    // while (it != this->headers.end())
-    // {
-    //     responseMessage += it->first + ": " + it->second + "\r\n";
-    //     it++;
-    // }
-    // generateBody();
-    // responseMessage += "\r\n";
-    // responseMessage += intToHexString(this->lastChunkSize) + "\r\n";
-    // responseMessage.append(this->body) + "\r\n";
-    // responseMessage += "0\r\n\r\n";
-    // send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
-    // if (this->currentLength >= this->resouceLength)
-    //     this->isCompleted = true;
+    std::string responseMessage;
+    if (!isChunked)
+    {
+        responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
+        std::map<std::string, std::string>::iterator it = this->headers.begin();
+        while (it != this->headers.end())
+        {
+            responseMessage += it->first + ": " + it->second + "\r\n";
+            it++;
+        }
+        if (this->resouceLength >= CHUNCK_SIZE)
+            this->isChunked = true;
+    }
+    generateBody();
+    responseMessage += "\r\n";
+    responseMessage.append(this->body);
+    if (this->currentLength >= this->resouceLength)
+    {
+        this->isCompleted = true;
+        responseMessage += "\r\n";
+    }
+    send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
 }
 
 Response::Response(const Response &other)
