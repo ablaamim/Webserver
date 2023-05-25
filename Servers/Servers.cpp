@@ -68,7 +68,7 @@ void     Servers::new_server_create_socket(std::string ip, std::string port)
 
     // SOL_SOCKET - socket level
     
-    if (setsockopt(socket_info->socket_fd, SOL_SOCKET, SO_REUSEADDR, &socket_info->option, sizeof(socket_info->option)) < 0)
+    if (setsockopt(socket_info->socket_fd, SOL_SOCKET, SO_REUSEADDR , &socket_info->option, sizeof(socket_info->option)) < 0)
         thr_exce_close(SOCKET_OPTION_ERR , socket_info->socket_fd);
     
     memset(socket_info->address.sin_zero, '\0', sizeof(socket_info->address.sin_zero));    
