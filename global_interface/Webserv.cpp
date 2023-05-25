@@ -30,7 +30,7 @@ void print_request_list(std::map<int, Request> req)
     std::cout << std::endl << std::endl << COLOR_BLUE << " -> Request list :" << COLOR_RESET << std::endl;
     for (std::map<int, Request>::iterator iter = req.begin(); iter != req.end(); iter++)
     {
-        std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Request client Socket : " << iter->second._fd << " ]" << COLOR_RESET << std::endl;
+        request_list[iter->first].print_params();
     }
 }
 
@@ -153,7 +153,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
         this->fd_accepted = client_socket;
         clients_list.insert(std::make_pair(client_socket, curr_event->ident));     
-        request_list.insert(std::make_pair(client_socket, Request(client_socket)));   
         
         std::cout << "accept new client: " << client_socket << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -172,11 +171,21 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             return ;
         }
         buf[n] = '\0';
-
-        //sleep(120);
         
         this->clients[curr_event->ident].append(buf);
         k = this->request[curr_event->ident].parse_request(buf);
+        request_list.insert(std::make_pair(curr_event->ident, this->request[curr_event->ident]));
+
+        //print_request_list(request_list);
+
+        //sleep(5);
+
+        
+        //this->request[curr_event->ident].print_params();
+        
+        //this->print_request();
+        
+        //sleep(120);
 
         // copy request to request_list
 
@@ -238,11 +247,11 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
                             // Insert Server_name in kwargs map
                 for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
                     newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
-                newResponse.print_kwargs();
+                //newResponse.print_kwargs();
 
                 responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
             }
-            print_responsePool(responsePool);
+            //print_responsePool(responsePool);
             //  std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello World!";
             //  if (send(curr_event->ident, hello.c_str(), hello.size(), 0) < 0)
             //  {
@@ -271,7 +280,10 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
             disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
         else if (this->event_list[i].filter == EVFILT_READ)
-            webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);
+        {
+            webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);        
+            //sleep(120);
+        }
         else if (this->event_list[i].filter == EVFILT_WRITE)
             webserv_evfilt_write(&this->event_list[i], config, server, env);
         else
