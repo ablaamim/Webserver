@@ -194,29 +194,12 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
 {
-    std::cout << COLOR_RED << "----> WRITE EVENT" << COLOR_RESET <<std::endl;
-
-    // // //std::cout << "write event" << std::endl;
-    std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
-    //// // //std::cout << "map pair_contact val = " << pair_contact->second << std::endl;
-    //// // //std::cout << "ACCEPTED FD = " <<this->fd_accepted << std::endl;
-    std::map<int, Request>::iterator pair_request = request_list.find(this->fd_accepted);
-    //// // //std::cout << "map pair_request val = " << pair_request->second._fd << std::endl;
-    configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    //// // _obj_server.print_type_listen();
-    //// // std::endl(std::cout);
-    //// // _obj_server.print_server_name();
-    //// // std::endl(std::cout);
-    configurationSA::location   _obj_location = match_location("/www", _obj_server);   
-    
     if (this->clients.find(curr_event->ident) != this->clients.end())
     {
         if (this->clients[curr_event->ident] != "")
         {
-            std::cout << "Client fd = " << curr_event->ident << std::endl;
-            responsePool.insert(std::make_pair(this->fd_accepted, Response(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env)));
-            std::map<int, Response>::iterator it = responsePool.find(this->fd_accepted);
-            if (it != responsePool.end())
+            std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello Wor12!";
+            if (send(curr_event->ident, hello.c_str(), hello.size(), 0) < 0)
             {
                 std::cout << COLOR_GREEN <<" >>>>>>>>>>> existing response found <<<<<<<<<<<<" << std::endl << std::endl << COLOR_RESET;
                 Response newResponse(pair_request->second, this->fd_accepted, _obj_location, server.find_ip_by_fd(pair_contact->second), env);
