@@ -23,10 +23,6 @@ class Webserv
                 it++;
             }
         }
-
-        
-        int                         fd_accepted;
-
         Webserv();
         Webserv(configurationSA &config, char **env);
         ~Webserv();

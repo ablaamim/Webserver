@@ -143,19 +143,21 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-
-        this->fd_accepted = client_socket;
-        clients_list.insert(std::make_pair(client_socket, curr_event->ident));     
         
-        std::cout << "accept new client: " << client_socket << std::endl;
+        std::cout << "!-> accept new client: " << client_socket << std::endl;
+        
+        
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
         this->request[client_socket].fd_accept = client_socket;
         this->request[client_socket].fd_server = curr_event->ident;
+        clients_list.insert(std::make_pair(client_socket, this->request[client_socket].fd_server));     
+
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
     {
+        //std::cout << "read from client: " << curr_event->ident << std::endl;
         // already connected
         n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
         if (n <= 0)
@@ -175,16 +177,19 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         // this is the door of response Pool, have a good swin :p
         if (!k)
         {
-            std::cout << this->request[curr_event->ident] << std::endl;
+            //std::cout << this->request[curr_event->ident] << std::endl;
             Request request = this->request[curr_event->ident];
-            std::cout << "request parsed" << std::endl;
-            request.print_params();
-            std::map<int, int>::iterator pair_contact = clients_list.find(this->fd_accepted);
+            //std::cout << "request parsed" << std::endl;
+         
+            //request.print_params();
+            std::cout << COLOR_YELLOW << "Client " << curr_event->ident << " is being created" << COLOR_RESET << std::endl;
+            std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
             configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
             // find url in request obj
             std::string url = request.params["Url"];
             configurationSA::location   _obj_location = match_location(url, _obj_server); 
-            Response newResponse(request, this->fd_accepted, _obj_location, env);
+            std::cout << "ACCEPTED PARAM RES = " << curr_event->ident << std::endl;
+            Response newResponse(request, curr_event->ident, _obj_location, env);
             for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
             {
                 newResponse.kwargs.insert(std::make_pair(it->first, it->second));
@@ -202,12 +207,12 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
                 newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             //newResponse.print_kwargs();
-            responsePool.insert(std::make_pair(this->fd_accepted, newResponse));
+            responsePool.insert(std::make_pair(curr_event->ident, newResponse));
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-            //delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
+            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
         }
     }
-    //print_client_list(clients_list);
+    print_client_list(clients_list);
     //print_request_list(request_list);
 }
 
@@ -216,24 +221,39 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
     // std::cout << COLOR_RED << "----> WRITE EVENT" << COLOR_RESET <<std::endl;
 
     // // // //std::cout << "write event" << std::endl;
-      
-    
+    // std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello Wor12!";
+    //         if (send(curr_event->ident, hello.c_str(), hello.size(), 0) < 0)
+    //         {
+    //             std::cout << "error " << strerror(errno) << std::endl;
+    //             disconnect_client(curr_event->ident, this->clients, "write");
+    //         }
+    //         else
+    //         {
+    //             delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
+    //             this->request[curr_event->ident].reset_request();
+    //             this->clients[curr_event->ident].clear();
+    //         }
     if (this->clients.find(curr_event->ident) != this->clients.end())
     {
         // print client with his id
         if (this->clients[curr_event->ident] != "")
         {
-            std::cout << COLOR_GREEN << "Client has been joined the response pool his info is: " << COLOR_RESET << std::endl;
+            
             // find the client in the response pool
             std::map<int, Response>::iterator it = responsePool.find(curr_event->ident);
+            std::cout << COLOR_RED << "Client " << it->second.clientSocket << " has been joined the response pool" << COLOR_RESET << std::endl;
             // debug
             if (it->second.isCompleted)
             {
-                std::cout << COLOR_GREEN << "Client has been already served" << COLOR_RESET << std::endl;
+                std::cout << COLOR_GREEN << "Client " << it->second.clientSocket << " has been served" << COLOR_RESET << std::endl;
+                delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
+                this->request[curr_event->ident].reset_request();
                 responsePool.erase(it);
                 disconnect_client(curr_event->ident, this->clients, "write");
                 clients_list.erase(curr_event->ident);
-                delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
+                this->clients[curr_event->ident].clear();
+
+
             }
             else
             {
@@ -252,10 +272,10 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
         else if (this->event_list[i].flags & EV_EOF)
         {
             delete_event(this->event_list[i].ident, EVFILT_READ, "read eof");
+            clients_list.erase(this->event_list[i].ident);
+            responsePool.erase(this->event_list[i].ident);
+            //this->clients[this->event_list[i].ident].clear();
             disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
-            // clients_list.erase(this->fd_accepted);
-            // request_list.erase(this->fd_accepted);
-            // responsePool.erase(this->fd_accepted);
         }
         else if (this->event_list[i].filter == EVFILT_READ)
         {
