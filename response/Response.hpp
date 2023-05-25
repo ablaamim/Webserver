@@ -12,19 +12,21 @@
 # define NOT_FOUND 4
 # define FORBIDDEN 5
 
+# define CHUNCK_SIZE 9000096
+
 class Response
 {
     public:
 
-        Response(Request req, int id, configurationSA::location location, std::string _client_ip, char **env);
+        Response(Request req, int id, configurationSA::location location, char **env);
         
         Response(void)
         {
-            //std::cout << "Webserv default constructor" << std::endl;
+            //std::cout << "Webserv defaul t constructor" << std::endl;
         };
         
         //Response(int id);
-        
+        Response(int id);
         Response(const Response &other);
         
         ~Response();
@@ -79,7 +81,8 @@ class Response
         int                                                     currentLength;
         int                                                     lastChunkSize;
         int                                                     resourceType; 
-        bool                                                    isCompleted;
+        bool                                                    isCompleted = false;
+        bool                                                    isChunked = false;
         std::string                                             resourceFullPath = "/www";
         std::string                                             httpVersion; 
         std::string                                             body; 
@@ -89,7 +92,7 @@ class Response
 
         void    generateBody();
         void    serve();
-
+        void    serve(std::pair<std::string, std::string> status);
         void    handleGet();
         void    handlePost();
         void    handleDelete();
