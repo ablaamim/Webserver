@@ -43,7 +43,7 @@
 # define _ERR_PARSE_REQUEST 1
 # define _PARSE_REQUEST_DONE 0
 # define _CHUNCKED_REQUEST 2
-# define _CONTENT_ "Content_mytxt"
+# define _CONTENT_ "Content_body"
 
 /* 
     Response defines;

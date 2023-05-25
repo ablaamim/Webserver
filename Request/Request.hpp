@@ -22,6 +22,7 @@ class Request
 
         int     parse_request(char * str);
         int     get_headers(char * str);
+        int     get_chuncked_msg(char * str);
         void    get_firstline(std::string line);
         void    get_other_lines(std::string line);
         int     check_readed_bytes(void);
