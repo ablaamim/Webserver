@@ -40,6 +40,7 @@ int getFileSize(std::string path)
     std::ifstream f;
     f.open(path.c_str(), std::ios::in | std::ios::binary);
     f.seekg(0, std::ios::end);
+    f.close();
     return f.tellg();
 }
 
@@ -82,41 +83,6 @@ Response::Response(Request req, int id, configurationSA::location location, char
     // std::cout << "fd: " << this->fd << std::endl;
 };
 
-Response::Response(int id) : clientSocket(id)
-{
-    ////std::cout << "Response constructor" << std::endl;
-    //if (!this->_methods.empty())
-    //    this->_methods.clear();
-    //
-    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("GET", &Response::handleGet));
-    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("POST", &Response::handlePost));
-    //this->_methods.insert(std::pair<std::string, void(Response::*)()>("DELETE", &Response::handleDelete));
-//
-    //// print method from request
-//
-    //if (this->_req.params["Method"] == "GET")
-    //    std::cout << "Method is GET" << std::endl;
-    //else if (this->_req.params["Method"] == "POST")
-    //    std::cout << "Method is POST" << std::endl;
-    //else if (this->_req.params["Method"] == "DELETE")
-    //    std::cout << "Method is DELETE" << std::endl;
-    //else
-    //    std::cout << "Method is not GET, POST or DELETE" << std::endl;
-    //
-    //this->_req.print_params();
-
-    this->resourceFullPath = "/Users/afaris/Desktop/Webserver-1/slayer.mp4";
-    this->headers["content-type"] = "video/mp4";
-    this->resouceLength = getFileSize(this->resourceFullPath);
-    this->currentLength = 0;
-    this->lastChunkSize = 0;
-    this->isCompleted = false;
-    this->httpVersion = "HTTP/1.1";
-    this->headers.insert(std::pair<std::string, std::string>("Server", "webserv"));
-    this->status = std::pair<std::string, std::string>("200", "OK");
-    this->fd = open(this->resourceFullPath.c_str(), O_RDONLY);
-    std::cout << "fd: " << this->fd << std::endl;
-};
 
 bool isDirectory(std::string path)
 {
