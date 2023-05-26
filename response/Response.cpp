@@ -114,7 +114,7 @@ void    Response::openFile()
     }
     else
         this->status = std::make_pair("404", "Not Found");
-    std::cout << "Status: " << this->status.first << std::endl;
+    //std::cout << "Status: " << this->status.first << std::endl;
     if (this->status.first != "200")
     {
         throw Response_err("File not found");
@@ -131,7 +131,7 @@ void    Response::checkRequest()
     if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.params["Method"]) == allowedMethods.end())
         this->status = std::make_pair("405", "Method Not Allowed");
     // more checks here
-    std::cout << "Status: " << this->status.first << std::endl;
+    //std::cout << "Status: " << this->status.first << std::endl;
     // if the status changed due to a check, throw an error
     if (this->status.first != "200")
         throw Response_err("Method not allowed");
@@ -166,7 +166,7 @@ void    Response::setResourceInfo()
     
     this->headers["Content-Type"] = mime_types[this->resourceFullPath.substr(this->resourceFullPath.find_last_of('.'))];
     
-    std::cout << "Content-Type: " << this->headers["Content-Type"] << std::endl;
+    //std::cout << "Content-Type: " << this->headers["Content-Type"] << std::endl;
 
     //sleep(10);
 }

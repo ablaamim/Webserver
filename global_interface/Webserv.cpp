@@ -1,4 +1,3 @@
-
 #include "../MainInc/main.hpp"
 
 std::map<int, int>                  clients_list;                // map of (client_socket, server_socket)
@@ -12,7 +11,7 @@ void Webserv::print_request()
     {
         this->request[it->first].print_params();
         it++;
-        }
+    }
 }
 
 
@@ -20,18 +19,15 @@ void print_responsePool(std::map<int, Response> responsePool)
 {
     std::cout << std::endl << std::endl << COLOR_BLUE << "ResponsePool list :" << COLOR_RESET << std::endl;
     for (std::map<int, Response>::iterator iter = responsePool.begin(); iter != responsePool.end(); iter++)
-    {
+
         std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Response client Socket : " << iter->second.clientSocket << " ]" << COLOR_RESET << std::endl;
-    }
 }
 
 void print_client_list(std::map<int, int> clients_list)
 {
     std::cout << std::endl << std::endl << COLOR_BLUE << "Client list : " << COLOR_RESET;
     for (std::map<int, int>::iterator iter = clients_list.begin(); iter != clients_list.end(); iter++)
-    {
         std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Server Socket : " << iter->second << " ]" << COLOR_RESET << std::endl;
-    }
 }
 
 void Webserv::entry_point(struct kevent *curr_event, Request request, configurationSA &config, Servers &server, char **env)
@@ -40,10 +36,8 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
     typedef std::map<std::string, std::vector<std::string> > NoneUniqueKe_t; // map of none unique keys that have more than one value         
     
-    std::cout << COLOR_YELLOW << "Client " << curr_event->ident << " is being created" << COLOR_RESET << std::endl;
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    //std::string url = request.path;
     configurationSA::location   _obj_location = match_location(request.path, _obj_server); 
     
     Response newResponse(request, curr_event->ident, _obj_location, env);
@@ -66,7 +60,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     }
     catch(const std::exception& e)
     {
-        std::cout << COLOR_RED << "Error in entry point" << COLOR_RESET << std::endl;
         newResponse.serveEmpty();
         
         this->request[curr_event->ident].reset_request();
@@ -75,7 +68,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
         
         this->clients[curr_event->ident].clear();
         disconnect_client(curr_event->ident, this->clients, "write");
-        
     }
 }
 
@@ -90,7 +82,6 @@ configurationSA::Server Webserv::Select_server(configurationSA &config, std::str
             continue ;
         else if (iter == Servers_vector.end())
             iter = it;
-        
         if (iter == Servers_vector.end())
         {
             std::cout << "ip" << ip << std::endl
@@ -129,14 +120,12 @@ void Webserv::change_events(uintptr_t ident, int16_t filter, uint16_t flags, uin
 
     EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
     if (kevent(this->kq, &temp_event, 1, NULL, 0, NULL) == -1)
-    {
         throw Webserv::Webserv_err("kevent error change event");
-    }
 }
 
 void Webserv::disconnect_client(int client_fd, std::map<int, std::string>& clients, std::string str)
 {
-    std::cout << str << " : client disconnected: " << client_fd << std::endl;
+    std::cout << COLOR_RED << str << " : client disconnected: " << client_fd << COLOR_RESET << std::endl;
     close(client_fd);
     clients.erase(client_fd);
 }
@@ -156,9 +145,7 @@ void print_env(char **env)
 {
     std::cout << std::endl << std::endl << COLOR_BLUE << "Env list :" << COLOR_RESET;
     for (int i = 0; env[i]; i++)
-    {
         std::cout << COLOR_YELLOW << "[ " << env[i] << " ]" << COLOR_RESET << std::endl;
-    }
 }
 
 void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env)
@@ -171,9 +158,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-        
-        std::cout << " accept new client: " << client_socket << std::endl;
-        
+        //fcntl(client_socket, F_SETFL, O_NONBLOCK);
+        std::cout << COLOR_YELLOW << "accept new client: " << client_socket << COLOR_RESET << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
@@ -199,12 +185,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
-        }
-                    
-
+        }          
     }
-    //print_client_list(clients_list);
-    //print_request_list(request_list);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
@@ -214,11 +196,11 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
         if (this->clients[curr_event->ident] != "")
         {
             std::map<int, Response>::iterator it = responsePool.find(curr_event->ident);
-            std::cout << COLOR_RED << "Client " << it->second.clientSocket << " has been joined the response pool" << COLOR_RESET << std::endl;
+            //std::cout << COLOR_RED << "Client " << it->second.clientSocket << " has been joined the response pool" << COLOR_RESET << std::endl;
             if (it->second.isCompleted)
             {
                 std::string log = "Client " + std::to_string(it->second.clientSocket) + " has read " + std::to_string(it->second.currentSize) + " bytes of " + std::to_string(it->second.currentSize) + " bytes\n";
-                std::cout << COLOR_GREEN << log << COLOR_RESET << std::endl;
+                //std::cout << COLOR_GREEN << log << COLOR_RESET << std::endl;
                 write(this->log_fd, log.c_str(), log.size());
                 delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
                 this->request[curr_event->ident].reset_request();
@@ -253,22 +235,20 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
     {
         if (this->event_list[i].flags & EV_ERROR)
             disconnect_client(this->event_list[i].ident, this->clients, "EV_ERROR");
-        // else if (this->event_list[i].flags & EV_EOF)
-        // {
-        //     delete_event(this->event_list[i].ident, EVFILT_READ, "read eof ");
-        //     clients_list.erase(this->event_list[i].ident);
-        //     responsePool.erase(this->event_list[i].ident);
-        //     //this->clients[this->event_list[i].ident].clear();
-        //     disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
-        // }
         else if (this->event_list[i].filter == EVFILT_READ)
         {
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);        
         }
         else if (this->event_list[i].filter == EVFILT_WRITE)
             webserv_evfilt_write(&this->event_list[i], config, server, env);
-        //else
-            //std::cout << COLOR_RED << "EVENT ERROR" << i << " " << this->event_list[i].filter << COLOR_RESET << std::endl;
+        else if (this->event_list[i].flags & EV_EOF)
+        {
+            clients_list.erase(this->event_list[i].ident);
+            responsePool.erase(this->event_list[i].ident);
+            delete_event(this->event_list[i].ident, EVFILT_READ, "write eof ");
+            this->clients[this->event_list[i].ident].clear();
+            disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
+        }
     }
 }
 
@@ -297,10 +277,12 @@ Webserv::Webserv(configurationSA &config, char **env)
     this->run(Servers::fd_vector, config, server, env);
 }
 
+Webserv::Webserv()
+{
+    return ;
+}
+
 Webserv::~Webserv()
 {   
     delete [] this->event_list;
 }
-
-Webserv::Webserv()
-{}
