@@ -160,7 +160,7 @@ void    Response::setResourceInfo()
     //std::cout << "MAP PATH = " << _req.params["Path"] << std::endl;
     //std::cout << "STR PAtH = " <<_req.path << std::endl;
 
-    this->resourceFullPath = _req.path;
+    this->resourceFullPath = this->kwargs["root"][0].append(_req.path);
     
     //std::cout << "Resource path: " << this->resourceFullPath << std::endl;
     
