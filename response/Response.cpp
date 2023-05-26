@@ -149,10 +149,9 @@ Response::Response(Request req, int id, configurationSA::location location, char
     //std::cout << "resourceFullPath: " << this->resourceFullPath << std::endl;
     
     // IF URL HAS A '/' AT THE END SO WE REMOVE IT /// HARDCODE SADLY
-    this->resourceFullPath = this->resourceFullPath.substr(1);
+    this->resourceFullPath = "/Users/afaris/Desktop/Webserver-1/slayer.mp4";
     
-    this->headers["content-type"] = "video/mp4";
-    
+    this->headers["Content-Type"] = "video/mp4";
     this->resouceLength = getFileSize(this->resourceFullPath);
     std::cout << COLOR_RED <<"resource length: " << this->resouceLength << std::endl;
     
@@ -161,13 +160,12 @@ Response::Response(Request req, int id, configurationSA::location location, char
 
     //this->_req.print_params();
 
-
+    this->currentLength = 0;
     this->lastChunkSize = 0;
     this->isCompleted = false;
     this->body = _req.params[_CONTENT_];
-
+    this->isChunked = false;
     this->_req.print_params();
-
     // this->headers.insert(std::pair<std::string, std::string>("Server", "webserv"));
     // this->status = std::pair<std::string, std::string>("200", "OK");
     // this->fd = open(this->resourceFullPath.c_str(), O_RDONLY);
@@ -208,25 +206,21 @@ void    Response::init()
 
 Response::~Response()
 {
-     //std::cout << "Response destructor" << std::endl;
+
 }
 
-void    Response::generateBody()
+char    *Response::generateBody()
 {
-    char buf[CHUNCK_SIZE + 1] = {0};
-    std::ifstream f;
-    f.open(this->resourceFullPath.c_str(), std::ios::in | std::ios::binary);
-    f.seekg(this->currentLength, std::ios::beg);
-    f.read(buf, CHUNCK_SIZE);
-    this->lastChunkSize = f.gcount();
-    this->currentLength += this->lastChunkSize;
-    this->body = std::string(buf);
-    std::cout << "body: " << this->body << std::endl;
+    char *buf = new char[CHUNCK_SIZE];
+    
+    return buf;
 }
 
 void    Response::serve()
 {
     std::string responseMessage;
+    std::ifstream f;
+    char buf[CHUNCK_SIZE];
     if (!isChunked)
     {
         responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
@@ -238,16 +232,17 @@ void    Response::serve()
         }
         if (this->resouceLength >= CHUNCK_SIZE)
             this->isChunked = true;
-    }
-    generateBody();
-    responseMessage += "\r\n";
-    responseMessage.append(this->body);
-    if (this->currentLength >= this->resouceLength)
-    {
-        this->isCompleted = true;
         responseMessage += "\r\n";
+        send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
     }
-    send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
+    f.open(this->resourceFullPath.c_str(), std::ios::in | std::ios::binary);
+    f.seekg(this->currentLength, std::ios::beg);
+    f.read(buf, CHUNCK_SIZE);
+    this->lastChunkSize = f.gcount();
+    this->currentLength += this->lastChunkSize;
+    send(this->clientSocket, buf, this->lastChunkSize, 0);
+    if (this->currentLength >= this->resouceLength)
+        this->isCompleted = true;
 }
 
 Response::Response(const Response &other)
@@ -270,5 +265,4 @@ Response::Response(const Response &other)
     this->_location = other._location;
     this->_client_ip = other._client_ip;
     this->_env = other._env;
-
 }

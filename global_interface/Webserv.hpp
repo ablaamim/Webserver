@@ -10,6 +10,7 @@ class Webserv
     public :
 
         int                         kq;
+        int                         log_fd;
         struct kevent*              event_list;
         std::map<int, std::string>  clients;
         std::map<int, Request>      request;

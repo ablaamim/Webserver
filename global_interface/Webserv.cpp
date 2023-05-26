@@ -241,65 +241,67 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
             // debug
             if (it->second.isCompleted)
             {
-                std::cout << COLOR_GREEN << "Client " << it->second.clientSocket << " has been served" << COLOR_RESET << std::endl;
+                std::string log = "Client " + std::to_string(it->second.clientSocket) + " has read " + std::to_string(it->second.currentLength) + " bytes of " + std::to_string(it->second.resouceLength) + " bytes\n";
+                std::cout << COLOR_GREEN << log << COLOR_RESET << std::endl;
+                // log the response served
+                write(this->log_fd, log.c_str(), log.size());
                 delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
                 this->request[curr_event->ident].reset_request();
                 responsePool.erase(it);
                 disconnect_client(curr_event->ident, this->clients, "write");
                 clients_list.erase(curr_event->ident);
                 this->clients[curr_event->ident].clear();
-
-
             }
             else
             {
-                // SAT MELI TESTER FEL BROWSER DIR RESSOURCEPATH FLAKHER DYAL URL EXAMPLE : localhost:8080/slayer.mp4
-                
-
-                // MAZAL MAYDAR GHDA UNKMLU
-                
-                //char buf[1024] = {0};
-                std::cout << "SERVING" << std::endl;
-                it->second.isCompleted = true;
-                std::stringstream ss(this->clients[curr_event->ident]);
-                std::string request_type, request_path, http_version;
-                ss >> request_type >> request_path >> http_version;
-
-                // Open video file
-                std::ifstream video_file(responsePool[curr_event->ident].resourceFullPath, std::ios::binary);
-
-                // Construct HTTP response headers
-                std::stringstream response;
-                response << responsePool[curr_event->ident].httpVersion << " 200 OK\r\n";
-                response << "Content-Type: video/mp4\r\n";
-                response << "Transfer-Encoding: chunked\r\n";
-                response << "\r\n";
-
-                // Send HTTP response headers to client
-                send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
-
-                // Send video data to client in chunks
-                char chunk_buffer[4096];
-                while (!video_file.eof())
-                {
-                    video_file.read(chunk_buffer, sizeof(chunk_buffer));
-                    int chunk_size = video_file.gcount();
-
-                    // Send chunk size as hexadecimal string
-                    std::stringstream chunk_size_ss;
-                    chunk_size_ss << std::hex << chunk_size << "\r\n";
-                    std::string chunk_size_str = chunk_size_ss.str();
-                    send(curr_event->ident, chunk_size_str.c_str(), chunk_size_str.size(), 0);
-
-                    // Send chunk data
-                    send(curr_event->ident, chunk_buffer, chunk_size, 0);
-
-                    // Send chunk terminator
-                    send(curr_event->ident, "\r\n", 2, 0);
-                }
-
-                // // Send final chunk terminator
-                send(curr_event->ident, "0\r\n\r\n", 5, 0);
+                it->second.serve();
+                //// SAT MELI TESTER FEL BROWSER DIR RESSOURCEPATH FLAKHER DYAL URL EXAMPLE : localhost:8080/slayer.mp4
+                //
+//
+                //// MAZAL MAYDAR GHDA UNKMLU
+                //
+                ////char buf[1024] = {0};
+                //std::cout << "SERVING" << std::endl;
+                //it->second.isCompleted = true;
+                //std::stringstream ss(this->clients[curr_event->ident]);
+                //std::string request_type, request_path, http_version;
+                //ss >> request_type >> request_path >> http_version;
+//
+                //// Open video file
+                //std::ifstream video_file(responsePool[curr_event->ident].resourceFullPath, std::ios::binary);
+//
+                //// Construct HTTP response headers
+                //std::stringstream response;
+                //response << responsePool[curr_event->ident].httpVersion << " 200 OK\r\n";
+                //response << "Content-Type: video/mp4\r\n";
+                //response << "Transfer-Encoding: chunked\r\n";
+                //response << "\r\n";
+//
+                //// Send HTTP response headers to client
+                //send(curr_event->ident, response.str().c_str(), response.str().size(), 0);
+//
+                //// Send video data to client in chunks
+                //char chunk_buffer[4096];
+                //while (!video_file.eof())
+                //{
+                //    video_file.read(chunk_buffer, sizeof(chunk_buffer));
+                //    int chunk_size = video_file.gcount();
+//
+                //    // Send chunk size as hexadecimal string
+                //    std::stringstream chunk_size_ss;
+                //    chunk_size_ss << std::hex << chunk_size << "\r\n";
+                //    std::string chunk_size_str = chunk_size_ss.str();
+                //    send(curr_event->ident, chunk_size_str.c_str(), chunk_size_str.size(), 0);
+//
+                //    // Send chunk data
+                //    send(curr_event->ident, chunk_buffer, chunk_size, 0);
+//
+                //    // Send chunk terminator
+                //    send(curr_event->ident, "\r\n", 2, 0);
+                //}
+//
+                //// // Send final chunk terminator
+                //send(curr_event->ident, "0\r\n\r\n", 5, 0);
             }
         }
     }
@@ -311,14 +313,14 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
     {
         if (this->event_list[i].flags & EV_ERROR)
             disconnect_client(this->event_list[i].ident, this->clients, "EV_ERROR");
-        // else if (this->event_list[i].flags & EV_EOF)
-        // {
-        //     delete_event(this->event_list[i].ident, EVFILT_READ, "read eof ");
-        //     clients_list.erase(this->event_list[i].ident);
-        //     responsePool.erase(this->event_list[i].ident);
-        //     //this->clients[this->event_list[i].ident].clear();
-        //     disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
-        // }
+        else if (this->event_list[i].flags & EV_EOF)
+        {
+            delete_event(this->event_list[i].ident, EVFILT_READ, "read eof ");
+            clients_list.erase(this->event_list[i].ident);
+            responsePool.erase(this->event_list[i].ident);
+            //this->clients[this->event_list[i].ident].clear();
+            disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
+        }
         else if (this->event_list[i].filter == EVFILT_READ)
         {
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);        
@@ -350,6 +352,7 @@ Webserv::Webserv(configurationSA &config, char **env)
 {
     Servers         server(config);
     this->kq = server.kq;
+    this->log_fd = open("log.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     this->event_list = new struct kevent [Servers::fd_vector.size()];
     this->run(Servers::fd_vector, config, server, env);
 }
