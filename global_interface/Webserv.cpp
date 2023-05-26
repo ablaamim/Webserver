@@ -241,7 +241,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
             // debug
             if (it->second.isCompleted)
             {
-                std::string log = "Client " + std::to_string(it->second.clientSocket) + " has read " + std::to_string(it->second.currentLength) + " bytes of " + std::to_string(it->second.resouceLength) + " bytes\n";
+                std::string log = "Client " + std::to_string(it->second.clientSocket) + " has read " + std::to_string(it->second.currentSize) + " bytes of " + std::to_string(it->second.currentSize) + " bytes\n";
                 std::cout << COLOR_GREEN << log << COLOR_RESET << std::endl;
                 // log the response served
                 write(this->log_fd, log.c_str(), log.size());
@@ -254,7 +254,15 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
             }
             else
             {
-                it->second.serve();
+                try
+                {
+                    it->second.serve();
+                }
+                catch(const std::exception& e)
+                {
+                    it->second.serveEmpty();
+                }
+                
                 //// SAT MELI TESTER FEL BROWSER DIR RESSOURCEPATH FLAKHER DYAL URL EXAMPLE : localhost:8080/slayer.mp4
                 //
 //

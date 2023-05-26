@@ -20,3 +20,4 @@ void    statusListInitialization(std::map<int, std::string> statusList)
     statusList[503] = "Service Unavailable";
     statusList[504] = "Gateway Timeout";
 }
+
