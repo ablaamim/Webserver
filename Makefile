@@ -19,7 +19,7 @@ OBJ = $(SRC:.cpp=.o)
 
 CC = clang++
 
-FLAGS = -std=c++11 -g3 -fsanitize=address #-Wall -Wextra -Werror
+FLAGS = -std=c++11 #-g3 -fsanitize=address #-Wall -Wextra -Werror
 
 all: $(NAME)
 
