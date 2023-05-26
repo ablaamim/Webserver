@@ -12,7 +12,7 @@
 # define NOT_FOUND 4
 # define FORBIDDEN 5
 
-# define CHUNCK_SIZE 9000096
+# define CHUNCK_SIZE 1024
 
 class Response
 {
@@ -95,7 +95,6 @@ class Response
                 it++;
             }
         }
-
         int                                                     fd; // this is the file descriptor that will be used to read / track the file                                                  
         int                                                     clientSocket;
         size_t                                                  resouceLength; 
@@ -118,7 +117,7 @@ class Response
         int     getResourceType(std::string path, std::map<std::string, std::vector<std::string> > kwargs);
 
 
-        void    generateBody();
+        char    *generateBody();
         void    serve();
         void    serve(std::pair<std::string, std::string> status);
         void    handleGet();
