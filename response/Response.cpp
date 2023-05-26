@@ -105,19 +105,19 @@ void    Response::openFile()
         if everything goes well, we will set the size of the file to the instance.
     */
     std::ifstream file(this->resourceFullPath.c_str(), std::ios::binary);
-    if (!file.good())
-        this->status = std::make_pair(404, "Not Found");
-    else
+    
+    if (file.good())
     {
         file.seekg(0, std::ios::end);
         std::streampos length = file.tellg();
         this->resourceSize = static_cast<size_t>(length);
     }
+    else
+        this->status = std::make_pair("404", "Not Found");
     std::cout << "Status: " << this->status.first << std::endl;
     if (this->status.first != "200")
     {
-        this->serveEmpty();
-        throw std::runtime_error("Failed to open file");
+        throw Response_err("File not found");
     }
 }
 
@@ -134,7 +134,7 @@ void    Response::checkRequest()
     std::cout << "Status: " << this->status.first << std::endl;
     // if the status changed due to a check, throw an error
     if (this->status.first != "200")
-        throw std::runtime_error("Request is invalid: ");
+        throw Response_err("Method not allowed");
 }
 
 void    Response::serveEmpty()
@@ -153,7 +153,6 @@ void    Response::setResourceInfo()
         Here, we will set the resource type and the resource path.
         if the resource is a file, we will set the resource size.
     */
-
     /* hardcoded for now, we will make it dynamic later */
     
     this->resourceType = FILE;
@@ -161,21 +160,31 @@ void    Response::setResourceInfo()
     //std::cout << "MAP PATH = " << _req.params["Path"] << std::endl;
     //std::cout << "STR PAtH = " <<_req.path << std::endl;
 
-
     this->resourceFullPath = _req.path;
     
     //std::cout << "Resource path: " << this->resourceFullPath << std::endl;
     
     this->headers["Content-Type"] = mime_types[this->resourceFullPath.substr(this->resourceFullPath.find_last_of('.'))];
     
-    //std::cout << "Content-Type: " << this->headers["Content-Type"] << std::endl;
+    std::cout << "Content-Type: " << this->headers["Content-Type"] << std::endl;
+
+    //sleep(10);
 }
 
 void    Response::checkResource()
 {
     /* try to check the file and set data about it (e.g. ifstream instance, size ... ) */
-    if (resourceType == FILE)
-        this->openFile();
+    try
+    {
+        if (resourceType == FILE)
+            this->openFile();
+    }
+    catch(const std::exception& e)
+    {
+        // this will be caught in Webserver.cpp, and serveEmpty() will be called. instead of serve()
+        throw Response_err(e.what());
+    }
+    
     /* try to check the directory */
     // do it here ...
     // else checks in the future
@@ -193,6 +202,17 @@ void    Response::init()
     this->isCompleted = false;
     this->isChunked = false;
 
+    try
+    {
+        this->setResourceInfo();
+        this->checkResource();
+    }
+    catch(const std::exception& e)
+    {
+        // this will be caught in Webserver.cpp, and serveEmpty() will be called. instead of serve()
+        throw Response_err(e.what());
+    }
+
     /* kwargs needs to be inserted here */
     
     
@@ -209,39 +229,6 @@ Response::Response(Request req, int id, configurationSA::location location, char
         that has the actual status code only (no body),
         we will see how to render the body later (error pages)
     */
-    try
-    {
-        //_req.print_body();
-        //sleep(10);
-
-        /* init */
-
-        this->init();
-
-        /* 
-            Check the validity of the request, set the status code accordingly. and throw an error to catch it here.
-            For more, use the flowchart below, (from Parse Request ----> Valid Request):
-            https://user-images.githubusercontent.com/82651196/239340970-a9a00ca5-e88b-4ffb-9d60-76118c8df3d4.png
-        */
-        
-        /* in order to uncomment this, we need to set kwargs in init() */
-        
-        // this->checkRequest();
-
-        /* get and set proprieties about the resource (e.g. type, size, Content-Type) */
-        this->setResourceInfo();
-        
-        /* check if the resource is valid / accessible */
-        this->checkResource();
-
-        //this->method = _req.params["Method"];
-
-    }
-    catch(const std::exception& e)
-    {
-        // this will be caught in Webserver.cpp, and serveEmpty() will be called. instead of serve()
-        throw std::runtime_error("Failed to initialize response instance: " + std::string(e.what()));
-    }
 };
 
 
