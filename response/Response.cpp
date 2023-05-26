@@ -6,85 +6,93 @@
 #include <sstream>
 #include <iomanip>
 
-void   Response::initialize_mime_types()
+std::map<std::string, std::string>  mime_types;                // map of (extension, mime_type)
+
+void print_mime_types()
 {
-    std::cout << COLOR_YELLOW << "initialize mime types" << COLOR_RESET <<std::endl;
-    
-    if (!mime_types.empty())
-        return ;
-    
-    std::pair<std::string, std::string> _mime_types[] =
+    if (mime_types.empty())
+        std::cout << "mime_types is empty" << std::endl;
+    else
     {
-        std::make_pair(".mp4", "video/mp4"),
-        std::make_pair(".aac", "audio/aac"),
-		std::make_pair(".abw", "application/x-abiword"),
-		std::make_pair(".arc", "application/octet-stream"),
-		std::make_pair(".avo", "video/x-msvideo"),
-		std::make_pair(".bin", "application/octet-stream"),
-		std::make_pair(".bmp", "image/bmp"),
-		std::make_pair(".bz", "application/x-bzip"),
-		std::make_pair(".bz2", "application/x-bzip2"),
-		std::make_pair(".csh", "application/x-csh"),
-		std::make_pair(".css", "text/css"),
-		std::make_pair(".csv", "text/csv"),
-		std::make_pair(".doc", "application/msword"),
-		std::make_pair(".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
-		std::make_pair(".eot", "application/vnd.ms-fontobject"),
-		std::make_pair(".epub", "application/epub+zip"),
-		std::make_pair(".gif", "image/gif"),
-		std::make_pair(".htm", "text/html"),
-		std::make_pair(".html", "text/html"),
-		std::make_pair(".ico", "image/x-icon"),
-		std::make_pair(".ics", "text/calendar"),
-		std::make_pair(".jar", "application/java-archive"),
-		std::make_pair(".jpeg", "image/jpeg"),
-		std::make_pair(".jpg", "image/jpeg"),
-		std::make_pair(".js", "application/javascript"),
-		std::make_pair(".json", "application/json"),
-		std::make_pair(".mid", "audio/midi"),
-		std::make_pair(".midi", "audio/midi"),
-		std::make_pair(".mpeg", "video/mpeg"),
-		std::make_pair(".mpkg", "application/vnd.apple.installer+xml"),
-		std::make_pair(".odp", "application/vnd.oasis.opendocument.presentationa"),
-		std::make_pair(".ods", "application/vnd.oasis.opendocument.spreadsheet"),
-		std::make_pair(".odt", "application/vnd.oasis.opendocument.text"),
-		std::make_pair(".oga", "audio/ogg"),
-		std::make_pair(".ogv", "video/ogg"),
-		std::make_pair(".ogx", "application/ogg"),
-		std::make_pair(".otf", "font/otf"),
-		std::make_pair(".png", "image/png"),
-		std::make_pair(".pdf", "application/pdf"),
-		std::make_pair(".ppt", "application/vnd.ms-powerpoint"),
-		std::make_pair(".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
-		std::make_pair(".rar", "application/x-rar-compressed"),
-		std::make_pair(".rtf", "application/rtf"),
-		std::make_pair(".sh", "application/x-sh"),
-		std::make_pair(".svg", "image/svg+xml"),
-		std::make_pair(".swf", "application/x-shockwave-flash"),
-		std::make_pair(".tar", "application/x-tar"),
-		std::make_pair(".tif", "image/tiff"),
-		std::make_pair(".tiff", "image/tiff"),
-		std::make_pair(".ts", "application/typescript"),
-		std::make_pair(".ttf", "font/ttf"),
-		std::make_pair(".vsd", "application/vnd.visio"),
-		std::make_pair(".wav", "audio/x-wav"),
-		std::make_pair(".weba", "audio/webm"),
-		std::make_pair(".webm", "video/webm"),
-		std::make_pair(".webp", "image/webp"),
-		std::make_pair(".woff", "font/woff"),
-		std::make_pair(".woff2", "font/woff2"),
-		std::make_pair(".xhtml", "application/xhtml+xml"),
-		std::make_pair(".xls", "application/vnd.ms-excel"),
-		std::make_pair(".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-		std::make_pair(".xml", "application/xml"),
-		std::make_pair(".xul", "application/vnd.mozilla.xul+xml"),
-		std::make_pair(".zip", "application/zip"),
-		std::make_pair(".3gp", "video/3gpp"),
-		std::make_pair(".3g2", "video/3gpp2"),
-		std::make_pair(".7z", "application/x-7z-compressed")
-    };
-    mime_types.insert(_mime_types, _mime_types + sizeof(_mime_types) / sizeof(_mime_types[0]));
+        std::map<std::string, std::string>::iterator it = mime_types.begin();
+        while (it != mime_types.end())
+        {
+            std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
+            it++;
+        }
+    }
 }
+
+std::pair<std::string, std::string> _mime_types[] =
+{
+    std::make_pair(".mp4", "video/mp4"),
+    std::make_pair(".aac", "audio/aac"),
+	std::make_pair(".abw", "application/x-abiword"),
+	std::make_pair(".arc", "application/octet-stream"),
+	std::make_pair(".avo", "video/x-msvideo"),
+	std::make_pair(".bin", "application/octet-stream"),
+	std::make_pair(".bmp", "image/bmp"),
+	std::make_pair(".bz", "application/x-bzip"),
+	std::make_pair(".bz2", "application/x-bzip2"),
+	std::make_pair(".csh", "application/x-csh"),
+	std::make_pair(".css", "text/css"),
+	std::make_pair(".csv", "text/csv"),
+	std::make_pair(".doc", "application/msword"),
+	std::make_pair(".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+	std::make_pair(".eot", "application/vnd.ms-fontobject"),
+	std::make_pair(".epub", "application/epub+zip"),
+	std::make_pair(".gif", "image/gif"),
+	std::make_pair(".htm", "text/html"),
+	std::make_pair(".html", "text/html"),
+	std::make_pair(".ico", "image/x-icon"),
+	std::make_pair(".ics", "text/calendar"),
+	std::make_pair(".jar", "application/java-archive"),
+	std::make_pair(".jpeg", "image/jpeg"),
+	std::make_pair(".jpg", "image/jpeg"),
+	std::make_pair(".js", "application/javascript"),
+	std::make_pair(".json", "application/json"),
+	std::make_pair(".mid", "audio/midi"),
+	std::make_pair(".midi", "audio/midi"),
+	std::make_pair(".mpeg", "video/mpeg"),
+	std::make_pair(".mpkg", "application/vnd.apple.installer+xml"),
+	std::make_pair(".odp", "application/vnd.oasis.opendocument.presentationa"),
+	std::make_pair(".ods", "application/vnd.oasis.opendocument.spreadsheet"),
+	std::make_pair(".odt", "application/vnd.oasis.opendocument.text"),
+	std::make_pair(".oga", "audio/ogg"),
+	std::make_pair(".ogv", "video/ogg"),
+	std::make_pair(".ogx", "application/ogg"),
+	std::make_pair(".otf", "font/otf"),
+	std::make_pair(".png", "image/png"),
+	std::make_pair(".pdf", "application/pdf"),
+	std::make_pair(".ppt", "application/vnd.ms-powerpoint"),
+	std::make_pair(".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+	std::make_pair(".rar", "application/x-rar-compressed"),
+	std::make_pair(".rtf", "application/rtf"),
+	std::make_pair(".sh", "application/x-sh"),
+	std::make_pair(".svg", "image/svg+xml"),
+	std::make_pair(".swf", "application/x-shockwave-flash"),
+	std::make_pair(".tar", "application/x-tar"),
+	std::make_pair(".tif", "image/tiff"),
+	std::make_pair(".tiff", "image/tiff"),
+	std::make_pair(".ts", "application/typescript"),
+	std::make_pair(".ttf", "font/ttf"),
+	std::make_pair(".vsd", "application/vnd.visio"),
+	std::make_pair(".wav", "audio/x-wav"),
+	std::make_pair(".weba", "audio/webm"),
+	std::make_pair(".webm", "video/webm"),
+	std::make_pair(".webp", "image/webp"),
+	std::make_pair(".woff", "font/woff"),
+	std::make_pair(".woff2", "font/woff2"),
+	std::make_pair(".xhtml", "application/xhtml+xml"),
+	std::make_pair(".xls", "application/vnd.ms-excel"),
+	std::make_pair(".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+	std::make_pair(".xml", "application/xml"),
+	std::make_pair(".xul", "application/vnd.mozilla.xul+xml"),
+	std::make_pair(".zip", "application/zip"),
+	std::make_pair(".3gp", "video/3gpp"),
+	std::make_pair(".3g2", "video/3gpp2"),
+	std::make_pair(".7z", "application/x-7z-compressed")
+};
 
 void    Response::openFile()
 {
@@ -107,7 +115,10 @@ void    Response::openFile()
     }
     std::cout << "Status: " << this->status.first << std::endl;
     if (this->status.first != "200")
+    {
+        this->serveEmpty();
         throw std::runtime_error("Failed to open file");
+    }
 }
 
 void    Response::checkRequest()
@@ -172,6 +183,7 @@ void    Response::checkResource()
 
 void    Response::init()
 {
+    mime_types.insert(_mime_types, _mime_types + sizeof(_mime_types) / sizeof(_mime_types[0]));
     this->httpVersion = this->_req.version;
     this->status = std::make_pair("200", "OK");
     this->headers["Server"] = "Webserver/1.0";
@@ -185,7 +197,7 @@ void    Response::init()
     
     
     /* we will need to make this static, for later */
-    initialize_mime_types();
+    //initialize_mime_types();
 }
 
 Response::Response(Request req, int id, configurationSA::location location, char **env) : _req(req), clientSocket(id) ,_location(location), _env(env)

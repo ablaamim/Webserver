@@ -4,6 +4,8 @@
 #include "../MainInc/main.hpp"
 #include <dirent.h>
 #include "../Request/Request.hpp"
+#include "../global_interface/Webserv.hpp"
+
 # define NONE -1
 # define FILE 0
 # define DIRECTORY 1
@@ -36,7 +38,7 @@ class Response
         configurationSA::location                               _location;    // this is the location object that will be used to create the response
         char                                                    **_env;
 
-        std::map<std::string, std::string>                      mime_types;
+        //static std::map<std::string, std::string>               mime_types;
         std::ifstream                                           fs; // this is the file descriptor that will be used to read / track the file                                                  
         int                                                     clientSocket;
         size_t                                                  resourceSize; 
@@ -57,22 +59,7 @@ class Response
 
 
 
-        void initialize_mime_types();
-
-        void print_mime_types()
-        {
-            if (this->mime_types.empty())
-                std::cout << "mime_types is empty" << std::endl;
-            else
-            {
-                std::map<std::string, std::string>::iterator it = this->mime_types.begin();
-                while (it != this->mime_types.end())
-                {
-                    std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
-                    it++;
-                }
-            }
-        }
+        //void initialize_mime_types();
 
         
         void print_request()
