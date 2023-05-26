@@ -15,27 +15,22 @@ class Webserv
         std::map<int, std::string>  clients;
         std::map<int, Request>      request;
 
-        void print_request()
-        {
-            std::map<int, Request>::iterator it = this->request.begin();
-            while (it != this->request.end())
-            {
-                this->request[it->first].print_params();
-                it++;
-            }
-        }
         Webserv();
         Webserv(configurationSA &config, char **env);
         ~Webserv();
 
-        void    webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & fds_s, configurationSA &config, Servers &servers, char **env);
-        void    webserv_evfilt_write(struct kevent *curr_eventg, configurationSA &config, Servers &servers, char **env);
-        void    change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
-        void    disconnect_client(int client_fd, std::map<int, std::string>& clients, std::string str);
-        void    run(std::vector<int> & fds_socket, configurationSA &config, Servers &servers, char **env);
-        void    delete_event(int fd, int16_t filter, std::string str);
-        void    event_check(int new_events, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env);
 
+        void                        print_request();
+        void                        webserv_evfilt_read(struct kevent *curr_event, std::vector<int> & fds_s, configurationSA &config, Servers &servers, char **env);
+        void                        webserv_evfilt_write(struct kevent *curr_eventg, configurationSA &config, Servers &servers, char **env);
+        void                        change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
+        void                        disconnect_client(int client_fd, std::map<int, std::string>& clients, std::string str);
+        void                        run(std::vector<int> & fds_socket, configurationSA &config, Servers &servers, char **env);
+        void                        delete_event(int fd, int16_t filter, std::string str);
+        void                        event_check(int new_events, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env);
+        void                        entry_point(struct kevent *curr_event, Request request, configurationSA &config, Servers &server, char **env);
+        configurationSA::Server     Select_server(configurationSA &config, std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname);
+        configurationSA::location   match_location(std::string trgt, configurationSA::Server server);
 
         class Webserv_err : public std::exception
         {
