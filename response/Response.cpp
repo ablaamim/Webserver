@@ -86,90 +86,135 @@ void   Response::initialize_mime_types()
     mime_types.insert(_mime_types, _mime_types + sizeof(_mime_types) / sizeof(_mime_types[0]));
 }
 
-// void    Response::checkRequest()
-// {
-//     std::vector<std::string> allowedMethods = this->kwargs["allowed_methods"];
-//     if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.params["Method"]) == allowedMethods.end())
-//         this->serve(std::pair<std::string, std::string>("405", "Method Not Allowed"));
-//     // if request method == POST
-//     if (this->_req.params["Method"] == "POST")
-//     {
+void    Response::openFile()
+{
+    /*
+        Here, we will try to open the given file.
+        If we fail to open given file, we will throw an exception.
+        and set the status code of the instance accordingly.
+        for example, if we fail to open the file, we will set the status code to 404.
+        then, catch it outside of this function and send the response.
+        if everything goes well, we will set the size of the file to the instance.
+    */
+    std::ifstream file(this->resourceFullPath.c_str(), std::ios::binary);
+    if (!file.good())
+        this->status = std::make_pair(404, "Not Found");
+    else
+    {
+        file.seekg(0, std::ios::end);
+        std::streampos length = file.tellg();
+        this->resourceSize = static_cast<size_t>(length);
+    }
+    std::cout << "Status: " << this->status.first << std::endl;
+    if (this->status.first != "200")
+        throw std::runtime_error("Failed to open file");
+}
 
-//     }
-// }
+void    Response::checkRequest()
+{
+    std::vector<std::string> allowedMethods = this->kwargs["allowed_methods"];
+    std::cout << "Method: " << this->_req.params["Method"] << std::endl;
+    // print allowed methods
+    for (std::vector<std::string>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
+        std::cout << *it << std::endl;
+    if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.params["Method"]) == allowedMethods.end())
+        this->status = std::make_pair("405", "Method Not Allowed");
+    // more checks here
+    std::cout << "Status: " << this->status.first << std::endl;
+    // if the status changed due to a check, throw an error
+    if (this->status.first != "200")
+        throw std::runtime_error("Request is invalid: ");
+}
 
-void    Response::serve(std::pair<std::string, std::string> status)
+void    Response::serveEmpty()
 {
     std::string responseMessage;
-    responseMessage += this->httpVersion + " " + status.first + " " + status.second + "\r\n";
+    responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
     for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
         responseMessage += it->first + ": " + it->second + "\r\n";
     responseMessage += "\r\n";
     send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
 }
 
-std::string intToHexString(int number)
+void    Response::setResourceInfo()
 {
-    std::stringstream stream;
-    stream << std::hex << number;
-    return stream.str();
+    /*
+        Here, we will set the resource type and the resource path.
+        if the resource is a file, we will set the resource size.
+    */
+
+    /* hardcoded for now, we will make it dynamic later */
+    this->resourceType = FILE;
+    this->resourceFullPath = "/Users/afaris/Desktop/Webserver-1/picture.jpeg";
+    this->headers["Content-Type"] = "image/jpeg";
 }
 
-size_t getFileSize(const std::string& filePath)
+void    Response::checkResource()
 {
-    std::ifstream file(filePath.c_str(), std::ios::binary);
-    // if (!file)
-    // {
-    //     // Handle file open error
-    //     throw std::runtime_error("Failed to open the file");
-    // }
+    /* try to check the file and set data about it (e.g. ifstream instance, size ... ) */
+    if (resourceType == FILE)
+        this->openFile();
+    /* try to check the directory */
+    // do it here ...
+    // else checks in the future
+}
+
+void    Response::init()
+{
+    this->httpVersion = "HTTP/1.1";
+    this->status = std::make_pair("200", "OK");
+    this->headers["Server"] = "Webserver/1.0";
+    this->currentSize = 0;
+    this->resourceSize = 0;
+    this->lastChunkSize = 0;
+    this->isCompleted = false;
+    this->isChunked = false;
+
+    /* kwargs needs to be inserted here */
     
-    file.seekg(0, std::ios::end);
-    std::streampos length = file.tellg();
-    file.close();
     
-    return static_cast<size_t>(length);
+    /* we will need to make this static, for later */
+    initialize_mime_types();
 }
 
 Response::Response(Request req, int id, configurationSA::location location, char **env) : _req(req), clientSocket(id) ,_location(location), _env(env)
 {
-    initialize_mime_types();
+    /*
+        Here, we will initialize the response instance.
+        if any error occurs, we will throw an exception
+        and catch it in (Webserver.cpp) and send serveEmpty() which will serve a response
+        that has the actual status code only (no body),
+        we will see how to render the body later (error pages)
+    */
+    try
+    {
+        /* init */
 
-    //this->print_mime_types();
-    
+        this->init();
 
-    //std::cout << _req.params["Method"] << std::endl;
-    //std::cout << _req.params["Protocol Version"] << std::endl;
+        /* 
+            Check the validity of the request, set the status code accordingly. and throw an error to catch it here.
+            For more, use the flowchart below, (from Parse Request ----> Valid Request):
+            https://user-images.githubusercontent.com/82651196/239340970-a9a00ca5-e88b-4ffb-9d60-76118c8df3d4.png
+        */
+        
+        /* in order to uncomment this, we need to set kwargs in init() */
+        
+        // this->checkRequest();
 
-    if (_req.params["Url"].empty())
-        _req.params["Url"] = "/slayer.mp4";
-    else   
-        this->resourceFullPath = _req.params["Url"];
-    
-    //std::cout << "resourceFullPath: " << this->resourceFullPath << std::endl;
-    
-    // IF URL HAS A '/' AT THE END SO WE REMOVE IT /// HARDCODE SADLY
-    this->resourceFullPath = "/Users/afaris/Desktop/Webserver-1/slayer.mp4";
-    
-    this->headers["Content-Type"] = "video/mp4";
-    this->resouceLength = getFileSize(this->resourceFullPath);
-    std::cout << COLOR_RED <<"resource length: " << this->resouceLength << std::endl;
-    
-    this->httpVersion = _req.params["Protocol Version"];
-    this->method = _req.params["Method"];
+        /* get and set proprieties about the resource (e.g. type, size, Content-Type) */
+        this->setResourceInfo();
+        
+        /* check if the resource is valid / accessible */
+        this->checkResource();
 
-    //this->_req.print_params();
-
-    this->currentLength = 0;
-    this->lastChunkSize = 0;
-    this->isCompleted = false;
-    this->body = _req.params[_CONTENT_];
-    this->isChunked = false;
-    this->_req.print_params();
-    // this->headers.insert(std::pair<std::string, std::string>("Server", "webserv"));
-    // this->status = std::pair<std::string, std::string>("200", "OK");
-    // this->fd = open(this->resourceFullPath.c_str(), O_RDONLY);
-    // std::cout << "fd: " << this->fd << std::endl;
+        this->method = _req.params["Method"];
+    }
+    catch(const std::exception& e)
+    {
+        // this will be caught in Webserver.cpp, and serveEmpty() will be called. instead of serve()
+        throw std::runtime_error("Failed to initialize response instance: " + std::string(e.what()));
+    }
 };
 
 
@@ -196,30 +241,16 @@ int Response::getResourceType(std::string path, std::map<std::string, std::vecto
     return FILE;
 }
 
-void    Response::init()
-{
-    this->resourceType = getResourceType(this->resourceFullPath, this->kwargs);
-    std::cout << "resource type: " << this->resourceType << std::endl;
-    this->currentLength = 0;
-    this->resouceLength = 0;
-}
-
 Response::~Response()
 {
-
+    // close the file if it's open
+    if (this->fs.is_open())
+        this->fs.close();
 }
 
-char    *Response::generateBody()
-{
-    char *buf = new char[CHUNCK_SIZE];
-    
-    return buf;
-}
-
-void    Response::serve()
+void    Response::serveFile()
 {
     std::string responseMessage;
-    std::ifstream f;
     char buf[CHUNCK_SIZE];
     if (!isChunked)
     {
@@ -230,39 +261,47 @@ void    Response::serve()
             responseMessage += it->first + ": " + it->second + "\r\n";
             it++;
         }
-        if (this->resouceLength >= CHUNCK_SIZE)
+        if (this->resourceSize >= CHUNCK_SIZE)
             this->isChunked = true;
         responseMessage += "\r\n";
         send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
     }
-    f.open(this->resourceFullPath.c_str(), std::ios::in | std::ios::binary);
-    f.seekg(this->currentLength, std::ios::beg);
-    f.read(buf, CHUNCK_SIZE);
-    this->lastChunkSize = f.gcount();
-    this->currentLength += this->lastChunkSize;
+    this->fs.seekg(this->currentSize, std::ios::beg);
+    this->fs.read(buf, CHUNCK_SIZE);
+    this->lastChunkSize = this->fs.gcount();
+    this->currentSize += this->lastChunkSize;
     send(this->clientSocket, buf, this->lastChunkSize, 0);
-    if (this->currentLength >= this->resouceLength)
+    if (this->currentSize >= this->resourceSize)
         this->isCompleted = true;
+}
+
+void    Response::serve()
+{
+    /* we will check for methods, in the future and respond */
+    if (this->resourceType == FILE)
+        serveFile();
 }
 
 Response::Response(const Response &other)
 {
     //std::cout << "Response copy constructor" << std::endl;
     // copy all the attributes of the other object to this object
-    this->clientSocket = other.clientSocket;
+    this->httpVersion = other.httpVersion;
+    this->status = other.status;
+    this->headers = other.headers;
+    this->resourceType = other.resourceType;
     this->resourceFullPath = other.resourceFullPath;
-    this->resouceLength = other.resouceLength;
-    this->currentLength = other.currentLength;
+    this->resourceSize = other.resourceSize;
+    this->currentSize = other.currentSize;
     this->lastChunkSize = other.lastChunkSize;
     this->isCompleted = other.isCompleted;
-    this->httpVersion = other.httpVersion;
-    this->headers = other.headers;
-    this->status = other.status;
-    this->fd = other.fd;
-    this->resourceType = other.resourceType;
-    this->body = other.body;
+    this->isChunked = other.isChunked;
+    this->clientSocket = other.clientSocket;
+    this->resourceSize = other.resourceSize;
+    this->method = other.method;
+    this->_env = other._env;
     this->_req = other._req;
     this->_location = other._location;
-    this->_client_ip = other._client_ip;
-    this->_env = other._env;
+    this->fs = std::ifstream(other.resourceFullPath);
+
 }
