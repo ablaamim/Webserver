@@ -20,9 +20,18 @@ class Request
         int     fd_server;
         int     _fd;
 
-        int     parse_request(char * str);
-        int     get_headers(char * str);
-        int     get_chuncked_msg(char * str);
+        std::string         method;
+        std::string         path;
+        std::string         version;
+        std::vector<char>   body;
+        
+        //size_t              content_length;
+        //size_t              max_header_size;
+
+
+        int     parse_request(char *str);
+        int     get_headers(char *str);
+        int     get_chuncked_msg(char *str);
         void    get_firstline(std::string line);
         void    get_other_lines(std::string line);
         int     check_readed_bytes(void);
@@ -35,6 +44,15 @@ class Request
                 std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
                 it++;
             }
+        }
+
+        void print_body()
+        {
+            std::cout << COLOR_BLUE << "Body : " << COLOR_RESET << std::endl;
+            for (size_t i = 0; i < this->body.size(); i++)
+                std::cout << this->body[i];
+            std::cout << std::endl;
+            std::cout << COLOR_BLUE << "Body size : " << COLOR_RESET << this->body.size() << std::endl;
         }
         
         void    reset_request();

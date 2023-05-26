@@ -144,9 +144,20 @@ void    Response::setResourceInfo()
     */
 
     /* hardcoded for now, we will make it dynamic later */
+    
     this->resourceType = FILE;
-    this->resourceFullPath = "/Users/afaris/Desktop/Webserver-1/picture.jpeg";
-    this->headers["Content-Type"] = "image/jpeg";
+    
+    //std::cout << "MAP PATH = " << _req.params["Path"] << std::endl;
+    //std::cout << "STR PAtH = " <<_req.path << std::endl;
+
+
+    this->resourceFullPath = _req.path;
+    
+    //std::cout << "Resource path: " << this->resourceFullPath << std::endl;
+    
+    this->headers["Content-Type"] = mime_types[this->resourceFullPath.substr(this->resourceFullPath.find_last_of('.'))];
+    
+    //std::cout << "Content-Type: " << this->headers["Content-Type"] << std::endl;
 }
 
 void    Response::checkResource()
@@ -161,7 +172,7 @@ void    Response::checkResource()
 
 void    Response::init()
 {
-    this->httpVersion = "HTTP/1.1";
+    this->httpVersion = this->_req.version;
     this->status = std::make_pair("200", "OK");
     this->headers["Server"] = "Webserver/1.0";
     this->currentSize = 0;
@@ -188,6 +199,9 @@ Response::Response(Request req, int id, configurationSA::location location, char
     */
     try
     {
+        //_req.print_body();
+        //sleep(10);
+
         /* init */
 
         this->init();
@@ -208,7 +222,8 @@ Response::Response(Request req, int id, configurationSA::location location, char
         /* check if the resource is valid / accessible */
         this->checkResource();
 
-        this->method = _req.params["Method"];
+        //this->method = _req.params["Method"];
+
     }
     catch(const std::exception& e)
     {
