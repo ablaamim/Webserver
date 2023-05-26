@@ -27,6 +27,7 @@ class Response
         
         //Response(int id);
         Response(int id);
+        
         Response(const Response &other);
         
         ~Response();
@@ -35,6 +36,26 @@ class Response
         configurationSA::location                               _location;    // this is the location object that will be used to create the response
         std::string                                             _client_ip;   // this is the client ip that will be used to create the response
         char                                                    **_env;
+
+        std::map<std::string, std::string>                      mime_types;
+        
+        void initialize_mime_types();
+
+        void print_mime_types()
+        {
+            if (this->mime_types.empty())
+                std::cout << "mime_types is empty" << std::endl;
+            else
+            {
+                std::map<std::string, std::string>::iterator it = this->mime_types.begin();
+                while (it != this->mime_types.end())
+                {
+                    std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
+                    it++;
+                }
+            }
+        }
+
         
         void print_request()
         {
@@ -77,18 +98,25 @@ class Response
 
         int                                                     fd; // this is the file descriptor that will be used to read / track the file                                                  
         int                                                     clientSocket;
-        int                                                     resouceLength; 
+        size_t                                                  resouceLength; 
         int                                                     currentLength;
         int                                                     lastChunkSize;
         int                                                     resourceType; 
-        bool                                                    isCompleted = false;
-        bool                                                    isChunked = false;
-        std::string                                             resourceFullPath = "/www";
+        bool                                                    isCompleted;
+        bool                                                    isChunked;
+        std::string                                             resourceFullPath;
         std::string                                             httpVersion; 
-        std::string                                             body; 
+        
+        std::string                                             body;
+        
+        std::string                                             method; 
 
         std::pair   <std::string, std::string>                  status; 
         std::map    <std::string, std::string>                  headers;
+
+        bool    isDirectory(std::string path);
+        int     getResourceType(std::string path, std::map<std::string, std::vector<std::string> > kwargs);
+
 
         void    generateBody();
         void    serve();
