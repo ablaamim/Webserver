@@ -58,11 +58,24 @@ void Request::get_firstline(std::string line)
         switch (i)
         {
             case 0 : this->params["Method"] = str;
-                     break;
+            {
+                // this->method = str;
+                // if (str == "POST")
+                //     this->is_chuncked = true;
+                // else
+                //     this->is_chuncked = false;
+                break;
+            }
             case 1 : this->params["Url"] = str;
-                     break;
+            {
+                this->path = str;        
+                break;
+            }
             case 2 : this->params["Protocol Version"] = str;
+            {
+                this->version = str;
                      break;
+            }
         }
         i++;
     }
@@ -83,6 +96,9 @@ void Request::get_other_lines(std::string line)
         {
             //std::cout << COLOR_YELLOW << "Parsing Other here  '" << str1 << "'" << COLOR_RESET <<std::endl;
             this->params[_CONTENT_].append(str1);
+            this->body.insert(this->body.end(), str1.begin(), str1.end());
+            //std::cout << "Body size : " << this->body.size() << std::endl;
+            //sleep(10);
         }
     }
 }
@@ -119,6 +135,12 @@ int Request::get_chuncked_msg(char * str)
     if (!line)
         return _ERR_PARSE_REQUEST;
     this->params[_CONTENT_].append(std::string(line));
+    
+    this->body.insert(this->body.end(), line, line + std::strlen(line));
+
+    //std::cout << this->body.size() << std::endl;
+    //sleep(10);
+
     // std::cout << COLOR_RED << "----------------------------------" << std::endl;
     // std::cout << COLOR_BLUE << this->params[_CONTENT_] << std::endl << std::endl;
     // std::cout << COLOR_YELLOW << std::strlen(line) << "   " << std::strlen(str) << std::endl << std::endl;
