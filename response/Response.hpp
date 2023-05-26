@@ -34,11 +34,29 @@ class Response
 
         Request                                                 _req;         // this is the request object that will be used to create the response
         configurationSA::location                               _location;    // this is the location object that will be used to create the response
-        std::string                                             _client_ip;   // this is the client ip that will be used to create the response
         char                                                    **_env;
 
         std::map<std::string, std::string>                      mime_types;
+        std::ifstream                                           fs; // this is the file descriptor that will be used to read / track the file                                                  
+        int                                                     clientSocket;
+        size_t                                                  resourceSize; 
+        int                                                     currentSize;
+        int                                                     lastChunkSize;
+        int                                                     resourceType; 
+        bool                                                    isCompleted;
+        bool                                                    isChunked;
+        std::string                                             resourceFullPath;
+        std::string                                             httpVersion; 
         
+        std::string                                             body;
+        
+        std::string                                             method; 
+
+        std::pair   <std::string, std::string>                  status; 
+        std::map    <std::string, std::string>                  headers;
+
+
+
         void initialize_mime_types();
 
         void print_mime_types()
@@ -95,36 +113,30 @@ class Response
                 it++;
             }
         }
-        int                                                     fd; // this is the file descriptor that will be used to read / track the file                                                  
-        int                                                     clientSocket;
-        size_t                                                  resouceLength; 
-        int                                                     currentLength;
-        int                                                     lastChunkSize;
-        int                                                     resourceType; 
-        bool                                                    isCompleted;
-        bool                                                    isChunked;
-        std::string                                             resourceFullPath;
-        std::string                                             httpVersion; 
         
-        std::string                                             body;
-        
-        std::string                                             method; 
-
-        std::pair   <std::string, std::string>                  status; 
-        std::map    <std::string, std::string>                  headers;
 
         bool    isDirectory(std::string path);
         int     getResourceType(std::string path, std::map<std::string, std::vector<std::string> > kwargs);
 
-
-        char    *generateBody();
+        /* serving methods */
+        
         void    serve();
-        void    serve(std::pair<std::string, std::string> status);
+        void    serveFile();
+        void    serveEmpty();
+
+        /* methods */
+
         void    handleGet();
         void    handlePost();
         void    handleDelete();
 
+        /* Initialization methods */
+
         void    init();
+        void    openFile();
+        void    checkRequest();
+        void    setResourceInfo();
+        void    checkResource();
 
         class  Response_err : public std::exception
         {
