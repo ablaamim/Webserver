@@ -321,14 +321,14 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
     {
         if (this->event_list[i].flags & EV_ERROR)
             disconnect_client(this->event_list[i].ident, this->clients, "EV_ERROR");
-        else if (this->event_list[i].flags & EV_EOF)
-        {
-            delete_event(this->event_list[i].ident, EVFILT_READ, "read eof ");
-            clients_list.erase(this->event_list[i].ident);
-            responsePool.erase(this->event_list[i].ident);
-            //this->clients[this->event_list[i].ident].clear();
-            disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
-        }
+        // else if (this->event_list[i].flags & EV_EOF)
+        // {
+        //     delete_event(this->event_list[i].ident, EVFILT_READ, "read eof ");
+        //     clients_list.erase(this->event_list[i].ident);
+        //     responsePool.erase(this->event_list[i].ident);
+        //     //this->clients[this->event_list[i].ident].clear();
+        //     disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
+        // }
         else if (this->event_list[i].filter == EVFILT_READ)
         {
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);        
