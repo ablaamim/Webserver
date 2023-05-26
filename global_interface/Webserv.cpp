@@ -253,6 +253,11 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
             }
             else
             {
+                // SAT MELI TESTER FEL BROWSER DIR RESSOURCEPATH FLAKHER DYAL URL EXAMPLE : localhost:8080/slayer.mp4
+                
+
+                // MAZAL MAYDAR GHDA UNKMLU
+                
                 //char buf[1024] = {0};
                 std::cout << "SERVING" << std::endl;
                 it->second.isCompleted = true;
