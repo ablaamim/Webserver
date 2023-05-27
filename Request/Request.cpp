@@ -1,5 +1,30 @@
 #include "../MainInc/main.hpp"
 
+void Request::print_body()
+{
+    std::cout << COLOR_BLUE << "Body : " << COLOR_RESET << std::endl;
+    for (size_t i = 0; i < this->body.size(); i++)
+         std::cout << this->body[i];
+    std::cout << std::endl;
+    std::cout << COLOR_BLUE << "Body size : " << COLOR_RESET << this->body.size() << std::endl;
+}
+
+void    Request::print_params()
+{
+    it_param it = this->params.begin();
+    while (it != this->params.end())
+    {
+        std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
+        it++;
+    }
+}
+
+size_t Request::get_body_size()
+{
+    //std::cout << "Body size : " << this->params[_CONTENT_].size() << std::endl;
+    return (this->params[_CONTENT_].length());
+}
+
 Request::Request(int fd) : _fd(fd)
 {
     this->headers_done = false;
@@ -59,11 +84,7 @@ void Request::get_firstline(std::string line)
         {
             case 0 : this->params["Method"] = str;
             {
-                // this->method = str;
-                // if (str == "POST")
-                //     this->is_chuncked = true;
-                // else
-                //     this->is_chuncked = false;
+                this->method = str;
                 break;
             }
             case 1 : this->params["Url"] = str;
@@ -97,6 +118,7 @@ void Request::get_other_lines(std::string line)
             //std::cout << COLOR_YELLOW << "Parsing Other here  '" << str1 << "'" << COLOR_RESET <<std::endl;
             this->params[_CONTENT_].append(str1);
             this->body.insert(this->body.end(), str1.begin(), str1.end());
+            //std::cout << params[_CONTENT_] << std::endl;
             //std::cout << "Body size : " << this->body.size() << std::endl;
             //sleep(10);
         }

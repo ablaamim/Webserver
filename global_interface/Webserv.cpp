@@ -245,7 +245,7 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
         {
             clients_list.erase(this->event_list[i].ident);
             responsePool.erase(this->event_list[i].ident);
-            delete_event(this->event_list[i].ident, EVFILT_READ, "read eof ");
+            delete_event(this->event_list[i].ident, EVFILT_READ, "si eof ");
             this->clients[this->event_list[i].ident].clear();
             disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
