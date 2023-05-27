@@ -8,6 +8,60 @@
 
 std::map<std::string, std::string>  mime_types;                // map of (extension, mime_type)
 
+Response::Response(void)
+{};
+
+void Response::init_methods()
+{
+    if  (this->_methods.empty())
+    {
+        return ;
+    }
+    std::pair<std::string, void(Response::*)()> _methods[] =
+    {
+        std::make_pair("GET", &Response::handleGet),
+        std::make_pair("POST", &Response::handlePost),
+        std::make_pair("DELETE", &Response::handleDelete),
+    };
+    this->_methods.insert(_methods, _methods + sizeof(_methods) / sizeof(_methods[0]));
+}
+
+void Response::print_request()
+{
+    std::cout << COLOR_GREEN << "Request :" << COLOR_RESET << std::endl;
+    this->_req.print_params();
+}
+
+void Response::print_methods()
+{
+    std::map<std::string, void(Response::*)()>::iterator it = this->_methods.begin();
+    while (it != this->_methods.end())
+    {
+        std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
+        it++;
+    }
+}
+
+void Response::print_kwargs()
+{
+    std::map<std::string, std::vector<std::string> >::iterator it = this->kwargs.begin();
+    while (it != this->kwargs.end())
+    {
+        std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET;
+        for (size_t i = 0; i < it->second.size(); i++)
+        {
+            std::cout << COLOR_YELLOW << it->second[i] << " " << COLOR_RESET;
+            std::cout << std::endl;
+            it++;
+        }
+    }
+}
+
+void Response::insert_Location_kwargs(std::string key, std::vector<std::string> value)
+{
+    this->kwargs.insert(std::pair<std::string, std::vector<std::string> >(key, value));
+}
+
 void print_mime_types()
 {
     if (mime_types.empty())
@@ -124,17 +178,31 @@ void    Response::openFile()
 void    Response::checkRequest()
 {
     std::vector<std::string> allowedMethods = this->kwargs["allowed_methods"];
-    std::cout << "Method: " << this->_req.params["Method"] << std::endl;
-    // print allowed methods
-    for (std::vector<std::string>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
-        std::cout << *it << std::endl;
+
+    if (_req.method != "GET" && _req.method != "POST" && _req.method != "DELETE")
+    {
+        this->status = std::make_pair("501", "Not Implemented");        
+        throw Response_err("Method not implemented");
+    }
     if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.params["Method"]) == allowedMethods.end())
+    {
         this->status = std::make_pair("405", "Method Not Allowed");
-    // more checks here
-    //std::cout << "Status: " << this->status.first << std::endl;
-    // if the status changed due to a check, throw an error
+        throw Response_err("Method not allowed");
+    }
     if (this->status.first != "200")
         throw Response_err("Method not allowed");
+    if (this->_req.version != "HTTP/1.1")
+    {
+        this->status = std::make_pair("505", "HTTP Version Not Supported");
+        throw Response_err("HTTP Version not supported");
+    }
+    //this->_req.params["Host"] = ""; // for testing purposes
+    if (this->_req.params["Host"] != "localhost" || this->_req.params["Host"] == "")
+    {
+        this->status = std::make_pair("400", "Bad Request");
+        throw Response_err("Bad Request");
+    }
+    //if (this->_req.params[]
 }
 
 void    Response::serveEmpty()
@@ -149,27 +217,13 @@ void    Response::serveEmpty()
 
 void    Response::setResourceInfo()
 {
-    /*
-        Here, we will set the resource type and the resource path.
-        if the resource is a file, we will set the resource size.
-    */
-    /* hardcoded for now, we will make it dynamic later */
-    
     this->resourceType = FILE;
-    
-    //std::cout << "MAP PATH = " << _req.params["Path"] << std::endl;
-    //std::cout << "STR PAtH = " <<_req.path << std::endl;
-
-    this->resourceFullPath = this->kwargs["root"][0].append(_req.path);
-    
-    //std::cout << "Resource path: " << this->resourceFullPath << std::endl;
-    
+    this->resourceFullPath = this->kwargs["root"][0].append(_req.path);    
     this->headers["Content-Type"] = mime_types[this->resourceFullPath.substr(this->resourceFullPath.find_last_of('.'))];
-    
-    //std::cout << "Content-Type: " << this->headers["Content-Type"] << std::endl;
+    //this->headers["Content-Length"] = std::to_string(this->resourceSize);
+    //std::cout << "CONTENT LENGTH = " << this->headers["Content-Length"] << std::endl;
+}  
 
-    //sleep(10);
-}
 
 void    Response::checkResource()
 {
@@ -197,13 +251,18 @@ void    Response::init()
     this->status = std::make_pair("200", "OK");
     this->headers["Server"] = "Webserver/1.0";
     this->currentSize = 0;
-    this->resourceSize = 0;
+    this->resourceSize = _req.get_body_size();
     this->lastChunkSize = 0;
     this->isCompleted = false;
     this->isChunked = false;
+    
+    //std::cout << "RESSOURCE SIZE = " << this->resourceSize << std::endl;
 
     try
     {
+        //std::cout << "CONTENT = " << this->_req.get_content();
+        this->checkRequest();
+        this->init_methods();
         this->setResourceInfo();
         this->checkResource();
     }
@@ -212,12 +271,6 @@ void    Response::init()
         // this will be caught in Webserver.cpp, and serveEmpty() will be called. instead of serve()
         throw Response_err(e.what());
     }
-
-    /* kwargs needs to be inserted here */
-    
-    
-    /* we will need to make this static, for later */
-    //initialize_mime_types();
 }
 
 Response::Response(Request req, int id, configurationSA::location location, char **env) : _req(req), clientSocket(id) ,_location(location), _env(env)
@@ -257,7 +310,6 @@ int Response::getResourceType(std::string path, std::map<std::string, std::vecto
 
 Response::~Response()
 {
-    // close the file if it's open
     if (this->fs.is_open())
         this->fs.close();
 }
