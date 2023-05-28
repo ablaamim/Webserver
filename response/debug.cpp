@@ -30,18 +30,3 @@ void Response::print_kwargs()
         }
     }
 }
-
-void print_mime_types()
-{
-    if (mime_types.empty())
-        std::cout << "mime_types is empty" << std::endl;
-    else
-    {
-        std::map<std::string, std::string>::iterator it = mime_types.begin();
-        while (it != mime_types.end())
-        {
-            std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
-            it++;
-        }
-    }
-}

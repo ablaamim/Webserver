@@ -56,7 +56,7 @@
 # define FORBIDDEN 5
 # define FULL 6
 # define HEADERS_ONLY 7
-# define CHUNCK_SIZE 1024
+# define CHUNCK_SIZE 10024
 
 # define GET "GET"
 # define POST "POST"

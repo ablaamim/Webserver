@@ -31,7 +31,7 @@ class Webserv
         void                        entry_point(struct kevent *curr_event, Request request, configurationSA &config, Servers &server, char **env);
         configurationSA::Server     Select_server(configurationSA &config, std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname);
         configurationSA::location   match_location(std::string trgt, configurationSA::Server server);
-
+        void                        client_cleanup(int client_fd);
         class Webserv_err : public std::exception
         {
             private :
