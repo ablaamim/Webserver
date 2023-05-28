@@ -21,7 +21,7 @@ void    Response::sendResponse(int mode)
     this->body.clear();
 }
 
-// this is the main entry point for the response
+// this is the main entry point for the response.
 
 void    Response::serve()
 {
