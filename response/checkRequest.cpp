@@ -20,8 +20,7 @@ void    Response::checkRequest()
         throw Response_err("HTTP Version not supported");
     }
     //this->_req.params["Host"] = ""; // for testing purposes
-    // std::cout << "host: " << this->_req.params["Host"] << std::endl;
-    // this should be corrected later
+    //std::cout << "host: " << this->_req.params["Host"] << std::endl;
     //if (this->_req.params["Host"] != "localhost" || this->_req.params["Host"] == "")
     //{
     //    this->status = std::make_pair("400", "Bad Request");
