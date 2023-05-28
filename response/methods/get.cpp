@@ -37,7 +37,7 @@ void    serveFile(Response& resp)
         resp.currentSize += resp.lastChunkSize;
         if (resp.currentSize >= resp.resourceSize)
             resp.isCompleted = true;
-        resp.body = std::string(buf, resp.lastChunkSize);
+        resp.body.append(buf, resp.lastChunkSize);
         resp.sendResponse(FULL);
     }
     catch(const std::exception& e)
