@@ -6,7 +6,78 @@
 #include <sstream>
 #include <iomanip>
 
-std::map<std::string, std::string>  mime_types;                // map of (extension, mime_type)
+std::map<std::string, std::string>  mime_types;
+
+std::pair<std::string, std::string> _mime_types[] =
+{
+    std::make_pair(".mp4", "video/mp4"),
+    std::make_pair(".aac", "audio/aac"),
+	std::make_pair(".abw", "application/x-abiword"),
+	std::make_pair(".arc", "application/octet-stream"),
+	std::make_pair(".avo", "video/x-msvideo"),
+	std::make_pair(".bin", "application/octet-stream"),
+	std::make_pair(".bmp", "image/bmp"),
+	std::make_pair(".bz", "application/x-bzip"),
+	std::make_pair(".bz2", "application/x-bzip2"),
+	std::make_pair(".csh", "application/x-csh"),
+	std::make_pair(".css", "text/css"),
+	std::make_pair(".csv", "text/csv"),
+	std::make_pair(".doc", "application/msword"),
+	std::make_pair(".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+	std::make_pair(".eot", "application/vnd.ms-fontobject"),
+	std::make_pair(".epub", "application/epub+zip"),
+	std::make_pair(".gif", "image/gif"),
+	std::make_pair(".htm", "text/html"),
+	std::make_pair(".html", "text/html"),
+	std::make_pair(".ico", "image/x-icon"),
+	std::make_pair(".ics", "text/calendar"),
+	std::make_pair(".jar", "application/java-archive"),
+	std::make_pair(".jpeg", "image/jpeg"),
+	std::make_pair(".jpg", "image/jpeg"),
+	std::make_pair(".js", "application/javascript"),
+	std::make_pair(".json", "application/json"),
+	std::make_pair(".mid", "audio/midi"),
+	std::make_pair(".midi", "audio/midi"),
+	std::make_pair(".mpeg", "video/mpeg"),
+	std::make_pair(".mpkg", "application/vnd.apple.installer+xml"),
+	std::make_pair(".odp", "application/vnd.oasis.opendocument.presentationa"),
+	std::make_pair(".ods", "application/vnd.oasis.opendocument.spreadsheet"),
+	std::make_pair(".odt", "application/vnd.oasis.opendocument.text"),
+	std::make_pair(".oga", "audio/ogg"),
+	std::make_pair(".ogv", "video/ogg"),
+	std::make_pair(".ogx", "application/ogg"),
+	std::make_pair(".otf", "font/otf"),
+	std::make_pair(".png", "image/png"),
+	std::make_pair(".pdf", "application/pdf"),
+	std::make_pair(".ppt", "application/vnd.ms-powerpoint"),
+	std::make_pair(".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+	std::make_pair(".rar", "application/x-rar-compressed"),
+	std::make_pair(".rtf", "application/rtf"),
+	std::make_pair(".sh", "application/x-sh"),
+	std::make_pair(".svg", "image/svg+xml"),
+	std::make_pair(".swf", "application/x-shockwave-flash"),
+	std::make_pair(".tar", "application/x-tar"),
+	std::make_pair(".tif", "image/tiff"),
+	std::make_pair(".tiff", "image/tiff"),
+	std::make_pair(".ts", "application/typescript"),
+	std::make_pair(".ttf", "font/ttf"),
+	std::make_pair(".vsd", "application/vnd.visio"),
+	std::make_pair(".wav", "audio/x-wav"),
+	std::make_pair(".weba", "audio/webm"),
+	std::make_pair(".webm", "video/webm"),
+	std::make_pair(".webp", "image/webp"),
+	std::make_pair(".woff", "font/woff"),
+	std::make_pair(".woff2", "font/woff2"),
+	std::make_pair(".xhtml", "application/xhtml+xml"),
+	std::make_pair(".xls", "application/vnd.ms-excel"),
+	std::make_pair(".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+	std::make_pair(".xml", "application/xml"),
+	std::make_pair(".xul", "application/vnd.mozilla.xul+xml"),
+	std::make_pair(".zip", "application/zip"),
+	std::make_pair(".3gp", "video/3gpp"),
+	std::make_pair(".3g2", "video/3gpp2"),
+	std::make_pair(".7z", "application/x-7z-compressed")
+};
 
 Response::Response(void) { /* DEFAULT CONSTRUCTOR */ };
 
@@ -17,18 +88,18 @@ void Response::insert_Location_kwargs(std::string key, std::vector<std::string> 
 
 void    Response::init()
 {
-    mime_types.insert(_mime_types, _mime_types + sizeof(_mime_types) / sizeof(_mime_types[0]));
-    this->httpVersion = this->_req.version;
-    this->status = std::make_pair("200", "OK");
-    this->headers["Server"] = "Webserver/1.0";
-    this->currentSize = 0;
-    this->resourceSize = 0;
-    this->lastChunkSize = 0;
-    this->isCompleted = false;
-    this->isChunked = false;
     try
     {
-        /* Check if request is valid or not and set information about the requested resource */
+        mime_types.insert(_mime_types, _mime_types + sizeof(_mime_types) / sizeof(_mime_types[0]));
+        this->httpVersion = this->_req.version;
+        this->status = std::make_pair("200", "OK");
+        this->headers["Server"] = "Webserver/1.0";
+        this->currentSize = 0;
+        this->resourceSize = 0;
+        this->lastChunkSize = 0;
+        this->isCompleted = false;
+        this->isChunked = false;
+		this->method = this->_req.method;
         this->checkRequest();
         this->setResourceInfo();
     }
@@ -38,14 +109,14 @@ void    Response::init()
     }
 }
 
-Response::Response(Request req, int id, configurationSA::location location, char **env) : _req(req), clientSocket(id) ,_location(location), _env(env)
+Response::Response(Request req, int id, configurationSA::location location, char **env)
+                    : _req(req),
+                    clientSocket(id) 
+                    ,_location(location),
+                     _env(env)
 {
     /*
-        Here, we will initialize the response instance.
-        if any error occurs, we will throw an exception
-        and catch it in (Webserver.cpp) and send serveEmpty() which will serve a response
-        that has the actual status code only (no body),
-        we will see how to render the body later (error pages)
+        all we need for now, we will call init() after creating the object, to check if the request is valid or not
     */
 };
 
@@ -54,33 +125,6 @@ Response::~Response()
 {
     if (this->fs.is_open())
         this->fs.close();
-}
-
-void    Response::serveFile()
-{
-    std::string responseMessage;
-    char buf[CHUNCK_SIZE];
-    if (!isChunked)
-    {
-        responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
-        std::map<std::string, std::string>::iterator it = this->headers.begin();
-        while (it != this->headers.end())
-        {
-            responseMessage += it->first + ": " + it->second + "\r\n";
-            it++;
-        }
-        if (this->resourceSize >= CHUNCK_SIZE)
-            this->isChunked = true;
-        responseMessage += "\r\n";
-        send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0);
-    }
-    this->fs.seekg(this->currentSize, std::ios::beg);
-    this->fs.read(buf, CHUNCK_SIZE);
-    this->lastChunkSize = this->fs.gcount();
-    this->currentSize += this->lastChunkSize;
-    send(this->clientSocket, buf, this->lastChunkSize, 0);
-    if (this->currentSize >= this->resourceSize)
-        this->isCompleted = true;
 }
 
 Response::Response(const Response &other)
@@ -102,5 +146,17 @@ Response::Response(const Response &other)
     this->_req = other._req;
     this->_location = other._location;
     this->fs = std::ifstream(other.resourceFullPath);
+}
 
+
+std::string     getContentType(std::string path)
+{
+	
+	int pos = path.find_last_of(".");
+	if (pos == std::string::npos)
+		return ("application/octet-stream");
+	std::map<std::string, std::string>::iterator it = mime_types.find(path.substr(pos));
+	if (it != mime_types.end())
+		return (it->second);
+	return ("application/octet-stream");
 }

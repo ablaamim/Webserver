@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/Users/afaris/Desktop/Webserver-1/Webserv",
-            "args": [],
+            "args": ["/Users/afaris/Desktop/Webserver-1/config_response_test/response_conf01.conf"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

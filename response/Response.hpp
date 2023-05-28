@@ -5,6 +5,8 @@
 #include <dirent.h>
 #include "../Request/Request.hpp"
 #include "../global_interface/Webserv.hpp"
+#include "utils.hpp"
+
 
 class Response
 {
@@ -43,8 +45,8 @@ class Response
         void    print_methods();
         void    insert_Location_kwargs(std::string key, std::vector<std::string> value);
         void    print_kwargs();
-        bool    isDirectory(std::string path);
-        int     getResourceType(std::string path, std::map<std::string, std::vector<std::string> > kwargs);
+
+        int     getResourceType();
 
 
         /* serving client depending on the request method */
@@ -60,7 +62,6 @@ class Response
         void    init();
 
 
-        void    openFile();
         void    checkRequest();
         void    setResourceInfo();
         void    checkResource();
@@ -80,5 +81,6 @@ class Response
         };
 };
 
+std::string     getContentType(std::string path);
 
 #endif

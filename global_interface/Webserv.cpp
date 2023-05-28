@@ -16,13 +16,12 @@ void Webserv::print_request()
 
 void Webserv::client_cleanup(int client_fd)
 {
-    /* helper function to avoid repetitions */
-    delete_event(client_fd, EVFILT_WRITE, "delete write event");
     this->request[client_fd].reset_request();
-    responsePool.erase(it);
-    disconnect_client(client_fd, this->clients, "write");
+    responsePool.erase(client_fd);
     clients_list.erase(client_fd);
+
     this->clients[client_fd].clear();
+    disconnect_client(client_fd, this->clients, "write");
 }
 
 void print_responsePool(std::map<int, Response> responsePool)
@@ -53,8 +52,9 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     Response newResponse(request, curr_event->ident, _obj_location, env);
     try
     {
+        std::cout << "request.path : " << request.path << std::endl;
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
-        newResponse.kwargs.insert(std::make_pair(it->first, it->second));
+            newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
         {
             for (std::map<std::string, std::vector<std::string> >::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
@@ -69,6 +69,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     }
     catch(const std::exception& e)
     {
+        std::cerr << e.what() << '\n';
         newResponse.sendResponse(HEADERS_ONLY);
         client_cleanup(curr_event->ident);
     }

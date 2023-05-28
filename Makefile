@@ -10,16 +10,20 @@ SRC = ./MainInc/main.cpp \
 	./global_interface/Webserv.cpp \
 	./response/Response.cpp \
 	./response/utils.cpp \
-	./response/cgi.cpp \
+	./response/checkRequest.cpp \
+	./response/debug.cpp \
+	./response/resource.cpp \
+	./response/sendResponse.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \
-	./response/methods/delete.cpp
+	./response/methods/delete.cpp \
+	
 
 OBJ = $(SRC:.cpp=.o)
 
 CC = clang++
 
-FLAGS = -std=c++11 -g3 -fsanitize=address #-Wall -Wextra -Werror
+FLAGS = -std=c++11 -g3 #-fsanitize=address #-Wall -Wextra -Werror
 
 all: $(NAME)
 
