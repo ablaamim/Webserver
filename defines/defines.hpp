@@ -45,17 +45,23 @@
 # define _CHUNCKED_REQUEST 2
 # define _CONTENT_ "Content_body"
 
-/* 
-    Response defines;
-*/
+/*  Response defines */
+
+# define NONE -1
+# define FILE 0
+# define DIRECTORY 1
+# define CGI 2
+# define REDIRECT 3
+# define NOT_FOUND 4
+# define FORBIDDEN 5
+# define FULL 6
+# define HEADERS_ONLY 7
+# define CHUNCK_SIZE 1024
 
 # define GET "GET"
 # define POST "POST"
 # define DELETE "DELETE"
 
-# define NONE -1
-# define IS_FILE 1
-# define IS_CGI_SCRIPT 2
-# define IS_DIRECTORY 3
+/* end of Response defines */
 
 #endif

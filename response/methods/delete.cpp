@@ -1,6 +1,6 @@
 #include "methods.hpp"
 
-void    Response::handleDelete()
+void    Response::serveDELETE()
 {
     
 }
