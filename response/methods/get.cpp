@@ -28,12 +28,9 @@ void    serveFile(Response& resp)
         char buf[CHUNCK_SIZE];
         if (resp.currentSize == 0)
         {
-            std::cout << "currentSize == 0" << std::endl;
             resp.headers["Content-Type"] = getContentType(resp.resourceFullPath);
-            std::cout << "Content-Type: " << resp.headers["Content-Type"] << std::endl;
             openFile(resp);
         }
-        std::cout << "serveFile" << std::endl;
         resp.fs.seekg(resp.currentSize, std::ios::beg);
         resp.fs.read(buf, CHUNCK_SIZE);
         resp.lastChunkSize = resp.fs.gcount();
@@ -70,12 +67,19 @@ void    serveRedirect(Response& resp)
 
 void    Response::serveGET()
 {
-    if(this->resourceType == FILE)
-        serveFile(*this);
-    else if (this->resourceType == DIRECTORY)
-        serveDirectory(*this);
-    else if (this->resourceType == CGI)
-        serveCGI(*this);
-    else if (this->resourceType == REDIRECT)
-        serveRedirect(*this);
+    try
+    {
+        if(this->resourceType == FILE)
+            serveFile(*this);
+        else if (this->resourceType == DIRECTORY)
+            serveDirectory(*this);
+        else if (this->resourceType == CGI)
+            serveCGI(*this);
+        else if (this->resourceType == REDIRECT)
+            serveRedirect(*this);
+    }
+    catch(const std::exception& e)
+    {
+        throw Response_err(e.what());
+    }
 }
