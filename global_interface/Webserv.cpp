@@ -162,7 +162,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-        //fcntl(client_socket, F_SETFL, O_NONBLOCK);
+        fcntl(client_socket, F_SETFL, O_NONBLOCK);
         std::cout << COLOR_YELLOW << "accept new client: " << client_socket << COLOR_RESET << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
@@ -211,7 +211,8 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
             }
             catch(const std::exception& e)
             {
-                it->second.sendResponse(HEADERS_ONLY);
+                std::cerr << e.what() << '\n';
+                client_cleanup(curr_event->ident);
             }
         }
     }

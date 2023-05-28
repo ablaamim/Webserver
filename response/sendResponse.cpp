@@ -14,8 +14,8 @@ void    Response::sendResponse(int mode)
     /* if mode != HEADERS_ONLY, keep sending generated body content */
     if (mode == FULL)
         responseMessage += this->body;
-    if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) < 0)
-        throw std::runtime_error("Send failed");
+    if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
+        throw Response_err("Error while sending response");
     if (this->currentSize >= this->resourceSize)
         this->isCompleted = true;
     this->body.clear();
@@ -23,10 +23,17 @@ void    Response::sendResponse(int mode)
 
 void    Response::serve()
 {
-    if (this->method == GET)
-        this->serveGET();
-    else if (this->method == POST)
-        this->servePOST();
-    else if (this->method == DELETE)
-        this->serveDELETE();
+    try
+    {
+        if (this->method == GET)
+            this->serveGET();
+        else if (this->method == POST)
+            this->servePOST();
+        else if (this->method == DELETE)
+            this->serveDELETE();
+    }
+    catch(const std::exception& e)
+    {
+        throw Response_err(e.what());
+    }
 }
