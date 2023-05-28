@@ -1,9 +1,6 @@
 #include "methods.hpp"
 
-
-
-
-void    Response::handlePost()
+void    Response::servePOST()
 {
     
 }

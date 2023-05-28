@@ -6,16 +6,6 @@
 #include "../Request/Request.hpp"
 #include "../global_interface/Webserv.hpp"
 
-# define NONE -1
-# define FILE 0
-# define DIRECTORY 1
-# define CGI 2
-# define REDIRECT 3
-# define NOT_FOUND 4
-# define FORBIDDEN 5
-
-# define CHUNCK_SIZE 1024
-
 class Response
 {
     public:
@@ -55,20 +45,30 @@ class Response
         void    print_kwargs();
         bool    isDirectory(std::string path);
         int     getResourceType(std::string path, std::map<std::string, std::vector<std::string> > kwargs);
-        /* serving methods */
-        void    serve();
-        void    serveFile();
-        void    serveEmpty();
-        /* methods */
-        void    handleGet();
-        void    handlePost();
-        void    handleDelete();
+
+
+        /* serving client depending on the request method */
+
+        void    serve(); // this is the main method that will be called to serve the client
+
+        void    serveGET();
+        void    servePOST();
+        void    serveDELETE();
+
         /* Initialization methods */
+
         void    init();
+
+
         void    openFile();
         void    checkRequest();
         void    setResourceInfo();
         void    checkResource();
+
+        /* Custom Send, which send the reponse whether the body content is generated or not */
+
+        void    sendResponse(int mode);
+
         class  Response_err : public std::exception
         {
             public :

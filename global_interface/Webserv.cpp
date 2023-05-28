@@ -14,6 +14,16 @@ void Webserv::print_request()
     }
 }
 
+void Webserv::client_cleanup(int client_fd)
+{
+    /* helper function to avoid repetitions */
+    delete_event(client_fd, EVFILT_WRITE, "delete write event");
+    this->request[client_fd].reset_request();
+    responsePool.erase(it);
+    disconnect_client(client_fd, this->clients, "write");
+    clients_list.erase(client_fd);
+    this->clients[client_fd].clear();
+}
 
 void print_responsePool(std::map<int, Response> responsePool)
 {
@@ -39,12 +49,12 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
     configurationSA::location   _obj_location = match_location(request.path, _obj_server); 
-    
+
     Response newResponse(request, curr_event->ident, _obj_location, env);
     try
     {
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
-            newResponse.kwargs.insert(std::make_pair(it->first, it->second));
+        newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
         {
             for (std::map<std::string, std::vector<std::string> >::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
@@ -54,20 +64,13 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
         }
         for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
-        //newResponse.print_kwargs();
         newResponse.init();
         responsePool.insert(std::make_pair(curr_event->ident, newResponse));
     }
     catch(const std::exception& e)
     {
-        newResponse.serveEmpty();
-        
-        this->request[curr_event->ident].reset_request();
-        responsePool.erase(curr_event->ident);
-        clients_list.erase(curr_event->ident);
-        
-        this->clients[curr_event->ident].clear();
-        disconnect_client(curr_event->ident, this->clients, "write");
+        newResponse.sendResponse(HEADERS_ONLY);
+        client_cleanup(curr_event->ident);
     }
 }
 
@@ -189,6 +192,8 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     }
 }
 
+
+
 void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
 {
     if (this->clients.find(curr_event->ident) != this->clients.end())
@@ -196,34 +201,16 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
         if (this->clients[curr_event->ident] != "")
         {
             std::map<int, Response>::iterator it = responsePool.find(curr_event->ident);
-            //std::cout << COLOR_RED << "Client " << it->second.clientSocket << " has been joined the response pool" << COLOR_RESET << std::endl;
-            if (it->second.isCompleted)
+            try
             {
-                std::string log = "Client " + std::to_string(it->second.clientSocket) + " has read " + std::to_string(it->second.currentSize) + " bytes of " + std::to_string(it->second.currentSize) + " bytes\n";
-                //std::cout << COLOR_GREEN << log << COLOR_RESET << std::endl;
-                write(this->log_fd, log.c_str(), log.size());
-                delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
-                this->request[curr_event->ident].reset_request();
-                responsePool.erase(it);
-                disconnect_client(curr_event->ident, this->clients, "write");
-                clients_list.erase(curr_event->ident);
-                this->clients[curr_event->ident].clear();
-            }
-            else
-            {
-                try
-                {
+                if (it->second.isCompleted)
+                    client_cleanup(curr_event->ident);
+                else
                     it->second.serve();
-                }
-                catch(const std::exception& e)
-                {
-                    it->second.serveEmpty();
-                    this->request[curr_event->ident].reset_request();
-                    responsePool.erase(curr_event->ident);
-                    clients_list.erase(curr_event->ident);
-                    this->clients[curr_event->ident].clear();
-                    disconnect_client(curr_event->ident, this->clients, "write");
-                }
+            }
+            catch(const std::exception& e)
+            {
+                it->second.sendResponse(HEADERS_ONLY);
             }
         }
     }
