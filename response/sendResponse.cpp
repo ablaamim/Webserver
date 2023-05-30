@@ -3,6 +3,7 @@
 void    Response::sendResponse(int mode)
 {
     std::string responseMessage;
+    this->headers["Content-Type"] = "text/html";
     if (!isChunked)
     {
         responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
@@ -14,8 +15,13 @@ void    Response::sendResponse(int mode)
     /* if mode != HEADERS_ONLY, keep sending generated body content */
     if (mode == FULL)
         responseMessage += this->body;
+    else
+        responseMessage += "<h1 style=\"font-size:100px\">"+this->status.first+" "+this->status.second+"</h1>";
+    
+    
     if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
         throw Response_err("Error while sending response");
+    // std::cout << "sent" << std::endl;
     if (this->currentSize >= this->resourceSize)
         this->isCompleted = true;
     this->body.clear();

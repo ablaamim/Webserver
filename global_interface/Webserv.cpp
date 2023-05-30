@@ -21,6 +21,7 @@ void Webserv::client_cleanup(int client_fd)
     clients_list.erase(client_fd);
 
     this->clients[client_fd].clear();
+    delete_event(client_fd, EVFILT_WRITE, "delete Write event");
     disconnect_client(client_fd, this->clients, "write");
 }
 
@@ -183,9 +184,9 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         }
         buf[n] = '\0';
         this->clients[curr_event->ident].append(buf);
-        k = this->request[curr_event->ident].parse_request(buf);
-        if (!k)
+        if (!this->request[curr_event->ident].parse_request(buf))
         {
+            //this->request[curr_event->ident].print_params();
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
@@ -212,6 +213,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
             catch(const std::exception& e)
             {
                 std::cerr << e.what() << '\n';
+                it->second.sendResponse(HEADERS_ONLY);
                 client_cleanup(curr_event->ident);
             }
         }

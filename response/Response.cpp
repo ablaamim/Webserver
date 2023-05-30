@@ -99,6 +99,7 @@ void    Response::init()
         this->lastChunkSize = 0;
         this->isCompleted = false;
         this->isChunked = false;
+		this->fs = NULL;
 		this->method = this->_req.method;
         this->checkRequest();
         this->setResourceInfo();
@@ -123,8 +124,11 @@ Response::Response(Request req, int id, configurationSA::location location, char
 
 Response::~Response()
 {
-    if (this->fs.is_open())
-        this->fs.close();
+    if (this->fs)
+	{
+        this->fs->close();
+		delete(this->fs);
+	}
 }
 
 Response::Response(const Response &other)
@@ -145,7 +149,7 @@ Response::Response(const Response &other)
     this->_env = other._env;
     this->_req = other._req;
     this->_location = other._location;
-    this->fs = std::ifstream(other.resourceFullPath);
+    this->fs = new std::ifstream(other.resourceFullPath,std::ifstream::binary);
 }
 
 

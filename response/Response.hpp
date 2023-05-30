@@ -2,9 +2,6 @@
 #define RESPONSE_HPP
 
 #include "../MainInc/main.hpp"
-#include <dirent.h>
-#include "../Request/Request.hpp"
-#include "../global_interface/Webserv.hpp"
 #include "utils.hpp"
 
 
@@ -21,7 +18,7 @@ class Response
         Request                                                 _req;         // this is the request object that will be used to create the response
         configurationSA::location                               _location;    // this is the location object that will be used to create the response
         char                                                    **_env;
-        std::ifstream                                           fs; // this is the file descriptor that will be used to read / track the file                                                  
+        std::ifstream                                           *fs; // this is the file descriptor that will be used to read / track the file                                                  
         int                                                     clientSocket;
         size_t                                                  resourceSize; 
         int                                                     currentSize;
