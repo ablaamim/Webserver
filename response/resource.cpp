@@ -19,6 +19,12 @@ void    Response::setResourceInfo()
         throw Response_err("No root path specified");
     }
     else
+    {
+        // std::cout << "ROOT IN SET == "<< this->kwargs["root"][0] << std::endl;
+        // std::cout << "PATH IN SET == "<< _req.path << std::endl;
         this->resourceFullPath = this->kwargs["root"][0].append(_req.path);
+        //std::cout << "RESOURCE FULL PATH == "<<this->resourceFullPath << std::endl;
+
+    }
     this->resourceType = getResourceType(); 
 }
