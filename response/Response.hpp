@@ -45,9 +45,8 @@ class Response
         void    print_methods();
         void    insert_Location_kwargs(std::string key, std::vector<std::string> value);
         void    print_kwargs();
-
+        void    serveDirectory(Response& resp);
         int     getResourceType();
-
 
         /* serving client depending on the request method */
 
