@@ -34,8 +34,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
 {
     Request req = this->request[curr_event->ident];
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
-    typedef std::map<std::string, std::vector<std::string> > NoneUniqueKe_t; // map of none unique keys that have more than one value         
-    
+
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
     configurationSA::location   _obj_location = match_location(request.path, _obj_server); 
@@ -75,6 +74,7 @@ configurationSA::Server Webserv::Select_server(configurationSA &config, std::str
 {
     
     configurationSA::data_type::iterator iter = Servers_vector.end();
+    (void)config;
     
     for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
     {
@@ -154,6 +154,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     char buf[BUFFER_SIZE] = {0};
     int n = 0, k = 120;
 
+    (void)config; (void)server; (void)env;
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
@@ -178,19 +179,22 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             return ;
         }
         buf[n] = '\0';
-        this->clients[curr_event->ident].append(buf);
-        k = this->request[curr_event->ident].parse_request(buf);
-        if (!k)
+        this->clients[curr_event->ident].append(buf); 
+        if (!this->request[curr_event->ident].parse_request(buf))
         {
+            //this->request[curr_event->ident].print_params();
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
-        }          
+        }
+        // std::cout << "received data from " << curr_event->ident << ": " \
+        // << clients[curr_event->ident] << std::endl;       
     }
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
 {
+    (void)config; (void)server; (void)env;
     if (this->clients.find(curr_event->ident) != this->clients.end())
     {
         if (this->clients[curr_event->ident] != "")
@@ -203,9 +207,9 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
                 //std::cout << COLOR_GREEN << log << COLOR_RESET << std::endl;
                 write(this->log_fd, log.c_str(), log.size());
                 delete_event(curr_event->ident, EVFILT_WRITE, "delete write event");
+                disconnect_client(curr_event->ident, this->clients, "write");
                 this->request[curr_event->ident].reset_request();
                 responsePool.erase(it);
-                disconnect_client(curr_event->ident, this->clients, "write");
                 clients_list.erase(curr_event->ident);
                 this->clients[curr_event->ident].clear();
             }

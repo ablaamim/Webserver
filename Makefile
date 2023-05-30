@@ -8,23 +8,23 @@ SRC = ./MainInc/main.cpp \
 	./parsing/libcpp.cpp \
 	./Servers/Servers.cpp \
 	./global_interface/Webserv.cpp \
-	./response/Response.cpp \
-	./response/utils.cpp \
-	./response/cgi.cpp \
-	./response/methods/get.cpp \
-	./response/methods/post.cpp \
-	./response/methods/delete.cpp
+	./Response/Response.cpp \
+	./Response/utils.cpp \
+	./Response/cgi.cpp \
+	./Response/methods/get.cpp \
+	./Response/methods/post.cpp \
+	./Response/methods/delete.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
 CC = clang++
 
-FLAGS = -std=c++11 -g3 -fsanitize=address #-Wall -Wextra -Werror
+FLAGS = -std=c++98 -g3 -fsanitize=address -Wall -Wextra -Werror
 
 all: $(NAME)
 
-$(NAME): $(OBJ)
-	$(CC) $(FLAGS) $(OBJ) -o $(NAME)
+$(NAME): 
+	$(CC) $(FLAGS) $(SRC) -o $(NAME)
 
 %.o: %.cpp
 	$(CC) $(FLAGS) -c $< -o $@
