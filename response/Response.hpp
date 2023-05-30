@@ -2,9 +2,6 @@
 #define RESPONSE_HPP
 
 #include "../MainInc/main.hpp"
-#include <dirent.h>
-#include "../Request/Request.hpp"
-#include "../global_interface/Webserv.hpp"
 
 # define NONE -1
 # define FILE 0
