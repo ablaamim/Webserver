@@ -115,9 +115,6 @@ Response::Response(Request req, int id, configurationSA::location location, char
                     ,_location(location),
                      _env(env)
 {
-    /*
-        all we need for now, we will call init() after creating the object, to check if the request is valid or not
-    */
 };
 
 

@@ -52,7 +52,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     Response newResponse(request, curr_event->ident, _obj_location, env);
     try
     {
-        std::cout << "request.path : " << request.path << std::endl;
+        //std::cout << "request.path : " << request.path << std::endl;
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
             newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
