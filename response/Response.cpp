@@ -1,10 +1,5 @@
-#include "Response.hpp"
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sstream>
-#include <iomanip>
+#include "../MainInc/main.hpp"
+
 
 std::map<std::string, std::string>  mime_types;                // map of (extension, mime_type)
 
@@ -273,7 +268,7 @@ void    Response::init()
     }
 }
 
-Response::Response(Request req, int id, configurationSA::location location, char **env) : _req(req), clientSocket(id) ,_location(location), _env(env)
+Response::Response(Request req, int id, configurationSA::location location, char **env) : _req(req), _location(location), _env(env), clientSocket(id)
 {
     /*
         Here, we will initialize the response instance.
@@ -337,7 +332,7 @@ void    Response::serveFile()
     this->lastChunkSize = this->fs.gcount();
     this->currentSize += this->lastChunkSize;
     send(this->clientSocket, buf, this->lastChunkSize, 0);
-    if (this->currentSize >= this->resourceSize)
+    if (this->currentSize >= static_cast<int>(this->resourceSize))
         this->isCompleted = true;
 }
 
@@ -368,6 +363,6 @@ Response::Response(const Response &other)
     this->_env = other._env;
     this->_req = other._req;
     this->_location = other._location;
-    this->fs = std::ifstream(other.resourceFullPath);
+    // this->fs = std::ifstream(other.resourceFullPath);
 
 }
