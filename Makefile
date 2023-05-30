@@ -23,12 +23,12 @@ OBJ = $(SRC:.cpp=.o)
 
 CC = clang++
 
-FLAGS = -std=c++11 -g3 #-fsanitize=address #-Wall -Wextra -Werror
+FLAGS = -std=c++98 -g3 -fsanitize=address #-Wall -Wextra -Werror
 
 all: $(NAME)
 
-$(NAME): $(OBJ)
-	$(CC) $(FLAGS) $(OBJ) -o $(NAME)
+$(NAME): 
+	$(CC) $(FLAGS) $(SRC) -o $(NAME)
 
 %.o: %.cpp
 	$(CC) $(FLAGS) -c $< -o $@

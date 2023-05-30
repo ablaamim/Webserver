@@ -5,12 +5,14 @@ void    openFile(Response& resp)
 {
     /* check if you have file permissions and set the appropriate status code (404, 403) */
     std::cout << "openFile" << std::endl;
-    resp.fs = std::ifstream(resp.resourceFullPath.c_str(), std::ios::binary);
-    if (resp.fs.good())
+    if(resp.fs)
+        delete(resp.fs);
+    resp.fs = new std::ifstream(resp.resourceFullPath.c_str(), std::ios::binary);
+    if (resp.fs->good())
     {
         std::cout << "good" << std::endl;
-        resp.fs.seekg(0, std::ios::end);
-        std::streampos length = resp.fs.tellg();
+        resp.fs->seekg(0, std::ios::end);
+        std::streampos length = resp.fs->tellg();
         resp.resourceSize = static_cast<size_t>(length);
     }
     else
@@ -31,9 +33,9 @@ void    serveFile(Response& resp)
             resp.headers["Content-Type"] = getContentType(resp.resourceFullPath);
             openFile(resp);
         }
-        resp.fs.seekg(resp.currentSize, std::ios::beg);
-        resp.fs.read(buf, CHUNCK_SIZE);
-        resp.lastChunkSize = resp.fs.gcount();
+        resp.fs->seekg(resp.currentSize, std::ios::beg);
+        resp.fs->read(buf, CHUNCK_SIZE);
+        resp.lastChunkSize = resp.fs->gcount();
         resp.currentSize += resp.lastChunkSize;
         if (resp.currentSize >= resp.resourceSize)
             resp.isCompleted = true;
