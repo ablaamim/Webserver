@@ -38,15 +38,19 @@ class Response
         std::map    <std::string, std::string>                  headers;
         std::map<std::string, void(Response::*)()>              _methods;     // this is the map that will be used to call the right method
         std::map    <std::string, std::vector<std::string> >    kwargs;
-        const static std::string	_css;
         
-        void    init_methods();
-        void    print_request();
-        void    print_methods();
-        void    insert_Location_kwargs(std::string key, std::vector<std::string> value);
-        void    print_kwargs();
-        void    serveDirectory(Response& resp);
-        int     getResourceType();
+        void                     init_methods();
+        void                     print_request();
+        void                     print_methods();
+        void                     insert_Location_kwargs(std::string key, std::vector<std::string> value);
+        void                     print_kwargs();
+        void                     serveDirectory(Response& resp);
+        int                      getResourceType();
+        void                     list_directories_recursive(std::string& path, std::vector<std::string>& directoryList);
+        std::vector<std::string> listing_directory(std::string& path);
+        void                     serveFile(Response& resp);
+
+
 
         /* serving client depending on the request method */
 
