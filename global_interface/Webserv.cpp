@@ -63,6 +63,27 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
                 newResponse.kwargs.insert(std::make_pair(it2->first, it2->second));
             }
         }
+
+        ////////////////////////////////////////////////////////////////////////
+        // REPLACEMENT LOGIC FOR THE ABOVE LOOP BUT IT FUCKS UP THE RESPONSE ///
+        ////////////////////////////////////////////////////////////////////////
+
+        // for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
+        // {
+        //     std::string key = it->first;
+        //     std::vector<std::string> values;
+        //     for (NoneUniqueKe_t::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
+        //     {
+        //         for (std::vector<std::string>::iterator it3 = it2->second.begin(); it3 != it2->second.end(); it3++)
+        //         {
+        //             //std::cout << "it3 : " << *it3 << std::endl;
+        //             values.push_back(*it3);
+        //         }
+        //         values.push_back(it2->first);
+        //     }
+        //     newResponse.kwargs.insert(std::make_pair(key, values));
+        // }
+
         for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
         newResponse.init();

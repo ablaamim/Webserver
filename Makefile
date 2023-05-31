@@ -20,25 +20,27 @@ SRC = ./MainInc/main.cpp \
 	./response/methods/delete.cpp \
 	
 
-OBJ = $(SRC:.cpp=.o)
 
 CC = clang++
 
-FLAGS = -std=c++98 -g3 -fsanitize=address #-Wall -Wextra -Werror
+CFLAGS =  -std=c++98 -g3 -fsanitize=address # -Wall -Wextra -Werror
+
+OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
 
-$(NAME): 
-	$(CC) $(FLAGS) $(SRC) -o $(NAME)
+$(NAME): $(OBJ)
+	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+	@echo "\033[32m[Webserv] Compiled\033[0m"
 
 %.o: %.cpp
-	$(CC) $(FLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(OBJ)
+	@rm -rf $(OBJ)
+	@echo "\033[32m[Webserv] Cleaned\033[0m"
 
 fclean: clean
-	rm -rf $(NAME)
 
 re: fclean all
 

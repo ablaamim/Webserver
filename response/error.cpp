@@ -33,7 +33,7 @@ void    generateDefaultErrorPage(Response& resp)
     resp.body += "</body>\n";
     resp.body += "</html>\n";
     resp.headers["Content-Type"] = "text/html";
-    resp.headers["Content-Length"] = std::to_string(resp.body.length());
+    resp.headers["Content-Length"] = std::to_string(resp.body.size());
     resp.sendResponse(FULL);
 }
 

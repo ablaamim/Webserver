@@ -11,18 +11,9 @@ void Response::list_directories_recursive(std::string& path, std::vector<std::st
         {
             if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
                 std::string entryName = ent->d_name;
-                //std::cout << "RESS BEFORE = " << resourceFullPath << std::endl;
-                //std::cout << "PATH                = "<< path << std::endl;
-                //std::cout << "Resource full path  = " << resourceFullPath << std::endl;
-
-                // save root path in kwargs
-                //this->kwargs["root"] = std::vector<std::string>({path});
-                //std::cout << "ROOT = " << this->kwargs["root"][0] << std::endl;
                 directoryList.push_back(entryName);
                 if (ent->d_type == DT_DIR)
                 {
-                    //std::cout << "ENTRYNAME = " << entryName << std::endl;
-                    //std::cout << "PATH  = "<< path << std::endl;
                     list_directories_recursive(entryName, directoryList);
                 }
             }
@@ -103,16 +94,17 @@ void    Response::serveDirectory(Response& resp)
     // }
     // else
     // {
-        std::cout << this->resourceFullPath << std::endl;
-        std::vector<std::string> list_of_files = listing_directory(resp.resourceFullPath);
-        //serve list of directories as html
-    
+        std::vector<std::string> list_of_files = resp.listing_directory(resp.resourceFullPath);
         resp.headers["Content-Type"] = "text/html";
         resp.body = "<h1> Index of " + resp.resourceFullPath + "</h1> ";
         for (std::vector<std::string>::iterator it = list_of_files.begin(); it != list_of_files.end(); ++it)
         {
+            if (resp._req.path == "/")
+                resp._req.path = "";
+            std::string path = resp._req.path + "/" + *it;
             resp.body += "<a href=\"";
-            resp.body += *it;
+            resp.body += path;
+            //std::cout << "it = " << path << std::endl;
             resp.body += "\">";
             resp.body += *it;
             resp.body += "</a><br>";
