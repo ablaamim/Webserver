@@ -22,10 +22,14 @@ void deleteFiles(const std::string& directory)
             continue;
         }
 
-        if (S_ISREG(file_stat.st_mode)) {  // Check if it's a regular file
-            if (remove(full_path.c_str()) != 0) {
+        if (S_ISREG(file_stat.st_mode))
+        {
+            if (remove(full_path.c_str()) != 0)
+            {
                 std::cout << "Error deleting file: " << full_path << std::endl;
-            } else {
+            }
+            else
+            {
                 std::cout << "Deleted file: " << full_path << std::endl;
             }
         }
