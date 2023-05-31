@@ -14,10 +14,7 @@ int     Response::getResourceType()
 void    Response::setResourceInfo()
 {
     if (this->kwargs["root"].empty())
-    {
-        this->status = std::make_pair("404", "Root not Found");
-        throw Response_err("No root path specified");
-    }
+        this->serveERROR("404", "Not Found");
     else
     {
         // std::cout << "ROOT IN SET == "<< this->kwargs["root"][0] << std::endl;

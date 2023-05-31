@@ -48,7 +48,6 @@ void print_vector_of_strings(std::vector<std::string> list_of_files)
 void    openFile(Response& resp)
 {
     /* check if you have file permissions and set the appropriate status code (404, 403) */
-    std::cout << "openFile" << std::endl;
     if(resp.fs)
         delete(resp.fs);
     resp.fs = new std::ifstream(resp.resourceFullPath.c_str(), std::ios::binary);
@@ -60,10 +59,7 @@ void    openFile(Response& resp)
         resp.resourceSize = static_cast<size_t>(length);
     }
     else
-    {
-        resp.status = std::make_pair("404", "Not Found");
-        throw std::runtime_error(resp.status.second);
-    }
+        resp.serveERROR("404", "File Not Found");
     // /* if anything goes wrong, throw an exeception, NOTE: this will be catched in Webserv.cpp */
     // if (resp.status.first != "200")
     //     throw std::runtime_error(resp.status.second);
@@ -74,7 +70,7 @@ void    Response::serveFile(Response& resp)
     try
     {
         char buf[CHUNCK_SIZE];
-        if (resp.currentSize == 0)
+        if (resp.currentSize == 0) /* first time we open the file, no need to re open it when the response its chuncked */
         {
             resp.headers["Content-Type"] = getContentType(resp.resourceFullPath);
             openFile(resp);
@@ -90,7 +86,6 @@ void    Response::serveFile(Response& resp)
     }
     catch(const std::exception& e)
     {
-        std::cerr << "!!!!Error: " << e.what() << '\n';
         throw Response_err(e.what());
     }
 }
