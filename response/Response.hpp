@@ -52,7 +52,7 @@ class Response
         /* serving client depending on the request method */
 
         void    serve(); // this is the main method that will be called to serve the client
-
+        void    serveERROR(std::string errorCode, std::string errorMsg);
         void    serveGET();
         void    servePOST();
         void    serveDELETE();

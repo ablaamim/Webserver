@@ -13,6 +13,7 @@ SRC = ./MainInc/main.cpp \
 	./response/checkRequest.cpp \
 	./response/debug.cpp \
 	./response/resource.cpp \
+	./response/error.cpp \
 	./response/sendResponse.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \

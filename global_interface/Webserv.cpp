@@ -70,8 +70,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
-        newResponse.sendResponse(HEADERS_ONLY);
         client_cleanup(curr_event->ident);
     }
 }
@@ -212,8 +210,7 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &c
             }
             catch(const std::exception& e)
             {
-                std::cerr << e.what() << '\n';
-                it->second.sendResponse(HEADERS_ONLY);
+                std::cout << COLOR_RED << "Error: " << e.what() << COLOR_RESET << std::endl;
                 client_cleanup(curr_event->ident);
             }
         }
