@@ -125,6 +125,7 @@ Response::~Response()
 	{
         this->fs->close();
 		delete(this->fs);
+		this->fs = NULL;
 	}
 }
 
