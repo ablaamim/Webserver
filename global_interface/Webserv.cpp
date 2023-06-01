@@ -44,8 +44,9 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
 {
     Request req = this->request[curr_event->ident];
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
-    typedef std::map<std::string, std::vector<std::string> > NoneUniqueKe_t; // map of none unique keys that have more than one value         
-    
+    typedef std::map<std::string, std::vector<std::string> > UniqueKey_t; // map of none unique keys that have more than one value         
+    std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
+
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
     configurationSA::location   _obj_location = match_location(request.path, _obj_server); 
@@ -55,38 +56,36 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     {
         //std::cout << "request.path : " << request.path << std::endl;
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
-            newResponse.kwargs.insert(std::make_pair(it->first, it->second));
-        for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
         {
-            for (std::map<std::string, std::vector<std::string> >::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
-            {
-                newResponse.kwargs.insert(std::make_pair(it2->first, it2->second));
-            }
+            newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         }
-
         ////////////////////////////////////////////////////////////////////////
         // REPLACEMENT LOGIC FOR THE ABOVE LOOP BUT IT FUCKS UP THE RESPONSE ///
         ////////////////////////////////////////////////////////////////////////
 
-        // for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
-        // {
-        //     std::string key = it->first;
-        //     std::vector<std::string> values;
-        //     for (NoneUniqueKe_t::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
-        //     {
-        //         for (std::vector<std::string>::iterator it3 = it2->second.begin(); it3 != it2->second.end(); it3++)
-        //         {
-        //             //std::cout << "it3 : " << *it3 << std::endl;
-        //             values.push_back(*it3);
-        //         }
-        //         values.push_back(it2->first);
-        //     }
-        //     newResponse.kwargs.insert(std::make_pair(key, values));
-        // }
-
+        for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
+        {
+            std::string key = it->first;
+            std::vector<std::string> values;
+            std::map<std::string, std::vector<std::string> > ::iterator it_map = it->second.begin();
+            while(it_map != it->second.end())
+            {
+                values.push_back(it_map->first);
+                std::vector<std::string>::iterator vec_iter = it_map->second.begin();
+                while (vec_iter != it_map->second.end())
+                {
+                    values.push_back(*vec_iter);
+                    vec_iter++;
+                }
+                it_map++;
+            }
+            newResponse.kwargs.insert(std::make_pair(key, values));
+            
+        }
         for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
         newResponse.init();
+        //newResponse.print_kwargs();
         responsePool.insert(std::make_pair(curr_event->ident, newResponse));
     }
     catch(const std::exception& e)
@@ -127,13 +126,8 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
 		std::string	current_location;
 		for (std::vector<std::string>::iterator it = splited_trgt.begin(); std::reverse_iterator< std::vector<std::string>::iterator >(it) != re_it; it++)
 			current_location += "/" + *it;		
-        if (server.location.count(current_location))
-		{
-			result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, current_location)));
-			result.insert(server.location[current_location]);
-		}
 	}	
-    result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, "")));	
+    //result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, "")));	
     result.insert(server.location["/"]);
     return (result);
 }
@@ -197,7 +191,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
         if (n <= 0)
         {
-            std::cout << "read error " << strerror(errno) << std::endl;
             disconnect_client(curr_event->ident, this->clients, "read");
             return ;
         }

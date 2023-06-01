@@ -5,7 +5,12 @@ int     Response::getResourceType()
     if (this->kwargs.find("cgi-bin") != this->kwargs.end())
         return CGI;
     else if (this->kwargs.find("return") != this->kwargs.end())
+    {
+        //std::string returnCode = this->kwargs["return"][0];
+        //std::cout << "RETURN CODE == " << returnCode << std::endl;
         return REDIRECT;
+    }
+        
     if (isDirectory(this->resourceFullPath.c_str()))
         return DIRECTORY;
     return FILE;
