@@ -17,7 +17,7 @@ void Response::list_directories_recursive(std::string& path, std::vector<std::st
                     list_directories_recursive(entryName, directoryList);
                 }
             }
-            this->resourceFullPath = path;
+            //this->resourceFullPath = path;
         }
         closedir(dir);
     }
@@ -103,7 +103,7 @@ void    Response::serveDirectory(Response& resp)
                 resp._req.path = "";
             std::string path = resp._req.path + "/" + *it;
             resp.body += "<a href=\"";
-            resp.body += path;
+            resp.body += *it;
             //std::cout << "it = " << path << std::endl;
             resp.body += "\">";
             resp.body += *it;
@@ -129,6 +129,7 @@ void    Response::serveGET()
 {
     try
     {
+        this->print_kwargs();
         if(this->resourceType == FILE)
             serveFile(*this);
         else if (this->resourceType == DIRECTORY)

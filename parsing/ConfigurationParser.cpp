@@ -57,8 +57,8 @@ void configurationSA::configuration::initialize_data(void)
     // Initialize data collection.    
     std::string allowedMethods[] = {"GET", "POST", "DELETE"};
     std::string autoindex[] = {"on", "off"};
-    std::string ErrorPages[] = {"403", "404", "405", "413", "500"}; 
-    std::string returnCode[] = {"200", "403", "404" ,"405", "413", "500"};
+    std::string ErrorPages[] = {}; 
+    std::string returnCode[] = {};
     /*
      ERROR PAGES : 403 = Forbidden, 404 = Not Found, 405 = Method Not Allowed, 413 = Request Entity Too Large, 500 = Internal Server Error
      RETURN CODE : 200 = OK, 403 = Forbidden, 404 = Not Found, 405 = Method Not Allowed, 413 = Request Entity Too Large, 500 = Internal Server Error
@@ -68,19 +68,20 @@ void configurationSA::configuration::initialize_data(void)
     {
         std::make_pair("server_name", raw_configuration(SERVER_KEYTYPE, NULL, UNLIMITED_PARAMS)),                               // SERVER NAME DOES NOT TAKE A PARAMETER
         
-        std::make_pair("listen", raw_configuration(SERVER_KEYTYPE, &listen_format, 2)),                                         // LISTEN PORT
+        std::make_pair("listen", raw_configuration(SERVER_KEYTYPE, &listen_format, 2)),     
+        std::make_pair("cgi-bin", raw_configuration(NONE_UNIQUE_KEYTYPE, &check_cgi, 1)),                                     // LISTEN PORT
         
         std::make_pair("return", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, returnCode, SIZEOF(returnCode))),              // RETURN CODE
         
         std::make_pair("error_pages", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, 1, ErrorPages, SIZEOF(ErrorPages))),         // ERROR PAGE
         
-        std::make_pair("cgi-bin", raw_configuration(NONE_UNIQUE_KEYTYPE, &check_cgi, 1)),                                       // CGI = OMMON GATEWAY INTERFACE
+                                              // CGI = OMMON GATEWAY INTERFACE
         
         std::make_pair("auto_index", raw_configuration(UNIQUE_KEYTYPE, NULL, 1, autoindex, SIZEOF(autoindex))),                 // AUTOINDEX
         
         std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)),                                                   // UPLOAD
         
-        std::make_pair("index", raw_configuration(UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)),                                     // INDEX
+        std::make_pair("index", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)),                                     // INDEX
         
         std::make_pair("root",   raw_configuration(UNIQUE_KEYTYPE, &check_root, 1)),                                            // ROOT
         
@@ -105,24 +106,24 @@ void configurationSA::configuration::initialize_default_values(void)
         return ;
     std::pair<std::string, std::vector<std::string> > return_tab[] =
     {
-        std::make_pair("200", std::vector<std::string> (1, "OK")),
-        
-        std::make_pair("403", std::vector<std::string> (1, "Forbidden")),
-        
-        std::make_pair("404", std::vector<std::string> (1, "Not Found")),
-        
-        std::make_pair("405", std::vector<std::string> (1, "Method Not Allowed")),
-        
-        std::make_pair("413", std::vector<std::string> (1, "Request Entity Too Large")),
-        
-        std::make_pair("500", std::vector<std::string> (1, "Internal Server Error")),
+        //std::make_pair("200", std::vector<std::string> (1, "OK")),
+        //
+        //std::make_pair("403", std::vector<std::string> (1, "Forbidden")),
+        //
+        //std::make_pair("404", std::vector<std::string> (1, "Not Found")),
+        //
+        //std::make_pair("405", std::vector<std::string> (1, "Method Not Allowed")),
+        //
+        //std::make_pair("413", std::vector<std::string> (1, "Request Entity Too Large")),
+        //
+        //std::make_pair("500", std::vector<std::string> (1, "Internal Server Error")),
     };
-    std::pair<std::string, std::map<std::string, std::vector<std::string> > > noneUniqueKey[] =
-    {
-        std::make_pair("return", std::map<std::string, std::vector<std::string> >(return_tab, return_tab + SIZEOF(return_tab))),
-    };
+    //std::pair<std::string, std::map<std::string, std::vector<std::string> > > noneUniqueKey[] =
+    //{
+        //std::make_pair("return", std::map<std::string, std::vector<std::string> >(return_tab, return_tab + SIZEOF(return_tab))),
+    //};
     
-    _default_values.NoneUniqueKey.insert(noneUniqueKey, noneUniqueKey + SIZEOF(noneUniqueKey));
+    //_default_values.NoneUniqueKey.insert(noneUniqueKey, noneUniqueKey + SIZEOF(noneUniqueKey));
     
     // UNIQUE KEY DEFAULT VALUES.
     std::string allowed_methods[] = {"GET", "POST", "DELETE"};
@@ -131,7 +132,7 @@ void configurationSA::configuration::initialize_default_values(void)
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "off")),
         
-        std::make_pair("max_body_size", std::vector<std::string>(1, "100000000")),
+        //std::make_pair("max_body_size", std::vector<std::string>(1, "100000000")),
         
         std::make_pair("allowed_methods", std::vector<std::string>(allowed_methods, allowed_methods + SIZEOF(allowed_methods))),
     };

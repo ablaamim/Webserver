@@ -15,7 +15,7 @@ void    Response::sendResponse(int mode)
     if (mode == FULL)
         responseMessage += this->body;
     if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
-        this->serveERROR("500", "Internal Server Error");
+        throw Response_err("send() failed");
     if (this->currentSize >= this->resourceSize)
         this->isCompleted = true;
     this->body.clear();
