@@ -106,6 +106,8 @@ void    Response::serveDirectory(Response& resp)
 
 void    serveCGI(Response& resp)
 {
+    (void)resp;
+    std::cout << "serveCGI" << std::endl;
 }
 
 void    serveRedirect(Response& resp)
@@ -119,15 +121,16 @@ void    Response::serveGET()
 {
     try
     {
-        this->print_kwargs();
+        //this->print_kwargs();
+        //std::cout << this->resourceType << std::endl;
         if(this->resourceType == FILE)
             serveFile(*this);
         else if (this->resourceType == DIRECTORY)
             serveDirectory(*this);
         else if (this->resourceType == CGI)
-            serveCGI(*this);
-        else if (this->resourceType == REDIRECT)
-            serveRedirect(*this);
+             serveCGI(*this);
+         else if (this->resourceType == REDIRECT)
+             serveRedirect(*this);
     }
     catch(const std::exception& e)
     {

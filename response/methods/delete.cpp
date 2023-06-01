@@ -46,6 +46,18 @@ void    Response::serveDELETE()
 {
     try
     {
+        std::cout << "DELETE" << std::endl;
+        //this->print_kwargs();
+        // if (this->kwargs_alloc->empty())
+        // {
+        //     std::cout << "DELETE EMPTY" << std::endl;
+        //     exit(0);
+        // }
+        // if (this->kwargs.empty())
+        // {
+        //     std::cout << "DELETE EMPTY" << std::endl;
+        //     exit(0);
+        // }
         if (deleteFiles(this->resourceFullPath, *this))
             this->sendResponse(HEADERS_ONLY);
     }
