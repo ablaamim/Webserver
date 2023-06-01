@@ -44,25 +44,26 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
 {
     Request req = this->request[curr_event->ident];
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
-    typedef std::map<std::string, std::vector<std::string> > UniqueKey_t; // map of none unique keys that have more than one value         
     std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
 
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
-    configurationSA::Server     _obj_server = Select_server(config, server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+    configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
     configurationSA::location   _obj_location = match_location(request.path, _obj_server); 
 
     Response newResponse(request, curr_event->ident, _obj_location, env);
+    
     try
     {
-        //std::cout << "request.path : " << request.path << std::endl;
+        // allocate memory for kwargs
+        
+        //newResponse.kwargs_alloc = new std::map<std::string, std::vector<std::string> >;
+        
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
         {
+            newResponse.kwargs_alloc->insert(std::make_pair(it->first, it->second));
             newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         }
-        ////////////////////////////////////////////////////////////////////////
-        // REPLACEMENT LOGIC FOR THE ABOVE LOOP BUT IT FUCKS UP THE RESPONSE ///
-        ////////////////////////////////////////////////////////////////////////
-
+        
         for (NoneUniqueKey_t::iterator it = _obj_location.NoneUniqueKey.begin(); it != _obj_location.NoneUniqueKey.end(); it++)
         {
             std::string key = it->first;
@@ -80,12 +81,26 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
                 it_map++;
             }
             newResponse.kwargs.insert(std::make_pair(key, values));
-            
+            newResponse.kwargs_alloc->insert(std::make_pair(key, values));
         }
         for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
+        {
+            newResponse.kwargs_alloc->insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
+        }
         newResponse.init();
-        //newResponse.print_kwargs();
+        // for (std::map<std::string, std::vector<std::string> >::iterator it = newResponse.kwargs.begin(); it != newResponse.kwargs.end(); it++)
+        // {
+        //     std::cout << COLOR_YELLOW << "[ " << it->first << " ]" << COLOR_RESET << std::endl;
+        //     for (std::vector<std::string>::iterator it_vec = it->second.begin(); it_vec != it->second.end(); it_vec++)
+        //         std::cout << COLOR_YELLOW << "[ " << *it_vec << " ]" << COLOR_RESET << std::endl;
+        // }
+        // for (std::map<std::string, std::vector<std::string> >::iterator it = newResponse.kwargs_alloc->begin(); it != newResponse.kwargs_alloc->end(); it++)
+        // {
+        //     std::cout << COLOR_YELLOW << "[ " << it->first << " ]" << COLOR_RESET << std::endl;
+        //     for (std::vector<std::string>::iterator it_vec = it->second.begin(); it_vec != it->second.end(); it_vec++)
+        //         std::cout << COLOR_YELLOW << "[ " << *it_vec << " ]" << COLOR_RESET << std::endl;
+        // }
         responsePool.insert(std::make_pair(curr_event->ident, newResponse));
     }
     catch(const std::exception& e)
@@ -94,7 +109,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     }
 }
 
-configurationSA::Server Webserv::Select_server(configurationSA &config, std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname)
+configurationSA::Server Webserv::Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname)
 {
     
     configurationSA::data_type::iterator iter = Servers_vector.end();
@@ -127,7 +142,6 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
 		for (std::vector<std::string>::iterator it = splited_trgt.begin(); std::reverse_iterator< std::vector<std::string>::iterator >(it) != re_it; it++)
 			current_location += "/" + *it;		
 	}	
-    //result.UniqueKey.insert(std::make_pair("root_to_delete", std::vector<std::string> (1, "")));	
     result.insert(server.location["/"]);
     return (result);
 }
@@ -176,7 +190,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-        fcntl(client_socket, F_SETFL, O_NONBLOCK);
         std::cout << COLOR_YELLOW << "accept new client: " << client_socket << COLOR_RESET << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
@@ -206,9 +219,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     }
 }
 
-
-
-void Webserv::webserv_evfilt_write(struct kevent *curr_event, configurationSA &config, Servers &server, char **env)
+void Webserv::webserv_evfilt_write(struct kevent *curr_event)
 {
     if (this->clients.find(curr_event->ident) != this->clients.end())
     {
@@ -242,7 +253,7 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);        
         }
         else if (this->event_list[i].filter == EVFILT_WRITE)
-            webserv_evfilt_write(&this->event_list[i], config, server, env);
+            webserv_evfilt_write(&this->event_list[i]);
         else if (this->event_list[i].flags & EV_EOF)
         {
             clients_list.erase(this->event_list[i].ident);
