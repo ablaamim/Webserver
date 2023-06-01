@@ -12,10 +12,6 @@ void Response::list_directories_recursive(std::string& path, std::vector<std::st
             if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
                 std::string entryName = ent->d_name;
                 directoryList.push_back(entryName);
-                if (ent->d_type == DT_DIR)
-                {
-                    list_directories_recursive(entryName, directoryList);
-                }
             }
             //this->resourceFullPath = path;
         }
@@ -37,23 +33,18 @@ void print_vector_of_strings(std::vector<std::string> list_of_files)
 }
 
 void    openFile(Response& resp)
-{
-    /* check if you have file permissions and set the appropriate status code (404, 403) */
-    if(resp.fs)
-        delete(resp.fs);
+{       
+    if (access(resp.resourceFullPath.c_str(), F_OK) != 0)
+        resp.serveERROR("404", "Not Found");
+    if (access(resp.resourceFullPath.c_str(), R_OK) != 0)
+        resp.serveERROR("403", "Forbidden");
     resp.fs = new std::ifstream(resp.resourceFullPath.c_str(), std::ios::binary);
     if (resp.fs->good())
     {
-        std::cout << "good" << std::endl;
         resp.fs->seekg(0, std::ios::end);
         std::streampos length = resp.fs->tellg();
         resp.resourceSize = static_cast<size_t>(length);
     }
-    else
-        resp.serveERROR("404", "File Not Found");
-    // /* if anything goes wrong, throw an exeception, NOTE: this will be catched in Webserv.cpp */
-    // if (resp.status.first != "200")
-    //     throw std::runtime_error(resp.status.second);
 }
 
 void    Response::serveFile(Response& resp)
@@ -103,8 +94,7 @@ void    Response::serveDirectory(Response& resp)
                 resp._req.path = "";
             std::string path = resp._req.path + "/" + *it;
             resp.body += "<a href=\"";
-            resp.body += *it;
-            //std::cout << "it = " << path << std::endl;
+            resp.body += path;
             resp.body += "\">";
             resp.body += *it;
             resp.body += "</a><br>";
