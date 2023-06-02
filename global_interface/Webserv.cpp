@@ -48,8 +48,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
 
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    configurationSA::location   _obj_location = match_location(request.path, _obj_server); 
-
+    configurationSA::location   _obj_location = match_location(request.path, _obj_server);
     Response newResponse(request, curr_event->ident, _obj_location, env);
     
     try
@@ -60,7 +59,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
         
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
         {
-            newResponse.kwargs_alloc->insert(std::make_pair(it->first, it->second));
+            //newResponse.kwargs_alloc->insert(std::make_pair(it->first, it->second));
             newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         }
         
@@ -81,11 +80,11 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
                 it_map++;
             }
             newResponse.kwargs.insert(std::make_pair(key, values));
-            newResponse.kwargs_alloc->insert(std::make_pair(key, values));
+            //newResponse.kwargs_alloc->insert(std::make_pair(key, values));
         }
         for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
         {
-            newResponse.kwargs_alloc->insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
+            //newResponse.kwargs_alloc->insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
         }
         newResponse.init();

@@ -21,6 +21,7 @@ void    Request::print_params()
 Request::Request()
 {
     this->headers_done = false;
+    this->content_length = 0;
     this->first_line = false;
     this->is_chuncked = false;
     this->params[_CONTENT_] = "";
