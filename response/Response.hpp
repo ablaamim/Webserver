@@ -21,8 +21,8 @@ class Response
         std::ifstream                                           *fs; // this is the file descriptor that will be used to read / track the file                                                  
         int                                                     clientSocket;
         size_t                                                  resourceSize; 
-        int                                                     currentSize;
-        int                                                     lastChunkSize;
+        size_t                                                  currentSize;
+        size_t                                                  lastChunkSize;
         int                                                     resourceType; 
         bool                                                    isCompleted;
         bool                                                    isChunked;
@@ -35,6 +35,8 @@ class Response
         std::map    <std::string, std::string>                  headers;
         std::map<std::string, void(Response::*)()>              _methods;     // this is the map that will be used to call the right method
         std::map    <std::string, std::vector<std::string> >    kwargs;
+        std::map    <std::string, std::vector<std::string> >    *kwargs_alloc;
+
         
         void                     init_methods();
         void                     print_request();
