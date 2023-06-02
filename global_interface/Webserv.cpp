@@ -185,6 +185,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     char buf[BUFFER_SIZE] = {0};
     int n = 0, k = 120;
 
+    (void)config; (void)server; (void)env;
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
@@ -247,7 +248,6 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
     {
         if (this->event_list[i].flags & EV_ERROR)
             disconnect_client(this->event_list[i].ident, this->clients, "EV_ERROR");
-
         else if (this->event_list[i].flags & EV_EOF)
         {
             clients_list.erase(this->event_list[i].ident);

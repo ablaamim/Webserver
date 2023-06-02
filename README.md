@@ -229,17 +229,17 @@ Here is an example fie that shows config file format and supported directives.
 
 server 
 {
-    listen 8001;                        # listening port, mandatory parameter
-    server_name test;                   # specify server_name, need to be added into /etc/hosts to work
+    listen 8001;                        # listening port
+    server_name example.com;            # specify server_name, need to be added into /etc/hosts to work
     error_page 404 /error/404.html;     # default error page
-    client_max_body_size 1024;          # max request body size in bytes
-    root docs/fusion_web/;              # root folder of site directory, full or relative path, mandatory parameter
+    max_body_size 1024;          # max request body size in bytes
+    root docs/fusion_web/;              # root folder of site directory, full or relative path
     index index.html;                   # default page when requesting a directory, index.html by default
 
     location /
     {                   
         root docs/fusion_web;           # root folder of the location, if not specified, taken from the server. 
-        autoindex on;                   # turn on/off directory listing
+        auto_index on;                   # turn on/off directory listing
         allow_methods POST GET;         # allowed methods in location, GET only by default
         index index.html;               # default page when requesting a directory, copies root index by default
         return abc/index1.html;         # redirection
@@ -247,7 +247,7 @@ server
 
     location / {
         root ./;                                      # cgi-bin location, mandatory parameter
-        cgi .py /usr/bin/python3;                     # location of interpreters installed on the current system, mandatory parameter and extensions for executable files, mandatory parameter
+        bin-cgi .py /usr/bin/python3;                     # location of interpreters installed on the current system, mandatory parameter and extensions for executable files, mandatory parameter
     }
 }
   ```
