@@ -101,6 +101,7 @@ void    Response::init()
         this->isChunked = false;
 		this->fs = NULL;
 		this->method = this->_req.method;
+		this->print_kwargs();
         this->checkRequest();
         this->setResourceInfo();
     }
@@ -111,20 +112,24 @@ void    Response::init()
 }
 
 Response::Response(Request req, int id, configurationSA::location location, char **env)
-                    : _req(req),
-                    clientSocket(id) 
-                    ,_location(location),
-                     _env(env)
 {
-};
+	std::cout << "CONSTRUCTOR" << std::endl;
+	this->_req = req;
+	this->_location = location;
+	this->_env = env;
+	this->clientSocket = id;
+	this->kwargs_alloc = new std::map<std::string, std::vector<std::string> >();
+}
 
 
 Response::~Response()
 {
+	std::cout << "DESTRUCTOR" << std::endl;
     if (this->fs)
 	{
         this->fs->close();
 		delete(this->fs);
+		this->fs = NULL;
 	}
 }
 
@@ -149,11 +154,10 @@ Response::Response(const Response &other)
     this->fs = new std::ifstream(other.resourceFullPath,std::ifstream::binary);
 }
 
-
 std::string     getContentType(std::string path)
 {
 	
-	int pos = path.find_last_of(".");
+	size_t pos = path.find_last_of(".");
 	if (pos == std::string::npos)
 		return ("application/octet-stream");
 	std::map<std::string, std::string>::iterator it = mime_types.find(path.substr(pos));

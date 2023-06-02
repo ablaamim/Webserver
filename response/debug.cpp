@@ -22,11 +22,10 @@ void Response::print_kwargs()
     while (it != this->kwargs.end())
     {
         std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET;
-        for (size_t i = 0; i < it->second.size(); i++)
-        {
-            std::cout << COLOR_YELLOW << it->second[i] << " " << COLOR_RESET;
-            std::cout << std::endl;
-            it++;
-        }
+        std::vector<std::string> v = it->second;
+        for (std::vector<std::string>::iterator it2 = v.begin(); it2 != v.end(); ++it2)
+            std::cout << COLOR_YELLOW << *it2 << " ";
+        std::cout << std::endl;
+        it++;
     }
 }

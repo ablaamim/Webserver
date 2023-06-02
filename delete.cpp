@@ -1,40 +1,66 @@
 #include <iostream>
-#include <string>
 #include <dirent.h>
-#include <sys/stat.h>
+#include <unistd.h>
+#include <string>
 
-void deleteFiles(const std::string& directory) {
-    DIR* dir = opendir(directory.c_str());
+bool isDirectoryEmpty(const std::string& folderPath);
+
+bool deleteFolderOrFile(const std::string& path) {
+    if (access(path.c_str(), F_OK) != 0) {
+        std::cerr << "Path '" << path << "' does not exist." << std::endl;
+        return false;
+    }
+
+    if (access(path.c_str(), W_OK) != 0) {
+        std::cerr << "No write permissions for '" << path << "'." << std::endl;
+        return false;
+    }
+
+    if (isDirectoryEmpty(path)) {
+        if (rmdir(path.c_str()) == 0) {
+            std::cout << "Folder '" << path << "' deleted successfully." << std::endl;
+            return true;
+        } else {
+            std::cerr << "Error deleting folder: " << path << std::endl;
+        }
+    } else {
+        if (remove(path.c_str()) == 0) {
+            std::cout << "File '" << path << "' deleted successfully." << std::endl;
+            return true;
+        } else {
+            std::cerr << "Error deleting file: " << path << std::endl;
+        }
+    }
+
+    return false;
+}
+
+bool isDirectoryEmpty(const std::string& folderPath) {
+    DIR* dir = opendir(folderPath.c_str());
     if (dir == NULL) {
-        std::cout << "Error opening directory: " << directory << std::endl;
-        return;
+        std::cerr << "Error opening directory: " << folderPath << std::endl;
+        return false;
     }
 
     dirent* entry;
     while ((entry = readdir(dir)) != NULL) {
-        std::string file_name = entry->d_name;
-        std::string full_path = directory + "/" + file_name;
-
-        struct stat file_stat;
-        if (stat(full_path.c_str(), &file_stat) == -1) {
-            std::cout << "Error getting file status for: " << full_path << std::endl;
-            continue;
-        }
-
-        if (S_ISREG(file_stat.st_mode)) {  // Check if it's a regular file
-            if (remove(full_path.c_str()) != 0) {
-                std::cout << "Error deleting file: " << full_path << std::endl;
-            } else {
-                std::cout << "Deleted file: " << full_path << std::endl;
-            }
+        if (std::string(entry->d_name) != "." && std::string(entry->d_name) != "..") {
+            closedir(dir);
+            return false;  // Directory is not empty
         }
     }
 
     closedir(dir);
+    return true;  // Directory is empty
 }
 
+// Example usage:
 int main() {
-    std::string directory_path = "/Users/ablaamim/Desktop/DEL_TEST";  // Replace with your directory path
-    deleteFiles(directory_path);
+    std::string folderPath = "/Users/ablaamim/Desktop/Webserver/lol/";
+    std::string filePath = "DEL_NO_PERMISSIONS/file.txt";
+
+    deleteFolderOrFile(folderPath);
+    deleteFolderOrFile(filePath);
+
     return 0;
 }
