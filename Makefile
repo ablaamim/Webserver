@@ -23,14 +23,16 @@ SRC = ./MainInc/main.cpp \
 
 CC = clang++
 
-CFLAGS =  -std=c++98 -g3 -fsanitize=address -Wall -Wextra -Werror
+#CFLAGS =  -std=c++98 #-Wall -Wextra -Werror #-g3 -fsanitize=address
+
+CFLAGS =  -std=c++98  #-g3 -fsanitize=address
 
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
 
-$(NAME): $(OBJ)
-	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+$(NAME):
+	@$(CC) $(CFLAGS) $(SRC) -o $(NAME)
 	@echo "\033[32m[Webserv] Compiled\033[0m"
 
 %.o: %.cpp
@@ -41,6 +43,7 @@ clean:
 	@echo "\033[32m[Webserv] Cleaned\033[0m"
 
 fclean: clean
+		@rm -rf $(NAME)
 
 re: fclean all
 

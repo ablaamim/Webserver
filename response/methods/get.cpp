@@ -49,6 +49,7 @@ void    openFile(Response& resp)
 
 void    Response::serveFile(Response& resp)
 {
+    //this->print_kwargs();
     try
     {
         char buf[CHUNCK_SIZE];
@@ -77,8 +78,9 @@ void    Response::serveDirectory(Response& resp)
     //std::cout << "serveDirectory" << std::endl;
 
     //std::cout << this->_location.UniqueKey["auto_index"][0] << std::endl;
-
-    if (this->_location.UniqueKey["auto_index"][0] == "off")
+    //if (this->kwargs.empty())
+        //exit(1);
+    if (this->kwargs["auto_index"][0] == "off")
     {
         //std::cout << "AUTO INDEX OFF" << std::endl;
         resp.serveERROR("403", "Forbidden");
