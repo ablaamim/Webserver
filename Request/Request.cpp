@@ -1,36 +1,37 @@
 #include "../MainInc/main.hpp"
 
 
-std::string Request::get_content()
-{
-    return this->params[_CONTENT_];
-}
-
-void    Request::print_params()
-{
-    it_param it = this->params.begin();
-    std::cout << COLOR_RED << "   Display Request params " << COLOR_RESET << std::endl;
-    while (it != this->params.end())
-    {
-        // if (it->first != _CONTENT_)
-            std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
-        it++;
-    }
-}
-
+/********************************************************************/
+/*                     Constructors  and Destructor                 */
+/********************************************************************/
 Request::Request()
 {
     this->headers_done = false;
     this->content_length = 0;
     this->first_line = false;
     this->is_chuncked = false;
-    this->params[_CONTENT_] = "";
+    this->file_body_name = "";
+    this->file = NULL;
 }
 
 Request::Request(Request const & ob)
 {
     *this = ob;
 }
+
+Request::~Request(){};
+
+
+/********************************************************************/
+
+
+
+
+/********************************************************************/
+/*                            Operator Overload                     */
+/********************************************************************/
+
+
 Request & Request::operator=(Request const &ob)
 {
     this->headers_done = ob.headers_done;
@@ -44,11 +45,14 @@ Request & Request::operator=(Request const &ob)
     this->version = ob.version;
     this->content_length = ob.content_length;
     this->body = ob.body;
-    this->body_name = ob.body_name;
+    if (this->file_body_name.size())
+        std::remove(this->file_body_name.c_str());
+    this->file_body_name = ob.file_body_name;
+    this->file = ob.file;
     return *this;
 }
 
-Request::~Request(){};
+
 
 std::ostream & operator<<(std::ostream & o, Request const & ref)
 {
@@ -60,29 +64,78 @@ std::ostream & operator<<(std::ostream & o, Request const & ref)
     return o;
 }
 
+/********************************************************************/
+
+
+/********************************************************************/
+/*                          Public functions                        */
+/********************************************************************/
+
+/*
+        Cette fonction génère un nom aléatoire pour un 
+        fichier temporaire dans le dossier tmp
+*/
+
+std::string Request::gen_random() 
+{
+    static const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    std::string tmp_s;
+    srand(time(0));
+
+    tmp_s.reserve(14);
+    for (int i = 0; i < 14; ++i) {
+        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+    return tmp_s;
+}
+
+void    Request::print_params()
+{
+    it_param it = this->params.begin();
+    std::cout << COLOR_RED << "   Display Request params " << COLOR_RESET << std::endl;
+    while (it != this->params.end())
+    {
+        std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
+        it++;
+    }
+}
 void    Request::reset_request()
 {
     this->headers_done = false;
     this->first_line = false;
     this->is_chuncked = false;
     this->params.clear();
-    this->params[_CONTENT_] = "";
+    if (this->file_body_name.size())
+        std::remove(this->file_body_name.c_str());
+    this->file_body_name = "";
+    this->file = NULL;
+}
+
+void    Request::reset_file()
+{
+    if (this->file_body_name == "")
+        return ;
+    std::remove(this->file_body_name.c_str());
+    this->file_body_name = "";
+    this->file = NULL;
 }
 
 int Request::check_readed_bytes()
 {
     if (this->params.find("Content-Length") != this->params.end())
     {
-        if (std::stoi(this->params["Content-Length"]) != \
-        static_cast<int>(this->params[_CONTENT_].length()))
+        if (std::stoi(this->params["Content-Length"]) != this->file->tellp())
         {
-            // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
-            // std::cout << "_CONTENT_: " << this->params[_CONTENT_].length() << std::endl;
+            //std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
+            //std::cout << "_CONTENT_: " << this->file->tellp() << std::endl;
             this->is_chuncked = true;
             return _CHUNCKED_REQUEST;
         }
         else
+        {
+            this->file->close();
             this->is_chuncked = false;
+        }
     }
     return _PARSE_REQUEST_DONE;
 }
@@ -99,23 +152,14 @@ void Request::get_firstline(std::string line)
         switch (i)
         {
             case 0 :
-            {
                 this->params["Method"] = str;
                 this->method = str;
-                break;
-            }
             case 1 :
-            {
-                 this->params["Url"] = str;
-                this->path = str;        
-                break;
-            }
+                this->params["Url"] = str;
+                this->path = str;
             case 2 : 
-            {
                 this->params["Protocol Version"] = str;
                 this->version = str;
-                     break;
-            }
         }
         i++;
     }
@@ -127,24 +171,23 @@ void Request::get_other_lines(std::string line)
     size_t  indx;
 
     //std::cout << COLOR_GREEN << "Parsing Other lines '" << line << "'" << COLOR_RESET << std::endl;
-    if (this->params.find("Content-Type") != this->params.end())
-    {
-        this->params[_CONTENT_].append(line);
-        return ;
-    }
     indx = line.find(": ");
-    if (indx != std::string::npos )
+    if (indx != std::string::npos)
         this->params[line.substr(0, indx)] = line.substr(indx + 2);
 }
 
 int Request::get_headers(std::string str)
 {
     size_t line;
+    std::string str1 = "";
 
-    if (!str.size())
-        return 1;
-    //std::cout << "Parsing headers " << std::endl;
-    while((line = str.find("\r\n")) != std::string::npos)
+    // std::cout << "Parsing headers " << std::endl;
+    if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
+    {
+        str1 = str.substr(line + 4);
+        str = str.substr(0 ,line);
+    }
+    while ((line = str.find("\r\n")) != std::string::npos)
     {
         if (!this->first_line)
             this->get_firstline(str.substr(0, line));
@@ -152,35 +195,57 @@ int Request::get_headers(std::string str)
             this->get_other_lines(str.substr(0, line));
         str = str.substr(line + 2);
     }
-    if (str.size())
-        this->get_other_lines(str);
     this->headers_done = true;
+    if (str1.size())
+    {
+        this->file_body_name = _TMP_FILE_ + gen_random();
+        this->file = new std::ofstream(this->file_body_name, std::ios::binary);
+        return (get_chuncked_msg(str1));
+    }
     return (check_readed_bytes());
 }
 
 int Request::get_chuncked_msg(std::string str)
 {
-    size_t line;
+    size_t              line;
+    std::string         tmp_str;
+    std::stringstream   ss;
+    int                 len;
 
+    //std::cout << COLOR_YELLOW << "Parsing chunck " << COLOR_RESET << std::endl;
     // std::cout << COLOR_RED << "----------------------------------" << std::endl;
     // std::cout << COLOR_GREEN << str << std::endl << std::endl;
     // std::cout << COLOR_RED << "----------------------------------" << std::endl;
-    line = str.rfind("0\r\n\r\n");
-    //std::cout << COLOR_RED << "before " << this->params[_CONTENT_].size() << COLOR_RESET << std::endl;
-    while(line != std::string::npos)
+    line = str.find("0\r\n\r\n");
+    while (line != std::string::npos)
     {
-        this->params[_CONTENT_].append(str.substr(0, line));
-       // this->body.insert(this->body.end(), line, line + std::strlen(line));
+        //std::cout << COLOR_RED << "line loop" << COLOR_RESET<< std::endl;
+        tmp_str = str.substr(0, line);
+        *this->file << tmp_str;
         str = str.substr(line + 5);
-        line = str.rfind("0\r\n\r\n");
+        line = str.find("0\r\n\r\n");
     }
-    this->params[_CONTENT_].append(str);
-    //std::cout << COLOR_YELLOW << this->params["Content-Length"] <<" after " << this->params[_CONTENT_].size() << COLOR_RESET << std::endl;
-    // std::cout << COLOR_RED << "----------------------------------" << std::endl;
-    // std::cout << COLOR_BLUE << this->params[_CONTENT_] << std::endl << std::endl;
-    // std::cout << COLOR_YELLOW << std::strlen(line) << "   " << std::strlen(str) << std::endl << std::endl;
-    // std::cout << COLOR_RED << "----------------------------------" << std::endl;
-    //return (check_readed_bytes());
+    /*if ((line = str.find("\r\n")) != std::string::npos)
+    {
+        try
+        {
+            ss << std::hex << str.substr(0, line);
+            ss >> len;
+            std::cout << "to read " << len << std::endl;
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        
+        //std::cout << COLOR_RED << "before byte" << COLOR_RESET<< std::endl;
+        str = str.substr(line + 2);
+    }*/
+    if (line == std::string::npos)
+    {
+        //std::cout << COLOR_RED << "NO limits" << COLOR_RESET<< std::endl;
+        *this->file << str;
+    }
     return (check_readed_bytes());
 }
 

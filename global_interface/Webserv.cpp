@@ -20,7 +20,6 @@ void Webserv::client_cleanup(int client_fd)
     responsePool.erase(client_fd);
     clients_list.erase(client_fd);
 
-    this->clients[client_fd].clear();
     delete_event(client_fd, EVFILT_WRITE, "delete Write event");
     disconnect_client(client_fd, this->clients, "write");
 }
@@ -158,6 +157,7 @@ void Webserv::disconnect_client(int client_fd, std::map<int, std::string>& clien
 {
     std::cout << COLOR_RED << str << " : client disconnected: " << client_fd << COLOR_RESET << std::endl;
     close(client_fd);
+    this->request[client_fd].reset_file();
     clients.erase(client_fd);
 }
 
@@ -207,7 +207,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             return ;
         }
         buf[n] = '\0';
-        this->clients[curr_event->ident].append(buf);
+        this->clients[curr_event->ident] = buf;
         if (!this->request[curr_event->ident].parse_request(buf))
         {
             //this->request[curr_event->ident].print_params();
@@ -247,20 +247,20 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
     {
         if (this->event_list[i].flags & EV_ERROR)
             disconnect_client(this->event_list[i].ident, this->clients, "EV_ERROR");
-        else if (this->event_list[i].filter == EVFILT_READ)
-        {
-            webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);        
-        }
-        else if (this->event_list[i].filter == EVFILT_WRITE)
-            webserv_evfilt_write(&this->event_list[i]);
+
         else if (this->event_list[i].flags & EV_EOF)
         {
             clients_list.erase(this->event_list[i].ident);
             responsePool.erase(this->event_list[i].ident);
             delete_event(this->event_list[i].ident, EVFILT_READ, "si eof ");
-            this->clients[this->event_list[i].ident].clear();
             disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
+        else if (this->event_list[i].filter == EVFILT_READ)
+            webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);
+        else if (this->event_list[i].filter == EVFILT_WRITE)
+            webserv_evfilt_write(&this->event_list[i]);
+        else
+            std::cout << "event not known" << std::endl;
     }
 }
 

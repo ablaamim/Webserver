@@ -10,7 +10,5 @@ void    Response::checkRequest()
         this->serveERROR("405", "Method Not Allowed");
     if (this->_req.version != "HTTP/1.1")
         this->serveERROR("505", "HTTP Version Not Supported");
-    std::cout << "CONTENT LENGTH = " << _req.content_length << std::endl;
-    //if (this->_req.content_length == 0)
-      //  this->serveERROR("411", "Length Required");
+    //std::cout << "SIZE = " << this->_req.body.size() << std::endl;
 }
