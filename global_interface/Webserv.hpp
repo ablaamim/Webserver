@@ -1,7 +1,9 @@
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
 
-#include "../MainInc/main.hpp"
+#include "../parsing/ConfigurationParser.hpp"
+#include "../Servers/Servers.hpp"
+#include "../Request/Request.hpp"
 
 class Webserv
 {
