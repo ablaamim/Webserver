@@ -21,9 +21,9 @@ class Request
         std::string         version;
         size_t              content_length;
         std::string         body;
-        std::string         body_name;
+        std::string         file_body_name;
+        std::ofstream       *file;
 
-        std::string get_content();
         int     parse_request(char *str);
         int     get_headers(std::string str);
         int     get_chuncked_msg(std::string str);
@@ -32,6 +32,8 @@ class Request
         int     check_readed_bytes(void);
         void    print_params();
         void    reset_request();
+        void    reset_file();
+        std::string gen_random();
         Request();
         Request(Request const & ob);
         Request & operator=(Request const &ob);

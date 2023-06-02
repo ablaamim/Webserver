@@ -44,6 +44,7 @@
 # define _PARSE_REQUEST_DONE 0
 # define _CHUNCKED_REQUEST 2
 # define _CONTENT_ "Content_body"
+# define _TMP_FILE_ "tmp/"
 
 /*  Response defines */
 
