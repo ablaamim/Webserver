@@ -46,18 +46,14 @@ void    Response::serveDELETE()
 {
     try
     {
-        std::cout << "DELETE" << std::endl;
-        //this->print_kwargs();
-        // if (this->kwargs_alloc->empty())
-        // {
-        //     std::cout << "DELETE EMPTY" << std::endl;
-        //     exit(0);
-        // }
-        // if (this->kwargs.empty())
-        // {
-        //     std::cout << "DELETE EMPTY" << std::endl;
-        //     exit(0);
-        // }
+        //std::cout << "DELETE" << std::endl;
+        //std::cout << this->_location.NoneUniqueKey["cgi-bin"][0] << std::endl;
+        if (this->_location.NoneUniqueKey["cgi-bin"].size() > 0)
+        {
+            //std::cout << "CGI IS NOT EMPTY" << std::endl;
+            this->serveERROR("501", "Not Implemented");
+        }
+        //std::cout << "END OF CHECK" << std::endl;
         if (deleteFiles(this->resourceFullPath, *this))
             this->sendResponse(HEADERS_ONLY);
     }

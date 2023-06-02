@@ -8,7 +8,6 @@
 class Response
 {
     public:
-
         Response(Request req, int id, configurationSA::location location, char **env); 
         Response(void);
         Response(int id);
@@ -35,7 +34,7 @@ class Response
         std::map    <std::string, std::string>                  headers;
         std::map<std::string, void(Response::*)()>              _methods;     // this is the map that will be used to call the right method
         std::map    <std::string, std::vector<std::string> >    kwargs;
-        std::map    <std::string, std::vector<std::string> >    *kwargs_alloc;
+        //std::map    <std::string, std::vector<std::string> >    *kwargs_alloc;
 
         
         void                     init_methods();

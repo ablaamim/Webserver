@@ -74,17 +74,17 @@ void    Response::serveFile(Response& resp)
 
 void    Response::serveDirectory(Response& resp)
 {
-    // std::cout << "serveDirectory" << std::endl;
-    // resp.headers["Content-Type"] = "text/html";
-    // resp.body = "<h1> Directory </h1> ";
-    // if (this->kwargs["auto_index"] == std::vector<std::string>({"off"}))
-    // {
-    //     resp.status = std::make_pair("403", "Forbidden");
-    //     resp.sendResponse(HEADERS_ONLY);
-    //     return ;
-    // }
-    // else
-    // {
+    //std::cout << "serveDirectory" << std::endl;
+
+    //std::cout << this->_location.UniqueKey["auto_index"][0] << std::endl;
+
+    if (this->_location.UniqueKey["auto_index"][0] == "off")
+    {
+        //std::cout << "AUTO INDEX OFF" << std::endl;
+        resp.serveERROR("403", "Forbidden");
+    }
+    else
+    {
         std::vector<std::string> list_of_files = resp.listing_directory(resp.resourceFullPath);
         resp.headers["Content-Type"] = "text/html";
         resp.body = "<h1> Index of " + resp.resourceFullPath + "</h1> ";
@@ -100,7 +100,7 @@ void    Response::serveDirectory(Response& resp)
             resp.body += "</a><br>";
         }
         //print_vector_of_strings(list_of_files);
-    //}
+    }
     resp.sendResponse(FULL);
 }
 
@@ -129,7 +129,7 @@ void    Response::serveGET()
             serveDirectory(*this);
         else if (this->resourceType == CGI)
              serveCGI(*this);
-         else if (this->resourceType == REDIRECT)
+        else if (this->resourceType == REDIRECT)
              serveRedirect(*this);
     }
     catch(const std::exception& e)
