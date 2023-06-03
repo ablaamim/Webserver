@@ -9,12 +9,12 @@ typedef std::map<std::string , std::string>::iterator it_param;
 class Request
 {
     public:
-        param   params;
-        bool    headers_done;
-        bool    first_line;
-        bool    is_chuncked;
-        int     fd_accept;
-        int     fd_server;
+        param               params;
+        bool                headers_done;
+        bool                first_line;
+        bool                is_chuncked;
+        int                 fd_accept;
+        int                 fd_server;
 
         std::string         method;
         std::string         path;

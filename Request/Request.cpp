@@ -7,6 +7,7 @@
 Request::Request()
 {
     this->headers_done = false;
+    this->content_length = 0;
     this->first_line = false;
     this->is_chuncked = false;
     this->file_body_name = _TMP_FILE_ + gen_random();
@@ -91,8 +92,11 @@ void    Request::print_params()
 {
     it_param it = this->params.begin();
     std::cout << COLOR_RED << "   Display Request params " << COLOR_RESET << std::endl;
-    while (it++ != this->params.end())
+    while (it != this->params.end())
+    {
         std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
+        ++it;
+    }
 }
 void    Request::reset_request()
 {
@@ -213,7 +217,7 @@ int Request::get_chuncked_msg(std::string str)
     line = str.find("0\r\n\r\n");
     while (line != std::string::npos)
     {
-        std::cout << COLOR_RED << "line loop" << COLOR_RESET<< std::endl;
+        //std::cout << COLOR_RED << "line loop" << COLOR_RESET<< std::endl;
         tmp_str = str.substr(0, line);
         *this->file << tmp_str;
         str = str.substr(line + 5);
@@ -237,7 +241,7 @@ int Request::get_chuncked_msg(std::string str)
     }*/
     if (line == std::string::npos)
     {
-        std::cout << COLOR_RED << "NO limits " << str.size()<< COLOR_RESET<< std::endl;
+        //std::cout << COLOR_RED << "NO limits" << COLOR_RESET<< std::endl;
         *this->file << str;
     }
     return (check_readed_bytes());

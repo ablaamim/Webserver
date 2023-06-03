@@ -10,5 +10,5 @@ void    Response::checkRequest()
         this->serveERROR("405", "Method Not Allowed");
     if (this->_req.version != "HTTP/1.1")
         this->serveERROR("505", "HTTP Version Not Supported");
-    /* more checks needs to be done ... */
+    //std::cout << "SIZE = " << this->_req.body.size() << std::endl;
 }

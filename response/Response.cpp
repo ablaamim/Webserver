@@ -101,7 +101,7 @@ void    Response::init()
         this->isChunked = false;
 		this->fs = NULL;
 		this->method = this->_req.method;
-		this->print_kwargs();
+		//this->print_kwargs();
         this->checkRequest();
         this->setResourceInfo();
     }
@@ -113,18 +113,18 @@ void    Response::init()
 
 Response::Response(Request req, int id, configurationSA::location location, char **env)
 {
-	std::cout << "CONSTRUCTOR" << std::endl;
+	//std::cout << "CONSTRUCTOR" << std::endl;
 	this->_req = req;
 	this->_location = location;
 	this->_env = env;
 	this->clientSocket = id;
-	this->kwargs_alloc = new std::map<std::string, std::vector<std::string> >();
+	//this->kwargs_alloc = new std::map<std::string, std::vector<std::string> >();
 }
 
 
 Response::~Response()
 {
-	std::cout << "DESTRUCTOR" << std::endl;
+	//std::cout << "DESTRUCTOR" << std::endl;
     if (this->fs)
 	{
         this->fs->close();
