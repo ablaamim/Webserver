@@ -158,7 +158,7 @@ void Webserv::disconnect_client(int client_fd, std::map<int, std::string>& clien
 {
     std::cout << COLOR_RED << str << " : client disconnected: " << client_fd << COLOR_RESET << std::endl;
     close(client_fd);
-    this->request[client_fd].reset_file();
+    //this->request[client_fd].reset_file();
     clients.erase(client_fd);
 }
 
@@ -204,18 +204,21 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
         if (n <= 0)
         {
-            disconnect_client(curr_event->ident, this->clients, "read");
+            disconnect_client(curr_event->ident, this->clients, "read error ");
             return ;
         }
         buf[n] = '\0';
         this->clients[curr_event->ident] = buf;
-        if (!this->request[curr_event->ident].parse_request(buf))
+        //std::cout << COLOR_YELLOW << "buf  " << std::strlen(buf) << COLOR_RESET<< std::endl;
+        if (this->request[curr_event->ident].parse_request(buf) == _PARSE_REQUEST_DONE)
         {
             this->request[curr_event->ident].print_params();
             /*change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");*/
-        }          
+        }
+        else if (this->request[curr_event->ident].parse_request(buf) == _ERR_PARSE_REQUEST)
+            std::cout << "Error parse request" << std::endl;
     }
 }
 
@@ -259,7 +262,7 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
         else if (this->event_list[i].filter == EVFILT_READ)
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);
         else if (this->event_list[i].filter == EVFILT_WRITE)
-            webserv_evfilt_write(&this->event_list[i], config, server, env);
+            webserv_evfilt_write(&this->event_list[i]);
         else
             std::cout << "event not known" << std::endl;
     }

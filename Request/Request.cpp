@@ -9,8 +9,8 @@ Request::Request()
     this->headers_done = false;
     this->first_line = false;
     this->is_chuncked = false;
-    this->file_body_name = "";
-    this->file = NULL;
+    this->file_body_name = _TMP_FILE_ + gen_random();
+    this->file = new std::ofstream(this->file_body_name, std::ios::binary);
 }
 
 Request::Request(Request const & ob)
@@ -44,8 +44,7 @@ Request & Request::operator=(Request const &ob)
     this->version = ob.version;
     this->content_length = ob.content_length;
     this->body = ob.body;
-    if (this->file_body_name.size())
-        std::remove(this->file_body_name.c_str());
+    std::remove(this->file_body_name.c_str());
     this->file_body_name = ob.file_body_name;
     this->file = ob.file;
     return *this;
@@ -92,11 +91,8 @@ void    Request::print_params()
 {
     it_param it = this->params.begin();
     std::cout << COLOR_RED << "   Display Request params " << COLOR_RESET << std::endl;
-    while (it != this->params.end())
-    {
+    while (it++ != this->params.end())
         std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
-        it++;
-    }
 }
 void    Request::reset_request()
 {
@@ -180,7 +176,7 @@ int Request::get_headers(std::string str)
     size_t line;
     std::string str1 = "";
 
-    // std::cout << "Parsing headers " << std::endl;
+    std::cout << "Parsing headers " << std::endl;
     if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
     {
         str1 = str.substr(line + 4);
@@ -195,10 +191,9 @@ int Request::get_headers(std::string str)
         str = str.substr(line + 2);
     }
     this->headers_done = true;
-    if (str1.size())
+    if (str1 != "")
     {
-        this->file_body_name = _TMP_FILE_ + gen_random();
-        this->file = new std::ofstream(this->file_body_name, std::ios::binary);
+        std::cout << "Man headers le9a chumck messages " << std::endl;
         return (get_chuncked_msg(str1));
     }
     return (check_readed_bytes());
@@ -211,7 +206,7 @@ int Request::get_chuncked_msg(std::string str)
     std::stringstream   ss;
     int                 len;
 
-    //std::cout << COLOR_YELLOW << "Parsing chunck " << COLOR_RESET << std::endl;
+    std::cout << COLOR_YELLOW << "Parsing chunck " << COLOR_RESET << std::endl;
     // std::cout << COLOR_RED << "----------------------------------" << std::endl;
     // std::cout << COLOR_GREEN << str << std::endl << std::endl;
     // std::cout << COLOR_RED << "----------------------------------" << std::endl;
@@ -242,7 +237,7 @@ int Request::get_chuncked_msg(std::string str)
     }*/
     if (line == std::string::npos)
     {
-        std::cout << COLOR_RED << "NO limits" << COLOR_RESET<< std::endl;
+        std::cout << COLOR_RED << "NO limits " << str.size()<< COLOR_RESET<< std::endl;
         *this->file << str;
     }
     return (check_readed_bytes());
@@ -255,6 +250,6 @@ int Request::parse_request(char * str)
     else if (!this->headers_done)
         return (this->get_headers(std::string(str)));
     else if (this->is_chuncked)
-        return(this->get_chuncked_msg(str));
+        return(this->get_chuncked_msg(std::string(str)));
     return 1;
 }
