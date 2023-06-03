@@ -212,10 +212,10 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         //std::cout << COLOR_YELLOW << "buf  " << std::strlen(buf) << COLOR_RESET<< std::endl;
         if (this->request[curr_event->ident].parse_request(buf) == _PARSE_REQUEST_DONE)
         {
-            this->request[curr_event->ident].print_params();
-            /*change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+            //this->request[curr_event->ident].print_params();
+            change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
-            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");*/
+            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
         }          
     }
 }
