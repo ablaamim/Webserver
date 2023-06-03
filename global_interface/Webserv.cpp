@@ -47,8 +47,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
 
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    configurationSA::location   _obj_location = match_location(request.path, _obj_server); 
-
+    configurationSA::location   _obj_location = match_location(request.path, _obj_server);
     Response newResponse(request, curr_event->ident, _obj_location, env);
     
     try
@@ -59,7 +58,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
         
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
         {
-            newResponse.kwargs_alloc->insert(std::make_pair(it->first, it->second));
+            //newResponse.kwargs_alloc->insert(std::make_pair(it->first, it->second));
             newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         }
         
@@ -80,11 +79,11 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
                 it_map++;
             }
             newResponse.kwargs.insert(std::make_pair(key, values));
-            newResponse.kwargs_alloc->insert(std::make_pair(key, values));
+            //newResponse.kwargs_alloc->insert(std::make_pair(key, values));
         }
         for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
         {
-            newResponse.kwargs_alloc->insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
+            //newResponse.kwargs_alloc->insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
         }
         newResponse.init();
@@ -186,6 +185,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     char buf[BUFFER_SIZE] = {0};
     int n = 0, k = 120;
 
+    (void)config; (void)server; (void)env;
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
@@ -216,9 +216,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             /*change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");*/
-        }
-        else if (this->request[curr_event->ident].parse_request(buf) == _ERR_PARSE_REQUEST)
-            std::cout << "Error parse request" << std::endl;
+        }          
     }
 }
 
@@ -251,13 +249,12 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
     {
         if (this->event_list[i].flags & EV_ERROR)
             disconnect_client(this->event_list[i].ident, this->clients, "EV_ERROR");
-
         else if (this->event_list[i].flags & EV_EOF)
         {
             clients_list.erase(this->event_list[i].ident);
             responsePool.erase(this->event_list[i].ident);
             delete_event(this->event_list[i].ident, EVFILT_READ, "si eof ");
-            disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
+            //disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
         else if (this->event_list[i].filter == EVFILT_READ)
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);
