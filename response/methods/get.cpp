@@ -110,13 +110,7 @@ void    serveCGI(Response& resp)
 {
     (void)resp;
     std::cout << "serveCGI" << std::endl;
-}
 
-void    serveRedirect(Response& resp)
-{
-    resp.headers["Location"] = resp.resourceFullPath;
-    resp.status = std::make_pair("301", "Moved Permanently");
-    resp.sendResponse(HEADERS_ONLY);
 }
 
 void    Response::serveGET()
@@ -131,8 +125,6 @@ void    Response::serveGET()
             serveDirectory(*this);
         else if (this->resourceType == CGI)
              serveCGI(*this);
-        else if (this->resourceType == REDIRECT)
-             serveRedirect(*this);
     }
     catch(const std::exception& e)
     {
