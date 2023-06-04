@@ -19,7 +19,10 @@ Request::Request(Request const & ob)
     *this = ob;
 }
 
-Request::~Request(){};
+Request::~Request(){
+    if (this->file->is_open())
+        this->file->close();
+};
 
 
 /********************************************************************/
@@ -104,19 +107,14 @@ void    Request::reset_request()
     this->first_line = false;
     this->is_chuncked = false;
     this->params.clear();
-    if (this->file_body_name.size())
-        std::remove(this->file_body_name.c_str());
+    std::remove(this->file_body_name.c_str());
     this->file_body_name = "";
-    this->file = NULL;
+    this->file->flush();
 }
 
 void    Request::reset_file()
 {
-    if (this->file_body_name == "")
-        return ;
-    std::remove(this->file_body_name.c_str());
-    this->file_body_name = "";
-    this->file = NULL;
+    this->file->flush();
 }
 
 int Request::check_readed_bytes()
@@ -125,8 +123,8 @@ int Request::check_readed_bytes()
     {
         if (std::stoi(this->params["Content-Length"]) != this->file->tellp())
         {
-            std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
-            std::cout << "_CONTENT_: " << this->file->tellp() << std::endl;
+            // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
+            // std::cout << "_CONTENT_: " << this->file->tellp() << std::endl;
             this->is_chuncked = true;
             return _CHUNCKED_REQUEST;
         }
@@ -180,7 +178,7 @@ int Request::get_headers(std::string str)
     size_t line;
     std::string str1 = "";
 
-    std::cout << "Parsing headers " << std::endl;
+    // std::cout << "Parsing headers " << std::endl;
     if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
     {
         str1 = str.substr(line + 4);
@@ -194,12 +192,11 @@ int Request::get_headers(std::string str)
             this->get_other_lines(str.substr(0, line));
         str = str.substr(line + 2);
     }
+    if (str != "")
+        this->get_other_lines(str);
     this->headers_done = true;
     if (str1 != "")
-    {
-        std::cout << "Man headers le9a chumck messages " << std::endl;
         return (get_chuncked_msg(str1));
-    }
     return (check_readed_bytes());
 }
 
@@ -210,14 +207,9 @@ int Request::get_chuncked_msg(std::string str)
     std::stringstream   ss;
     int                 len;
 
-    std::cout << COLOR_YELLOW << "Parsing chunck " << COLOR_RESET << std::endl;
-    // std::cout << COLOR_RED << "----------------------------------" << std::endl;
-    // std::cout << COLOR_GREEN << str << std::endl << std::endl;
-    // std::cout << COLOR_RED << "----------------------------------" << std::endl;
     line = str.find("0\r\n\r\n");
     while (line != std::string::npos)
     {
-        //std::cout << COLOR_RED << "line loop" << COLOR_RESET<< std::endl;
         tmp_str = str.substr(0, line);
         *this->file << tmp_str;
         str = str.substr(line + 5);
@@ -247,13 +239,13 @@ int Request::get_chuncked_msg(std::string str)
     return (check_readed_bytes());
 }
 
-int Request::parse_request(char * str)
+int Request::parse_request(std::string str)
 {
-    if (!str)
+    if (!str.size())
         return _ERR_PARSE_REQUEST;
     else if (!this->headers_done)
-        return (this->get_headers(std::string(str)));
+        return (this->get_headers(str));
     else if (this->is_chuncked)
-        return(this->get_chuncked_msg(std::string(str)));
+        return(this->get_chuncked_msg(str));
     return 1;
 }

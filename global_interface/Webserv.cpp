@@ -157,7 +157,6 @@ void Webserv::disconnect_client(int client_fd, std::map<int, std::string>& clien
 {
     std::cout << COLOR_RED << str << " : client disconnected: " << client_fd << COLOR_RESET << std::endl;
     close(client_fd);
-    //this->request[client_fd].reset_file();
     clients.erase(client_fd);
 }
 
@@ -205,17 +204,17 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         if (n <= 0)
         {
             disconnect_client(curr_event->ident, this->clients, "read error ");
+            this->request[curr_event->ident].reset_file();
             return ;
         }
         buf[n] = '\0';
         this->clients[curr_event->ident] = buf;
-        //std::cout << COLOR_YELLOW << "buf  " << std::strlen(buf) << COLOR_RESET<< std::endl;
-        if (this->request[curr_event->ident].parse_request(buf) == _PARSE_REQUEST_DONE)
+        if (this->request[curr_event->ident].parse_request(std::string(buf,n)) == _PARSE_REQUEST_DONE)
         {
-            //this->request[curr_event->ident].print_params();
-            change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+            this->request[curr_event->ident].print_params();
+            /*change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
-            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
+            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");*/
         }          
     }
 }
@@ -254,7 +253,7 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
             clients_list.erase(this->event_list[i].ident);
             responsePool.erase(this->event_list[i].ident);
             delete_event(this->event_list[i].ident, EVFILT_READ, "si eof ");
-            //disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
+            disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
         else if (this->event_list[i].filter == EVFILT_READ)
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);
