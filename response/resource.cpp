@@ -6,8 +6,8 @@ int     Response::getResourceType()
         return CGI;
     else if (this->kwargs.find("return") != this->kwargs.end())
     {
-        //std::string returnCode = this->kwargs["return"][0];
-        //std::cout << "RETURN CODE == " << returnCode << std::endl;
+        std::string returnCode = this->kwargs["return"][0];
+        std::cout << "RETURN CODE == " << returnCode << std::endl;
         return REDIRECT;
     }
         
