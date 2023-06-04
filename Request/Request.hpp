@@ -24,7 +24,7 @@ class Request
         std::string         file_body_name;
         std::ofstream       *file;
 
-        int     parse_request(char *str);
+        int     parse_request(std::string str);
         int     get_headers(std::string str);
         int     get_chuncked_msg(std::string str);
         void    get_firstline(std::string line);
