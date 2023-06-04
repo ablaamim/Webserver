@@ -7,7 +7,7 @@ bool    uploadSupported(Response& resp)
         check if upload is supported
         by checking if the upload_pass exists in the kwargs (matched location)
     */
-    std::map<std::string, std::string>::iterator it = resp.kwargs.find("upload_pass");
+    std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("upload_pass");
     if (it == resp.kwargs.end())
         return false;
     return true;

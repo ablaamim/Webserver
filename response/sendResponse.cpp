@@ -1,5 +1,13 @@
 #include "Response.hpp"
 
+void    Response::serveRedirect()
+{
+    std::vector<std::string> retuns = this->kwargs["return"];
+    this->status.first = retuns[0]; // status code
+    this->headers["Location"] = retuns[1]; // location
+    this->sendResponse(HEADERS_ONLY);
+}
+
 void    Response::sendResponse(int mode)
 {
     std::string responseMessage;
@@ -52,8 +60,12 @@ void    Response::serve()
     //this->print_kwargs();
     try
     {
-        std::cout << "method = " << this->method << std::endl;
-        if (this->method == GET)
+        /* 
+            check if there is a redirection before serving the resource
+        */
+        if (this->resourceType == REDIRECT)
+             serveRedirect();
+        else if (this->method == GET)
             this->serveGET();
         else if (this->method == POST)
             this->servePOST();
