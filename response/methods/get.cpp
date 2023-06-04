@@ -110,6 +110,7 @@ void    serveCGI(Response& resp)
 {
     (void)resp;
     std::cout << "serveCGI" << std::endl;
+
 }
 
 void    serveRedirect(Response& resp)
