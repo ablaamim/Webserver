@@ -212,9 +212,9 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         if (this->request[curr_event->ident].parse_request(std::string(buf,n)) == _PARSE_REQUEST_DONE)
         {
             this->request[curr_event->ident].print_params();
-            /*change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+            change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
-            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");*/
+            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
         }          
     }
 }
@@ -253,7 +253,7 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
             clients_list.erase(this->event_list[i].ident);
             responsePool.erase(this->event_list[i].ident);
             delete_event(this->event_list[i].ident, EVFILT_READ, "si eof ");
-            disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
+            //disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
         else if (this->event_list[i].filter == EVFILT_READ)
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);

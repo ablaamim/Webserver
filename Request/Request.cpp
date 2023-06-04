@@ -100,6 +100,7 @@ void    Request::print_params()
         std::cout << COLOR_BLUE << it->first << " : " << COLOR_RESET << it->second << std::endl;
         ++it;
     }
+    std::cout << COLOR_BLUE <<  " file to upload : " << COLOR_RESET << this->file_body_name << std::endl;
 }
 void    Request::reset_request()
 {
@@ -143,7 +144,7 @@ void Request::get_firstline(std::string line)
     std::stringstream   file(line);
     int                 i = 0;
 
-    //std::cout << "Parsing First line " << std::endl;
+    // std::cout << "Parsing First line " << std::endl;
     while (std::getline(file, str, ' '))
     {
         switch (i)
@@ -167,7 +168,8 @@ void Request::get_other_lines(std::string line)
 {
     size_t  indx;
 
-    //std::cout << COLOR_GREEN << "Parsing Other lines '" << line << "'" << COLOR_RESET << std::endl;
+    // std::cout << COLOR_GREEN << "Parsing Other lines '" << line << "'" << COLOR_RESET << std::endl;
+    // std::cout << COLOR_GREEN << "Parsing Other " << COLOR_RESET << std::endl;
     indx = line.find(": ");
     if (indx != std::string::npos)
         this->params[line.substr(0, indx)] = line.substr(indx + 2);
@@ -178,7 +180,7 @@ int Request::get_headers(std::string str)
     size_t line;
     std::string str1 = "";
 
-    // std::cout << "Parsing headers " << std::endl;
+    std::cout << "Parsing headers " << std::endl;
     if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
     {
         str1 = str.substr(line + 4);
