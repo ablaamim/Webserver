@@ -52,6 +52,7 @@ void    Response::serve()
     //this->print_kwargs();
     try
     {
+        std::cout << "method = " << this->method << std::endl;
         if (this->method == GET)
             this->serveGET();
         else if (this->method == POST)
