@@ -4,6 +4,7 @@ void    Response::serveRedirect()
 {
     std::vector<std::string> retuns = this->kwargs["return"];
     this->status.first = retuns[0]; // status code
+    this->status.second = ""; // let browser decide the status message
     this->headers["Location"] = retuns[1]; // location
     this->sendResponse(HEADERS_ONLY);
 }
