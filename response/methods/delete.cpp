@@ -54,7 +54,7 @@ void    Response::serveDELETE()
             this->serveERROR("501", "Not Implemented");
         }
         //std::cout << "END OF CHECK" << std::endl;
-        if (deleteFiles(this->resourceFullPath, *this))
+        else if (deleteFiles(this->resourceFullPath, *this))
             this->sendResponse(HEADERS_ONLY);
     }
     catch(const std::exception& e)

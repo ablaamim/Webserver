@@ -43,6 +43,7 @@ class Response
         void                     insert_Location_kwargs(std::string key, std::vector<std::string> value);
         void                     print_kwargs();
         void                     serveDirectory(Response& resp);
+        void                        serveRedirect();
         int                      getResourceType();
         void                     list_directories_recursive(std::string& path, std::vector<std::string>& directoryList);
         std::vector<std::string> listing_directory(std::string& path);
