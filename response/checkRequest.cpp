@@ -1,5 +1,13 @@
 #include "Response.hpp"
 
+void    checkHTTP(Response& resp)
+{
+    if (resp._req.version.substr(0, 5) != "HTTP/")
+        resp.serveERROR("505", "HTTP Version Not Supported");
+    if (resp._req.version.substr(5) != "1.1")
+        resp.serveERROR("400", "BAD REQUEST");
+}
+
 void    Response::checkRequest()
 {
     std::vector<std::string> allowedMethods = this->kwargs["allowed_methods"];
@@ -8,7 +16,15 @@ void    Response::checkRequest()
         this->serveERROR("501", "Not Implemented");
     if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.params["Method"]) == allowedMethods.end())
         this->serveERROR("405", "Method Not Allowed");
-    if (this->_req.version != "HTTP/1.1")
-        this->serveERROR("505", "HTTP Version Not Supported");
-    //std::cout << "SIZE = " << this->_req.body.size() << std::endl;
+    checkHTTP(*this);
+    if (this->_req.params.find("Host") == this->_req.params.end())
+        this->serveERROR("400", "Bad Request");
+    /*
+        CHECKING IF THE REQUEST BODY IS LARGER THAN MAX_BODY_SIZE FROM CONFIG FILE
+        WE ARE CHECKING JUST THE DEFAULT VALUE, NOT THE VALUE FROM THE CONFIG FILE FOR NOW
+        NEEDS TO BE FIXED ...
+    */
+    if (this->_req.content_length > MAX_BODY_SIZE)
+        this->serveERROR("413", "Request Entity Too Large");
+    
 }
