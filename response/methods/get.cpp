@@ -49,6 +49,7 @@ void    openFile(Response& resp)
 
 void    Response::serveFile(Response& resp)
 {
+    //this->print_kwargs();
     try
     {
         char buf[CHUNCK_SIZE];
@@ -77,8 +78,9 @@ void    Response::serveDirectory(Response& resp)
     //std::cout << "serveDirectory" << std::endl;
 
     //std::cout << this->_location.UniqueKey["auto_index"][0] << std::endl;
-
-    if (this->_location.UniqueKey["auto_index"][0] == "off")
+    //if (this->kwargs.empty())
+        //exit(1);
+    if (this->kwargs["auto_index"][0] == "off")
     {
         //std::cout << "AUTO INDEX OFF" << std::endl;
         resp.serveERROR("403", "Forbidden");
@@ -108,13 +110,8 @@ void    serveCGI(Response& resp)
 {
     (void)resp;
     std::cout << "serveCGI" << std::endl;
-}
-
-void    serveRedirect(Response& resp)
-{
-    resp.headers["Location"] = resp.resourceFullPath;
-    resp.status = std::make_pair("301", "Moved Permanently");
     resp.sendResponse(HEADERS_ONLY);
+
 }
 
 void    Response::serveGET()
@@ -129,8 +126,6 @@ void    Response::serveGET()
             serveDirectory(*this);
         else if (this->resourceType == CGI)
              serveCGI(*this);
-        else if (this->resourceType == REDIRECT)
-             serveRedirect(*this);
     }
     catch(const std::exception& e)
     {

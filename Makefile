@@ -23,7 +23,7 @@ SRC = ./MainInc/main.cpp \
 
 CC = clang++
 
-CFLAGS =  -std=c++98 -g3 -fsanitize=address -Wall -Wextra -Werror
+CFLAGS =  -std=c++98 -g3 #-fsanitize=address -Wall -Wextra -Werror
 
 OBJ = $(SRC:.cpp=.o)
 

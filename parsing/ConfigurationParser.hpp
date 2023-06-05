@@ -80,7 +80,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                         std::cout << std::endl;
                         // if (it->first == "root")
                         //     std::cout << COLOR_BLUE << "root : " << COLOR_RESET << COLOR_YELLOW << it->second[0] << COLOR_RESET << std::endl;
-                        // if (it->first == "upload")
+                        // if (it->first == "upload_pass")
                         //     std::cout << COLOR_BLUE << "upload : " << COLOR_RESET << COLOR_YELLOW << it->second[0] << COLOR_RESET << std::endl;
                     }
 

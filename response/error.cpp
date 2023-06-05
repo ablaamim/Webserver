@@ -12,9 +12,12 @@ std::string    getCustomErrorPage(Response& resp)
     //resp.print_kwargs();
     if (it != resp.kwargs.end())
     {
+        resp.print_kwargs();
         std::vector<std::string> errorPages = it->second;
-        if (errorPages[0] == resp.status.first)
-            return (errorPages[1]);
+        std::vector<std::string>::iterator it2;
+        it2 = std::find(errorPages.begin(), errorPages.end(), resp.status.first);
+        if (it2 != errorPages.end())
+            return (*(it2 + 1)); // return next element (which is error page path) (e.g. 404 /error_pages/404.html)
     }
     return ("");
 }
@@ -51,7 +54,9 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
     errorPage = getCustomErrorPage(*this);
     if (errorPage.length() > 0)
     {
+        std::cout << "errorPage: " << errorPage << std::endl;
         this->headers["Location"] = errorPage;
+        this->status = std::make_pair("302", "Found");
         this->sendResponse(HEADERS_ONLY);
     }
     else
