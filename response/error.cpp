@@ -52,15 +52,22 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
     this->status.first = errorCode;
     this->status.second = errorMsg;
     errorPage = getCustomErrorPage(*this);
-    if (errorPage.length() > 0)
+    if (errorPage.length() > 0 && this->referer != ERROR)
     {
-        this->resourceFullPath = errorPage;
-        this->resourceType = FILE;
+        /*
+            only if we found custom error page and we are not already serving error page
+            we will serve custom error page
+            we will keep status code and message as is
+            then serve it like a normal resource,
+            we will set referer to ERROR, so that we don't try to find custom error page again
+            this is the behaviour of nginx
+        */
+        this->resourceFullPath = this->kwargs["root"][0] + errorPage;
         this->method = GET;
+        this->referer = ERROR;
+        this->setResourceInfo();
     }
     else
-    {
         generateDefaultErrorPage(*this);
-        throw Response_err(this->status.second);
-    }
+    throw Response_err(this->status.second);
 }

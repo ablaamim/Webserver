@@ -10,7 +10,6 @@ int     Response::getResourceType()
         std::cout << "RETURN CODE == " << returnCode << std::endl;
         return REDIRECT;
     }
-        
     if (isDirectory(this->resourceFullPath.c_str()))
         return DIRECTORY;
     return FILE;
@@ -41,7 +40,13 @@ bool    indexExists(Response& resp)
                 return true;
             }
         }
-        
+        /*
+            If we get here, it means that none of the index pages exist
+            this->referer = ERROR; means that we will serve the 403 error page directly without trying to find custom error page
+            this is the behaviour of nginx
+        */
+        resp.referer = ERROR;
+        resp.serveERROR("403", "Forbidden");
     }
     return false;
 }
@@ -55,6 +60,6 @@ void    Response::setResourceInfo()
         if (indexExists(*this) == false)
             this->resourceFullPath = this->kwargs["root"][0].append(_req.path);
     }
-    this->resourceType = getResourceType();
+    
     std::cout << "RESOURCE path: " << this->resourceFullPath << std::endl;
 }
