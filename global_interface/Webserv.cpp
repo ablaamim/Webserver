@@ -235,7 +235,8 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             catch(const std::exception& e)
             {
                 std::cout << COLOR_RED << "Error: " << e.what() << COLOR_RESET << std::endl;
-                client_cleanup(curr_event->ident);
+                if (it->second.referer == NONE)
+                    client_cleanup(curr_event->ident);
             }
         }
     }

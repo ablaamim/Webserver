@@ -62,6 +62,8 @@
 # define POST "POST"
 # define DELETE "DELETE"
 
+# define ERROR 1
+
 /* end of Response defines */
 
 #endif

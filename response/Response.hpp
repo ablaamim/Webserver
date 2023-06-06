@@ -25,6 +25,8 @@ class Response
         int                                                     resourceType; 
         bool                                                    isCompleted;
         bool                                                    isChunked;
+        int                                                     referer;
+        bool                                                    initialized;
         std::string                                             host;
         std::string                                             resourceFullPath;
         std::string                                             httpVersion; 

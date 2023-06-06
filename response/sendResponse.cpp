@@ -79,12 +79,17 @@ void    Response::serve()
         */
         if (this->resourceType == REDIRECT)
              serveRedirect();
-        else if (this->method == GET)
-            this->serveGET();
-        else if (this->method == POST)
-            this->servePOST();
-        else if (this->method == DELETE)
-            this->serveDELETE();
+        else
+        {
+            if (this->initialized == false)
+                this->setResourceInfo();
+            else if (this->method == GET)
+                this->serveGET();
+            else if (this->method == POST)
+                this->servePOST();
+            else if (this->method == DELETE)
+                this->serveDELETE();
+        }
     }
     catch(const std::exception& e)
     {

@@ -100,11 +100,12 @@ void    Response::init()
         this->lastChunkSize = 0;
         this->isCompleted = false;
         this->isChunked = false;
+		this->referer = NONE;
 		this->fs = NULL;
 		this->method = this->_req.method;
 		//this->print_kwargs();
         this->checkRequest();
-        this->setResourceInfo();
+		this->resourceType = getResourceType();
     }
     catch(const std::exception& e)
     {
@@ -152,6 +153,7 @@ Response::Response(const Response &other)
     this->_env = other._env;
     this->_req = other._req;
     this->_location = other._location;
+	this->referer = other.referer;
     this->fs = new std::ifstream(other.resourceFullPath,std::ifstream::binary);
 }
 
