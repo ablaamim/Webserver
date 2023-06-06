@@ -2,11 +2,24 @@
 
 void    Response::serveRedirect()
 {
-    std::vector<std::string> retuns = this->kwargs["return"];
-    this->status.first = retuns[0]; // status code
+    /*
+        look if return code is 301 or 302 or 303 or 307
+        if yes, send response with headers only with Location header set to the value of return
+        else, send full response with headers and body (body is set to the value of return)
+    */
+    std::vector<std::string> return_values = this->kwargs["return"];
+    this->status.first = return_values[0]; // status code
     this->status.second = ""; // let browser decide the status message
-    this->headers["Location"] = retuns[1]; // location
-    this->sendResponse(HEADERS_ONLY);
+    if (this->status.first == "301" || this->status.first == "302" || this->status.first == "303" || this->status.first == "307")
+    {
+        this->headers["Location"] = return_values[1]; // location
+        this->sendResponse(HEADERS_ONLY);
+    }
+    else
+    {
+        this->body = return_values[1]; // body
+        this->sendResponse(FULL);
+    }
 }
 
 void    Response::sendResponse(int mode)
