@@ -45,45 +45,47 @@ void    Response::sendResponse(int mode)
 
 void    Response::serve()
 {
-    typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; 
-    for (NoneUniqueKey_t::iterator it = _location.NoneUniqueKey.begin(); it != _location.NoneUniqueKey.end(); it++)
+    if (this->initialized == false)
     {
-            std::string key = it->first;
-            std::vector<std::string> values;
-            //std::cout << "key = " << key << std::endl;
-            std::map<std::string, std::vector<std::string> > ::iterator it_map = it->second.begin();
-            while(it_map != it->second.end())
-            {
-                values.push_back(it_map->first);
-                std::vector<std::string>::iterator vec_iter = it_map->second.begin();
-                while (vec_iter != it_map->second.end())
+        typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; 
+        for (NoneUniqueKey_t::iterator it = _location.NoneUniqueKey.begin(); it != _location.NoneUniqueKey.end(); it++)
+        {
+                std::string key = it->first;
+                std::vector<std::string> values;
+                //std::cout << "key = " << key << std::endl;
+                std::map<std::string, std::vector<std::string> > ::iterator it_map = it->second.begin();
+                while(it_map != it->second.end())
                 {
-                    values.push_back(*vec_iter);
-                    vec_iter++;
+                    values.push_back(it_map->first);
+                    std::vector<std::string>::iterator vec_iter = it_map->second.begin();
+                    while (vec_iter != it_map->second.end())
+                    {
+                        values.push_back(*vec_iter);
+                        vec_iter++;
+                    }
+                    it_map++;
                 }
-                it_map++;
-            }
+                this->kwargs.insert(std::make_pair(key, values));
+        }
+        for (std::map<std::string, std::vector<std::string> >::iterator it = _location.UniqueKey.begin(); it != _location.UniqueKey.end(); it++)
+        {
+            std::string key = it->first;
+            std::vector<std::string> values = it->second;
             this->kwargs.insert(std::make_pair(key, values));
+        }
     }
-    for (std::map<std::string, std::vector<std::string> >::iterator it = _location.UniqueKey.begin(); it != _location.UniqueKey.end(); it++)
-    {
-        std::string key = it->first;
-        std::vector<std::string> values = it->second;
-        this->kwargs.insert(std::make_pair(key, values));
-    }
-    //this->print_kwargs();
     try
     {
         /* 
             check if there is a redirection before serving the resource
         */
-        if (this->resourceType == REDIRECT)
-             serveRedirect();
+        if (this->kwargs.find("return") != this->kwargs.end())
+            this->serveRedirect();
         else
         {
             if (this->initialized == false)
                 this->setResourceInfo();
-            else if (this->method == GET)
+            if (this->method == GET)
                 this->serveGET();
             else if (this->method == POST)
                 this->servePOST();
