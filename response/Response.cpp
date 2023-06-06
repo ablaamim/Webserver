@@ -102,6 +102,7 @@ void    Response::init()
         this->isChunked = false;
 		this->referer = NONE;
 		this->fs = NULL;
+		this->initialized = false;
 		this->method = this->_req.method;
 		//this->print_kwargs();
         this->checkRequest();
