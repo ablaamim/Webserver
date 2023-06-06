@@ -60,6 +60,5 @@ void    Response::setResourceInfo()
         if (indexExists(*this) == false)
             this->resourceFullPath = this->kwargs["root"][0].append(_req.path);
     }
-    
-    std::cout << "RESOURCE path: " << this->resourceFullPath << std::endl;
+    this->initialized = true;
 }
