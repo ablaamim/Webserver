@@ -54,12 +54,13 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
     errorPage = getCustomErrorPage(*this);
     if (errorPage.length() > 0)
     {
-        std::cout << "errorPage: " << errorPage << std::endl;
-        this->headers["Location"] = errorPage;
-        this->status = std::make_pair("302", "Found");
-        this->sendResponse(HEADERS_ONLY);
+        this->resourceFullPath = errorPage;
+        this->resourceType = FILE;
+        this->method = GET;
     }
     else
+    {
         generateDefaultErrorPage(*this);
-    throw Response_err(this->status.second);
+        throw Response_err(this->status.second);
+    }
 }
