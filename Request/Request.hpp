@@ -20,19 +20,20 @@ class Request
         std::string         path;
         std::string         version;
         size_t              content_length;
-        std::string         body;
         std::string         file_body_name;
         std::ofstream       *file;
 
         int     parse_request(std::string str);
         int     get_headers(std::string str);
+        void    parse_headers(std::string str);
+        void    get_content_extension();
         int     get_chuncked_msg(std::string str);
         void    get_firstline(std::string line);
         void    get_other_lines(std::string line);
         int     check_readed_bytes(void);
         void    print_params();
         void    reset_request();
-        void    reset_file();
+        int     open_file_for_reponse(std::string str);
         std::string gen_random();
         Request();
         Request(Request const & ob);

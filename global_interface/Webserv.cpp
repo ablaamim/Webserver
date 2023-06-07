@@ -204,14 +204,14 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         if (n <= 0)
         {
             disconnect_client(curr_event->ident, this->clients, "read error ");
-            this->request[curr_event->ident].reset_file();
+            this->request[curr_event->ident].reset_request();
             return ;
         }
         buf[n] = '\0';
         this->clients[curr_event->ident] = buf;
         if (this->request[curr_event->ident].parse_request(std::string(buf,n)) == _PARSE_REQUEST_DONE)
         {
-            this->request[curr_event->ident].print_params();
+            //this->request[curr_event->ident].print_params();
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
@@ -251,9 +251,10 @@ void Webserv::event_check(int new_events, std::vector<int> &fds_s, configuration
         else if (this->event_list[i].flags & EV_EOF)
         {
             clients_list.erase(this->event_list[i].ident);
+            this->request[this->event_list[i].ident].reset_request();
             responsePool.erase(this->event_list[i].ident);
+            disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
             delete_event(this->event_list[i].ident, EVFILT_READ, "si eof ");
-            //disconnect_client(this->event_list[i].ident, this->clients, "EV_EOF");
         }
         else if (this->event_list[i].filter == EVFILT_READ)
             webserv_evfilt_read(&this->event_list[i], fds_s, config, server, env);
