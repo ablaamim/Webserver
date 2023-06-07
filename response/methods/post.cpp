@@ -16,14 +16,12 @@ bool    uploadSupported(Response& resp)
 void    servePostCGI(Response& resp)
 {
     std::cout << "servePostCGI" << std::endl;
-
 }
 
 void    servePostFile(Response& resp)
 {
-    std::cout << "servePostFile" << std::endl;
-    std::string full_path = resp.kwargs["upload"][0] + resp._req.params["Url"];
-    std::cout << "full_path: " << full_path << std::endl;
+    std::string full_path = resp.kwargs["upload"][0] + resp._req.params["Url"] + "." + resp._req.params["Content-Extension"];
+    //std::cout << "full_path: " << full_path << std::endl;
     std::ifstream file(full_path.c_str(), std::ios::binary);
     if (file.good())
     {
@@ -31,7 +29,17 @@ void    servePostFile(Response& resp)
         resp.serveERROR("409", "Conflict");
         return ;
     }
-    resp.status = std::make_pair("201", "Created");
+    std::ifstream source(resp._req.file_body_name, std::ios::binary);
+    if (source.good())
+    {
+        std::ofstream destination(full_path, std::ios::binary);
+        destination << source.rdbuf();
+        source.close();
+        destination.close();
+        resp.status = std::make_pair("201", "Created");
+    }
+    else
+        resp.status = std::make_pair("520", "Web Server Returned an Unknown Error");
     resp.sendResponse(HEADERS_ONLY);
 }
 

@@ -10,7 +10,6 @@ int main(int argc, char **argv)
         get_help(argv[1]);
         signal(SIGPIPE, SIG_IGN);
         configurationSA config(argv[1]);
-        signal(SIGPIPE, SIG_IGN);  // ignore SIGPIPE
         Webserv webserv(config, argv);   // init Webserv
     }
     catch (std::exception &e)

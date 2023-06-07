@@ -4,14 +4,15 @@
 /********************************************************************/
 /*                     Constructors  and Destructor                 */
 /********************************************************************/
+
 Request::Request()
 {
     this->headers_done = false;
     this->content_length = 0;
     this->first_line = false;
     this->is_chuncked = false;
-    this->file_body_name = _TMP_FILE_ + gen_random();
-    this->file = new std::ofstream(this->file_body_name, std::ios::binary);
+    this->file_body_name = "";
+    this->file = NULL;
 }
 
 Request::Request(Request const & ob)
@@ -19,10 +20,7 @@ Request::Request(Request const & ob)
     *this = ob;
 }
 
-Request::~Request(){
-    if (this->file->is_open())
-        this->file->close();
-};
+Request::~Request(){};
 
 
 /********************************************************************/
@@ -37,6 +35,7 @@ Request::~Request(){
 
 Request & Request::operator=(Request const &ob)
 {
+    //std::cout << "Assignemnt operator" << std::endl;
     this->headers_done = ob.headers_done;
     this->first_line = ob.first_line;
     this->is_chuncked = ob.is_chuncked;
@@ -47,8 +46,8 @@ Request & Request::operator=(Request const &ob)
     this->path = ob.path;
     this->version = ob.version;
     this->content_length = ob.content_length;
-    this->body = ob.body;
-    std::remove(this->file_body_name.c_str());
+    if (this->file_body_name != "")
+        std::remove(this->file_body_name.c_str());
     this->file_body_name = ob.file_body_name;
     this->file = ob.file;
     return *this;
@@ -104,18 +103,16 @@ void    Request::print_params()
 }
 void    Request::reset_request()
 {
+    std::cout << COLOR_GREEN << "Reset request " << this->file_body_name << COLOR_RESET << std::endl;
     this->headers_done = false;
     this->first_line = false;
     this->is_chuncked = false;
     this->params.clear();
     std::remove(this->file_body_name.c_str());
+    if (this->file)
+        delete(this->file);
     this->file_body_name = "";
-    this->file->flush();
-}
-
-void    Request::reset_file()
-{
-    this->file->flush();
+    this->file = NULL;
 }
 
 int Request::check_readed_bytes()
@@ -131,7 +128,7 @@ int Request::check_readed_bytes()
         }
         else
         {
-            this->file->close();
+            //this->file->close();
             this->is_chuncked = false;
         }
     }
@@ -175,17 +172,17 @@ void Request::get_other_lines(std::string line)
         this->params[line.substr(0, indx)] = line.substr(indx + 2);
 }
 
-int Request::get_headers(std::string str)
+int Request::open_file_for_reponse(std::string str)
+{
+    this->file_body_name = _TMP_FILE_ + this->gen_random();
+    this->file = new std::ofstream(this->file_body_name, std::ios::binary);
+    return (get_chuncked_msg(str));
+}
+
+void Request::parse_headers(std::string str)
 {
     size_t line;
-    std::string str1 = "";
 
-    std::cout << "Parsing headers " << std::endl;
-    if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
-    {
-        str1 = str.substr(line + 4);
-        str = str.substr(0 ,line);
-    }
     while ((line = str.find("\r\n")) != std::string::npos)
     {
         if (!this->first_line)
@@ -196,9 +193,35 @@ int Request::get_headers(std::string str)
     }
     if (str != "")
         this->get_other_lines(str);
+}
+void Request::get_content_extension(void)
+{
+    size_t      line;
+
+    if (this->params.find("Content-Type") != this->params.end())
+    {
+        this->params["Content-Extension"] = this->params["Content-Type"];
+        if ((line = this->params["Content-Type"].rfind("/")) != std::string::npos)
+            this->params["Content-Extension"] = this->params["Content-Type"].substr(line + 1);
+    }
+}
+
+int Request::get_headers(std::string str)
+{
+    size_t line;
+    std::string str1 = "";
+
+    // std::cout << "Parsing headers " << std::endl;
+    if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
+    {
+        str1 = str.substr(line + 4);
+        str = str.substr(0 ,line);
+    }
+    this->parse_headers(str);
+    this->get_content_extension();
     this->headers_done = true;
     if (str1 != "")
-        return (get_chuncked_msg(str1));
+        return (open_file_for_reponse(str1));
     return (check_readed_bytes());
 }
 
@@ -207,7 +230,6 @@ int Request::get_chuncked_msg(std::string str)
     size_t              line;
     std::string         tmp_str;
     std::stringstream   ss;
-    int                 len;
 
     line = str.find("0\r\n\r\n");
     while (line != std::string::npos)
