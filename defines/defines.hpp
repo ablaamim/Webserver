@@ -63,6 +63,7 @@
 # define DELETE "DELETE"
 
 # define ERROR 1
+# define INDEX_EXISTS 2
 
 /* end of Response defines */
 
