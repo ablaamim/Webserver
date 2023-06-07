@@ -1,5 +1,7 @@
 #include "Response.hpp"
 
+
+
 std::string    getCustomErrorPage(Response& resp)
 {
     /* 
@@ -49,12 +51,22 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
     this->status.first = errorCode;
     this->status.second = errorMsg;
     errorPage = getCustomErrorPage(*this);
-    if (errorPage.length() > 0)
+    std::cout << "errorPage = " << errorPage << std::endl;
+    if (errorPage.length() > 0 && this->customErrorFound == false)
     {
-        std::cout << "errorPage: " << errorPage << std::endl;
-        this->headers["Location"] = errorPage;
-        this->status = std::make_pair("302", "Found");
-        this->sendResponse(HEADERS_ONLY);
+        /*
+            only if we found custom error page and we are not already serving error page
+            we will serve custom error page
+            we will keep status code and message as is
+            then serve it like a normal resource,
+            we will set referer to ERROR, so that we don't try to find custom error page again
+            this is the behaviour of nginx
+        */
+        this->resourceFullPath = pathJoin(this->kwargs["root"][0], errorPage);
+        std::cout << "Serving custom error page: " << this->resourceFullPath << std::endl;
+        this->method = GET;
+        this->customErrorFound = true;
+        this->resourceType = getResourceType();
     }
     else
         generateDefaultErrorPage(*this);

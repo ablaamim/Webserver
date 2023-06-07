@@ -124,6 +124,7 @@ bool    fileExists(const char *path)
 
 void    lookForIndex(Response& resp)
 {
+    resp.indexChecked = true;
     std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("index");
     if (it != resp.kwargs.end())
     {
@@ -132,10 +133,8 @@ void    lookForIndex(Response& resp)
         {
             std::string index_path = resp.kwargs["root"][0] + "/";
             index_path.append(*it2);
-            std::cout << "index_path: " << index_path << std::endl;
             if (fileExists(index_path.c_str()))
             {
-                std::cout << "FOUND INDEX" << std::endl;
                 resp.resourceFullPath = index_path;
                 resp.resourceType = FILE;
                 return ;
@@ -154,7 +153,8 @@ void    Response::serveGET()
             if you find it, change the resourceFullPath to the index file
             as well as the resourceType to FILE, since index is a file all the time
         */
-        lookForIndex(*this);
+        if (this->indexChecked == false)
+            lookForIndex(*this);
         if (this->resourceType == FILE)
             serveFile(*this);
         else if (this->resourceType == DIRECTORY)

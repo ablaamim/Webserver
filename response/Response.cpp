@@ -99,6 +99,8 @@ void    Response::init()
         this->lastChunkSize = 0;
         this->isCompleted = false;
         this->isChunked = false;
+		this->customErrorFound = false;
+		this->indexChecked = false;
 		this->fs = NULL;
 		this->method = this->_req.method;
 		//this->print_kwargs();

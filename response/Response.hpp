@@ -22,9 +22,14 @@ class Response
         size_t                                                  resourceSize; 
         size_t                                                  currentSize;
         size_t                                                  lastChunkSize;
-        int                                                     resourceType; 
+        int                                                     resourceType;
+
+        
         bool                                                    isCompleted;
         bool                                                    isChunked;
+        bool                                                    indexChecked;
+        bool                                                    customErrorFound;
+
         std::string                                             host;
         std::string                                             resourceFullPath;
         std::string                                             httpVersion; 
