@@ -113,13 +113,49 @@ void    serveCGI(Response& resp)
 
 }
 
+bool    fileExists(const char *path)
+{
+    bool    exists = false;
+    std::ifstream   f(path);
+    exists = f.is_open();
+    f.close();
+    return exists;
+}
+
+void    lookForIndex(Response& resp)
+{
+    std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("index");
+    if (it != resp.kwargs.end())
+    {
+        std::vector<std::string> index_pages = it->second;
+        for (std::vector<std::string>::iterator it2 = index_pages.begin(); it2 != index_pages.end(); it2++)
+        {
+            std::string index_path = resp.kwargs["root"][0] + "/";
+            index_path.append(*it2);
+            std::cout << "index_path: " << index_path << std::endl;
+            if (fileExists(index_path.c_str()))
+            {
+                std::cout << "FOUND INDEX" << std::endl;
+                resp.resourceFullPath = index_path;
+                resp.resourceType = FILE;
+                return ;
+            }
+        }
+        resp.serveERROR("403", "Forbidden");
+    }
+}
+
 void    Response::serveGET()
 {
     try
     {
-        //this->print_kwargs();
-        //std::cout << this->resourceType << std::endl;
-        if(this->resourceType == FILE)
+        /*
+            try to find the index file in the directory,
+            if you find it, change the resourceFullPath to the index file
+            as well as the resourceType to FILE, since index is a file all the time
+        */
+        lookForIndex(*this);
+        if (this->resourceType == FILE)
             serveFile(*this);
         else if (this->resourceType == DIRECTORY)
             serveDirectory(*this);
