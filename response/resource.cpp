@@ -39,7 +39,8 @@ bool    indexExists(Response& resp)
             this->referer = ERROR; means that we will serve the 403 error page directly without trying to find custom error page
             this is the behaviour of nginx
         */
-        resp.referer = ERROR;
+        if (resp.referer == NONE)
+            resp.referer = INDEX_EXISTS;
         resp.serveERROR("403", "Forbidden");
     }
     return false;
@@ -47,13 +48,21 @@ bool    indexExists(Response& resp)
 
 void    Response::setResourceInfo()
 {
+    this->initialized = true;
     if (this->kwargs["root"].empty())
         this->serveERROR("404", "Not Found");
-    else
+    else if (this->method == GET)
     {
+        /*
+            trying to find index page if it exists when the request is GET
+            if so, we will set resourceFullPath to the index page path
+        */
         if (indexExists(*this) == false)
-            this->resourceFullPath = this->kwargs["root"][0].append(_req.path);
+        {
+            std::string root = this->kwargs["root"][0];
+            this->resourceFullPath = root.append(this->_req.path);
+            std::cout << "resourceFullPath = " << this->resourceFullPath << std::endl;
+        }
     }
     this->resourceType = this->getResourceType();
-    this->initialized = true;
 }

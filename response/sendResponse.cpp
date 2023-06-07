@@ -83,6 +83,7 @@ void    Response::serve()
             this->serveRedirect();
         else
         {
+            std::cout << "serve resource" << std::endl;
             if (this->initialized == false)
                 this->setResourceInfo();
             if (this->method == GET)

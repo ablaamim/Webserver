@@ -56,7 +56,7 @@ void    Response::servePOST()
                 servePostFile(*this);
         }
         else
-            this->serveERROR("403", "Forbidden");
+            this->serveERROR("405", "Not Allowed");
     }
     catch(const std::exception& e)
     {
