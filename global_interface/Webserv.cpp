@@ -103,7 +103,8 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     }
     catch(const std::exception& e)
     {
-        client_cleanup(curr_event->ident);
+        if (newResponse.customErrorFound == false)
+            client_cleanup(curr_event->ident);
     }
 }
 
@@ -236,7 +237,8 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             catch(const std::exception& e)
             {
                 std::cout << COLOR_RED << "Error: " << e.what() << COLOR_RESET << std::endl;
-                client_cleanup(curr_event->ident);
+                if (it->second.customErrorFound == false)
+                    client_cleanup(curr_event->ident);
             }
         }
     }
