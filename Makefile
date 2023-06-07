@@ -25,7 +25,7 @@ CC = clang++
 
 #CFLAGS =  -std=c++98 #-Wall -Wextra -Werror #-g3 -fsanitize=address
 
-CFLAGS =  -std=c++98  #-g3 -fsanitize=address
+CFLAGS =  -std=c++98  -g3 #-fsanitize=address
 
 OBJ = $(SRC:.cpp=.o)
 

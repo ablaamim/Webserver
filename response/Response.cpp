@@ -147,7 +147,9 @@ Response::Response(const Response &other)
     this->lastChunkSize = other.lastChunkSize;
     this->isCompleted = other.isCompleted;
     this->isChunked = other.isChunked;
-    this->clientSocket = other.clientSocket;
+	this->customErrorFound = other.customErrorFound;
+	this->indexChecked = other.indexChecked;
+	this->clientSocket = other.clientSocket;
     this->resourceSize = other.resourceSize;
     this->method = other.method;
     this->_env = other._env;

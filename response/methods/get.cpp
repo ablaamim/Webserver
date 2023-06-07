@@ -44,6 +44,7 @@ void    openFile(Response& resp)
         resp.fs->seekg(0, std::ios::end);
         std::streampos length = resp.fs->tellg();
         resp.resourceSize = static_cast<size_t>(length);
+        std::cout << "resourceSize: " << resp.resourceSize << std::endl;
     }
 }
 
@@ -115,15 +116,19 @@ void    serveCGI(Response& resp)
 
 bool    fileExists(const char *path)
 {
-    bool    exists = false;
     std::ifstream   f(path);
+    bool            exists = false;
+
     exists = f.is_open();
     f.close();
     return exists;
 }
 
 void    lookForIndex(Response& resp)
-{
+{   
+    bool            indexFound = false;
+    std::string     index_path = "";
+
     resp.indexChecked = true;
     std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("index");
     if (it != resp.kwargs.end())
@@ -131,8 +136,7 @@ void    lookForIndex(Response& resp)
         std::vector<std::string> index_pages = it->second;
         for (std::vector<std::string>::iterator it2 = index_pages.begin(); it2 != index_pages.end(); it2++)
         {
-            std::string index_path = resp.kwargs["root"][0] + "/";
-            index_path.append(*it2);
+            index_path = pathJoin(resp.kwargs["root"][0], *it2);
             if (fileExists(index_path.c_str()))
             {
                 resp.resourceFullPath = index_path;
@@ -142,6 +146,18 @@ void    lookForIndex(Response& resp)
         }
         resp.serveERROR("403", "Forbidden");
     }
+    else
+    {
+        index_path = pathJoin(resp.kwargs["root"][0], "index.html");
+        if (fileExists(index_path.c_str()))
+        {
+            resp.resourceFullPath = index_path;
+            resp.resourceType = FILE;
+            return ;
+        }
+    }
+    if (resp.kwargs["auto_index"][0] != "on")
+        resp.serveERROR("403", "Forbidden");
 }
 
 void    Response::serveGET()
@@ -153,8 +169,12 @@ void    Response::serveGET()
             if you find it, change the resourceFullPath to the index file
             as well as the resourceType to FILE, since index is a file all the time
         */
+       std::cout << "resource type: " << this->resourceType << std::endl;
         if (this->indexChecked == false)
-            lookForIndex(*this);
+        {
+            if (this->resourceType == DIRECTORY)
+                lookForIndex(*this);
+        }
         if (this->resourceType == FILE)
             serveFile(*this);
         else if (this->resourceType == DIRECTORY)

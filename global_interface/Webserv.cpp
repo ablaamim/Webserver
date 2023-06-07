@@ -16,6 +16,7 @@ void Webserv::print_request()
 
 void Webserv::client_cleanup(int client_fd)
 {
+    std::cout << COLOR_RED << "Client " << client_fd << " is being cleanup " << COLOR_RESET << std::endl;
     this->request[client_fd].reset_request();
     responsePool.erase(client_fd);
     clients_list.erase(client_fd);
@@ -104,7 +105,11 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     catch(const std::exception& e)
     {
         if (newResponse.customErrorFound == false)
+        {
+            std::cout << COLOR_RED << "Error : " << e.what() << COLOR_RESET << std::endl;
             client_cleanup(curr_event->ident);
+        }
+            
     }
 }
 
@@ -213,9 +218,10 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         if (this->request[curr_event->ident].parse_request(std::string(buf,n)) == _PARSE_REQUEST_DONE)
         {
             //this->request[curr_event->ident].print_params();
+            std::cout << COLOR_GREEN << "request parsed" << COLOR_RESET << std::endl;
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-            entry_point(curr_event, this->request[curr_event->ident], config, server, env);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
+            entry_point(curr_event, this->request[curr_event->ident], config, server, env);
         }          
     }
 }
@@ -230,7 +236,11 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             try
             {
                 if (it->second.isCompleted)
+                {
+                    std::cout << COLOR_GREEN << "response sent" << COLOR_RESET << std::endl;
                     client_cleanup(curr_event->ident);
+                }
+                    
                 else
                     it->second.serve();
             }
@@ -238,7 +248,11 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             {
                 std::cout << COLOR_RED << "Error: " << e.what() << COLOR_RESET << std::endl;
                 if (it->second.customErrorFound == false)
+                {
+                    std::cout << "Error: " << e.what() << std::endl;
                     client_cleanup(curr_event->ident);
+                }
+                    
             }
         }
     }
