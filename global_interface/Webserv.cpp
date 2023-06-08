@@ -20,7 +20,6 @@ void Webserv::client_cleanup(int client_fd)
     this->request[client_fd].reset_request();
     responsePool.erase(client_fd);
     clients_list.erase(client_fd);
-
     delete_event(client_fd, EVFILT_WRITE, "delete Write event");
     disconnect_client(client_fd, this->clients, "write");
 }
@@ -29,7 +28,6 @@ void print_responsePool(std::map<int, Response> responsePool)
 {
     std::cout << std::endl << std::endl << COLOR_BLUE << "ResponsePool list :" << COLOR_RESET << std::endl;
     for (std::map<int, Response>::iterator iter = responsePool.begin(); iter != responsePool.end(); iter++)
-
         std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Response client Socket : " << iter->second.clientSocket << " ]" << COLOR_RESET << std::endl;
 }
 
@@ -45,7 +43,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     Request req = this->request[curr_event->ident];
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
     std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
-
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
     configurationSA::location   _obj_location = match_location(request.path, _obj_server);
