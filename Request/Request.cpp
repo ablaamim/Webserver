@@ -103,7 +103,7 @@ void    Request::print_params()
 }
 void    Request::reset_request()
 {
-    std::cout << COLOR_GREEN << "Reset request " << this->file_body_name << COLOR_RESET << std::endl;
+    //std::cout << COLOR_GREEN << "Reset request " << this->file_body_name << COLOR_RESET << std::endl;
     this->headers_done = false;
     this->first_line = false;
     this->is_chuncked = false;
@@ -119,7 +119,7 @@ int Request::check_readed_bytes()
 {
     if (this->params.find("Content-Length") != this->params.end())
     {
-        if (std::stoi(this->params["Content-Length"]) != this->file->tellp())
+        if (this->file && std::stoi(this->params["Content-Length"]) != this->file->tellp())
         {
             // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
             // std::cout << "_CONTENT_: " << this->file->tellp() << std::endl;
@@ -230,36 +230,35 @@ int Request::get_chuncked_msg(std::string str)
     size_t              line;
     std::string         tmp_str;
     std::stringstream   ss;
+    int                 len;
 
     line = str.find("0\r\n\r\n");
     while (line != std::string::npos)
     {
         tmp_str = str.substr(0, line);
+        if ((line = tmp_str.find("\r\n")) != std::string::npos)
+        {
+            std::cout << "here " << len << std::endl;
+            tmp_str = str.substr(line + 2);
+            try
+            {
+                ss << std::hex << str.substr(0, line);
+                ss >> len;
+                std::cout << "to read " << len << std::endl;
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
+        else
+            std::cout << "pase de header" << len << std::endl;
         *this->file << tmp_str;
         str = str.substr(line + 5);
         line = str.find("0\r\n\r\n");
     }
-    /*if ((line = str.find("\r\n")) != std::string::npos)
-    {
-        try
-        {
-            ss << std::hex << str.substr(0, line);
-            ss >> len;
-            std::cout << "to read " << len << std::endl;
-        }
-        catch(const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
-        }
-        
-        //std::cout << COLOR_RED << "before byte" << COLOR_RESET<< std::endl;
-        str = str.substr(line + 2);
-    }*/
     if (line == std::string::npos)
-    {
-        //std::cout << COLOR_RED << "NO limits" << COLOR_RESET<< std::endl;
         *this->file << str;
-    }
     return (check_readed_bytes());
 }
 
