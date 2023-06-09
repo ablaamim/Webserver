@@ -28,6 +28,7 @@ class Response
         bool                                                    isCompleted;
         bool                                                    isChunked;
         bool                                                    indexChecked;
+        bool                                                    isCGI;
         bool                                                    customErrorFound;
 
         std::string                                             host;
