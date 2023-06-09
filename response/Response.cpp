@@ -154,8 +154,9 @@ Response::Response(const Response &other)
     this->method = other.method;
     this->_env = other._env;
     this->_req = other._req;
+	this->kwargs = other.kwargs;
+	this->isCGI = other.isCGI;
     this->_location = other._location;
-    //this->fs = new std::ifstream(other.resourceFullPath,std::ifstream::binary);
     this->fs = other.fs;
 }
 

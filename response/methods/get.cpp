@@ -119,7 +119,7 @@ bool    fileExists(const char *path)
     std::ifstream   f(path);
     bool            exists = false;
 
-    exists = f.is_open();
+    exists = f.good();
     f.close();
     return exists;
 }
@@ -136,7 +136,7 @@ void    lookForIndex(Response& resp)
         std::vector<std::string> index_pages = it->second;
         for (std::vector<std::string>::iterator it2 = index_pages.begin(); it2 != index_pages.end(); it2++)
         {
-            index_path = pathJoin(resp.kwargs["root"][0], *it2);
+            index_path = pathJoin(resp.resourceFullPath, *it2);
             if (fileExists(index_path.c_str()))
             {
                 resp.resourceFullPath = index_path;
@@ -148,9 +148,11 @@ void    lookForIndex(Response& resp)
     }
     else
     {
-        index_path = pathJoin(resp.kwargs["root"][0], "index.html");
+        index_path = pathJoin(resp.resourceFullPath, "index.html");
+        std::cout << "index_path: " << index_path << std::endl;
         if (fileExists(index_path.c_str()))
         {
+            std::cout << "index found" << std::endl;
             resp.resourceFullPath = index_path;
             resp.resourceType = FILE;
             return ;
@@ -170,6 +172,7 @@ void    Response::serveGET()
             as well as the resourceType to FILE, since index is a file all the time
         */
        std::cout << "resource type: " << this->resourceType << std::endl;
+       std::cout << "resourceFullPath: " << this->resourceFullPath << std::endl;
         if (this->indexChecked == false)
         {
             if (this->resourceType == DIRECTORY)
