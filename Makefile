@@ -12,12 +12,12 @@ SRC = ./MainInc/main.cpp \
 	./response/utils.cpp \
 	./response/checkRequest.cpp \
 	./response/debug.cpp \
-	./response/resource.cpp \
 	./response/error.cpp \
-	./response/sendResponse.cpp \
+	./response/serve.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \
 	./response/methods/delete.cpp \
+	./response/methods/cgi.cpp \
 	
 
 

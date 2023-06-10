@@ -1,17 +1,9 @@
 #include "Response.hpp"
 
-
-
 std::string    getCustomErrorPage(Response& resp)
 {
-    /* 
-        trying to find custom error page in kwargs
-        if found return it else return empty string
-    */
     std::map<std::string, std::vector<std::string> >::iterator it;
     it = resp.kwargs.find("error_pages");
-    /* kwargs are empty */
-    //resp.print_kwargs();
     if (it != resp.kwargs.end())
     {
         std::vector<std::string> errorPages = it->second;
@@ -41,11 +33,6 @@ void    generateDefaultErrorPage(Response& resp)
 
 void    Response::serveERROR(std::string errorCode, std::string errorMsg)
 {
-    /*
-        find custom error page in kwargs (if exists)
-        otherwise, generate default error page with current status code and message,
-        send response, throw exception, which will be catched in Webserv.cpp.
-    */
     std::string errorPage;
 
     this->status.first = errorCode;
@@ -54,16 +41,7 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
     std::cout << "errorPage = " << errorPage << std::endl;
     if (errorPage.length() > 0 && this->customErrorFound == false)
     {
-        /*
-            only if we found custom error page and we are not already serving error page
-            we will serve custom error page
-            we will keep status code and message as is
-            then serve it like a normal resource,
-            we will set referer to ERROR, so that we don't try to find custom error page again
-            this is the behaviour of nginx
-        */
         this->resourceFullPath = pathJoin(this->kwargs["root"][0], errorPage);
-        std::cout << "Serving custom error page: " << this->resourceFullPath << std::endl;
         this->method = GET;
         this->customErrorFound = true;
         this->resourceType = getResourceType();

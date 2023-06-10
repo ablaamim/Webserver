@@ -1,5 +1,4 @@
-#include "methods.hpp"
-#include <sys/stat.h>
+#include "../Response.hpp"
 
 bool isDirectoryEmpty(const std::string& folderPath)
 {

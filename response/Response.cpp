@@ -79,11 +79,26 @@ std::pair<std::string, std::string> _mime_types[] =
 	std::make_pair(".7z", "application/x-7z-compressed")
 };
 
+std::string getContentType(std::string path)
+{
+	size_t pos = path.find_last_of(".");
+	if (pos == std::string::npos)
+		return ("application/octet-stream");
+	std::map<std::string, std::string>::iterator it = mime_types.find(path.substr(pos));
+	if (it != mime_types.end())
+		return (it->second);
+	return ("application/octet-stream");
+}
+
 Response::Response(void) { /* DEFAULT CONSTRUCTOR */ };
 
-void Response::insert_Location_kwargs(std::string key, std::vector<std::string> value)
+Response::Response(Request req, int id, configurationSA::location location, char **env)
 {
-    this->kwargs.insert(std::pair<std::string, std::vector<std::string> >(key, value));
+	/* That's for now, we will complete initialization in Response::init() */
+	this->_req = req;
+	this->_location = location;
+	this->_env = env;
+	this->clientSocket = id;
 }
 
 void    Response::init()
@@ -103,7 +118,8 @@ void    Response::init()
 		this->indexChecked = false;
 		this->fs = NULL;
 		this->method = this->_req.method;
-		//this->print_kwargs();
+		this->isCGI = false;
+		this->kwargsInsertion();
         this->checkRequest();
         this->setResourceInfo();
     }
@@ -113,20 +129,8 @@ void    Response::init()
     }
 }
 
-Response::Response(Request req, int id, configurationSA::location location, char **env)
-{
-	//std::cout << "CONSTRUCTOR" << std::endl;
-	this->_req = req;
-	this->_location = location;
-	this->_env = env;
-	this->clientSocket = id;
-	//this->kwargs_alloc = new std::map<std::string, std::vector<std::string> >();
-}
-
-
 Response::~Response()
 {
-	//std::cout << "DESTRUCTOR" << std::endl;
     if (this->fs)
 	{
         this->fs->close();
@@ -160,14 +164,36 @@ Response::Response(const Response &other)
     this->fs = other.fs;
 }
 
-std::string     getContentType(std::string path)
+void Response::insert_Location_kwargs(std::string key, std::vector<std::string> value)
 {
-	
-	size_t pos = path.find_last_of(".");
-	if (pos == std::string::npos)
-		return ("application/octet-stream");
-	std::map<std::string, std::string>::iterator it = mime_types.find(path.substr(pos));
-	if (it != mime_types.end())
-		return (it->second);
-	return ("application/octet-stream");
+	this->kwargs.insert(std::pair<std::string, std::vector<std::string> >(key, value));
+}
+
+void Response::kwargsInsertion()
+{
+	typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
+	for (NoneUniqueKey_t::iterator it = _location.NoneUniqueKey.begin(); it != _location.NoneUniqueKey.end(); it++)
+	{
+		std::string key = it->first;
+		std::vector<std::string> values;
+		std::map<std::string, std::vector<std::string> >::iterator it_map = it->second.begin();
+		while (it_map != it->second.end())
+		{
+			values.push_back(it_map->first);
+			std::vector<std::string>::iterator vec_iter = it_map->second.begin();
+			while (vec_iter != it_map->second.end())
+			{
+				values.push_back(*vec_iter);
+				vec_iter++;
+			}
+			it_map++;
+		}
+		this->kwargs.insert(std::make_pair(key, values));
+	}
+	for (std::map<std::string, std::vector<std::string> >::iterator it = _location.UniqueKey.begin(); it != _location.UniqueKey.end(); it++)
+	{
+		std::string key = it->first;
+		std::vector<std::string> values = it->second;
+		this->kwargs.insert(std::make_pair(key, values));
+	}
 }

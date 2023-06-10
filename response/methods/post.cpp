@@ -1,21 +1,11 @@
-#include "methods.hpp"
-
+#include "../Response.hpp"
 
 bool    uploadSupported(Response& resp)
 {
-    /*
-        check if upload is supported
-        by checking if the upload_pass exists in the kwargs (matched location)
-    */
     std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("upload");
     if (it == resp.kwargs.end())
         return false;
     return true;
-}
-
-void    servePostCGI(Response& resp)
-{
-    std::cout << "servePostCGI" << std::endl;
 }
 
 void    servePostFile(Response& resp)
@@ -43,11 +33,6 @@ void    servePostFile(Response& resp)
     resp.sendResponse(HEADERS_ONLY);
 }
 
-void    servePostDirectory(Response& resp)
-{
-    std::cout << "servePostDirectory" << std::endl;
-}
-
 void    Response::servePOST()
 {
     try
@@ -55,8 +40,8 @@ void    Response::servePOST()
         std::cout << "servePOST" << std::endl;
         if (uploadSupported(*this))
         {
-            if (this->resourceType == CGI)
-                servePostCGI(*this);
+            if (this->isCGI)
+                this->serveCGI();
             else if (this->resourceType == DIRECTORY)
                 this->serveERROR("409", "Conflict");
             else
