@@ -97,5 +97,7 @@ bool                                                            isDirectory(std:
 bool                                                            fileExists(const char *path);
 std::string                                                     pathJoin(std::string path1, std::string path2);
 void                                                            lookForIndex(Response &resp);
-
+std::string                                                     getFileExtension(const std::string &path);
+std::string                                                     getInterpreter(Response &resp, const std::string &fileExtension);
+std::string extractQueryParams(std::string &path);
 #endif

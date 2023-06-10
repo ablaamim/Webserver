@@ -38,11 +38,11 @@ void    Response::servePOST()
     try
     {
         std::cout << "servePOST" << std::endl;
-        if (uploadSupported(*this))
+        if (this->isCGI)
+            this->serveCGI();
+        else if (uploadSupported(*this))
         {
-            if (this->isCGI)
-                this->serveCGI();
-            else if (this->resourceType == DIRECTORY)
+            if (this->resourceType == DIRECTORY)
                 this->serveERROR("409", "Conflict");
             else
                 servePostFile(*this);

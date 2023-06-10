@@ -39,9 +39,9 @@ void Response::serveRedirect()
 
 void Response::serve()
 {
-    Response::mimeTypes.insert(std::pair<std::string, std::string>(".aac", "audio/aac"));
     try
     {
+        std::cout << "isCGI: " << this->isCGI << std::endl;
         if (this->resourceType == REDIRECT)
             serveRedirect();
         if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
@@ -55,6 +55,7 @@ void Response::serve()
     }
     catch (const std::exception &e)
     {
+        std::cout << "Exception: 3" << e.what() << std::endl;
         throw Response_err(e.what());
     }
 }
