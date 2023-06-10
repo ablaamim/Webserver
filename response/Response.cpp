@@ -58,6 +58,7 @@ void    Response::init()
 
 Response::~Response()
 {
+	std::cout << "Response destructor called" << std::endl;
     if (this->fs)
 	{
         this->fs->close();
@@ -123,4 +124,5 @@ void Response::kwargsInsertion()
 		std::vector<std::string> values = it->second;
 		this->kwargs.insert(std::make_pair(key, values));
 	}
+	this->print_kwargs();
 }

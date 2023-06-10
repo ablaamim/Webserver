@@ -20,8 +20,8 @@ void Webserv::client_cleanup(int client_fd)
     this->request[client_fd].reset_request();
     responsePool.erase(client_fd);
     clients_list.erase(client_fd);
-    delete_event(client_fd, EVFILT_WRITE, "delete Write event");
     disconnect_client(client_fd, this->clients, "write");
+    delete_event(client_fd, EVFILT_WRITE, "delete Write event");
 }
 
 void print_responsePool(std::map<int, Response> responsePool)
@@ -45,6 +45,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+    std::cout << "REQUEST PATH  = " << request.path << std::endl;
     configurationSA::location   _obj_location = match_location(request.path, _obj_server);
     Response newResponse(request, curr_event->ident, _obj_location, env);
     
@@ -84,19 +85,14 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
             //newResponse.kwargs_alloc->insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
         }
+        
         newResponse.init();
-        // for (std::map<std::string, std::vector<std::string> >::iterator it = newResponse.kwargs.begin(); it != newResponse.kwargs.end(); it++)
-        // {
-        //     std::cout << COLOR_YELLOW << "[ " << it->first << " ]" << COLOR_RESET << std::endl;
-        //     for (std::vector<std::string>::iterator it_vec = it->second.begin(); it_vec != it->second.end(); it_vec++)
-        //         std::cout << COLOR_YELLOW << "[ " << *it_vec << " ]" << COLOR_RESET << std::endl;
-        // }
-        // for (std::map<std::string, std::vector<std::string> >::iterator it = newResponse.kwargs_alloc->begin(); it != newResponse.kwargs_alloc->end(); it++)
-        // {
-        //     std::cout << COLOR_YELLOW << "[ " << it->first << " ]" << COLOR_RESET << std::endl;
-        //     for (std::vector<std::string>::iterator it_vec = it->second.begin(); it_vec != it->second.end(); it_vec++)
-        //         std::cout << COLOR_YELLOW << "[ " << *it_vec << " ]" << COLOR_RESET << std::endl;
-        // }
+        for (std::map<std::string, std::vector<std::string> >::iterator it = newResponse.kwargs.begin(); it != newResponse.kwargs.end(); it++)
+        {
+            std::cout << COLOR_YELLOW << "[ " << it->first << " ]" << COLOR_RESET << std::endl;
+            for (std::vector<std::string>::iterator it_vec = it->second.begin(); it_vec != it->second.end(); it_vec++)
+                std::cout << COLOR_YELLOW << "[ " << *it_vec << " ]" << COLOR_RESET << std::endl;
+        }
         responsePool.insert(std::make_pair(curr_event->ident, newResponse));
     }
     catch(const std::exception& e)
@@ -143,7 +139,7 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
 		for (std::vector<std::string>::iterator it = splited_trgt.begin(); std::reverse_iterator< std::vector<std::string>::iterator >(it) != re_it; it++)
 			current_location += "/" + *it;		
 	}	
-    result.insert(server.location["/"]);
+    //result.insert(server.location["/"]);
     return (result);
 }
 
@@ -237,7 +233,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
                     std::cout << COLOR_GREEN << "response sent" << COLOR_RESET << std::endl;
                     client_cleanup(curr_event->ident);
                 }
-                    
                 else
                     it->second.serve();
             }

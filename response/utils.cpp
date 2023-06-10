@@ -46,9 +46,13 @@ int     Response::getResourceType()
 
 void    Response::setResourceInfo()
 {
-    if (this->kwargs["root"].empty())
+    if (this->_location.UniqueKey["root"].empty())
+    {
+        std::cout << "root is empty" << std::endl;
         this->serveERROR("404", "Not Found");
-    this->resourceFullPath = pathJoin(this->kwargs["root"][0], _req.path);
+    }
+
+    this->resourceFullPath = pathJoin(this->_location.UniqueKey["root"][0], _req.path);
     this->resourceType = getResourceType(); 
 }
 
@@ -91,4 +95,38 @@ void lookForIndex(Response &resp)
         resp.serveERROR("403", "Forbidden");
     }
         
+}
+
+std::string getFileExtension(const std::string& path)
+{
+    size_t pos = path.find_last_of(".");
+    if (pos != std::string::npos)
+        return path.substr(pos);
+    return "";
+}
+
+std::string getInterpreter(Response &resp, const std::string &fileExtension)
+{
+    std::map<std::string, std::vector<std::string> >::iterator directive = resp.kwargs.find("cgi-bin");
+    std::vector<std::string> directiveValues = directive->second;
+    std::vector<std::string>::iterator it = std::find(directiveValues.begin(), directiveValues.end(), fileExtension);
+    if (it != directiveValues.end())
+        return (*(it + 1));
+    return "";
+}
+
+std::string extractQueryParams(std::string &path)
+{
+    std::string query_string = "";
+    size_t pos = path.find("?");
+    if (pos != std::string::npos)
+        return (path.substr(pos + 1));
+    return query_string;
+}
+
+void    setAllowedExtensions(std::vector<std::string>& allowedExtensions)
+{
+    allowedExtensions.push_back(".php");
+    allowedExtensions.push_back(".py");
+    allowedExtensions.push_back(".sh");
 }
