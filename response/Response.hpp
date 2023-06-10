@@ -34,7 +34,8 @@ class Response
         std::string                                             httpVersion; 
         std::string                                             body;
         std::string                                             method;
-        std::pair   <std::string, std::string>                  status; 
+        std::pair   <std::string, std::string>                  status;
+        static std::map <std::string, std::string>              mimeTypes;
         std::map    <std::string, std::string>                  headers;
         std::map<std::string, void(Response::*)()>              _methods;
         std::map    <std::string, std::vector<std::string> >    kwargs;
@@ -51,27 +52,32 @@ class Response
         std::vector<std::string>                                listing_directory(std::string& path);
         void                                                    serveFile(Response& resp);
         void                                                    kwargsInsertion();
-
+       
+        
         /* serving client depending on the request method */
 
-        void    serve();
-        void    serveERROR(std::string errorCode, std::string errorMsg);
-        void    serveGET();
-        void    servePOST();
-        void    serveDELETE();
-        void    serveCGI();
+        void            serve();        
+        void            serveGET();
+        void            servePOST();
+        void            serveDELETE();
+        void            serveCGI();
+        void            serveERROR(std::string errorCode, std::string errorMsg);
+
         /* Initialization methods */
 
-        void    init();
+        void            init();
+        static void     initMimeTypes();
 
-        void    checkRequest();
-        void    setResourceInfo();
-        void    checkResource();
-        int     getResourceType();
+        /* Methods to check the request and the resource */
+
+        void            checkRequest();
+        void            setResourceInfo();
+        void            checkResource();
+        int             getResourceType();
     
         /* Custom Send, which send the reponse whether the body content is generated or not */
 
-        void    sendResponse(int mode);
+        void            sendResponse(int mode);
 
         class  Response_err : public std::exception
         {
