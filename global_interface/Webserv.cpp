@@ -282,6 +282,8 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
 {
     int new_events;
     
+    /* stattic mimeTypes map initialization */
+    Response::initMimeTypes();
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(40) << "Server is running size " << fds_socket.size() << COLOR_RESET << std::endl;
     while (1337)

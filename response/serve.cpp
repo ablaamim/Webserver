@@ -39,6 +39,7 @@ void Response::serveRedirect()
 
 void Response::serve()
 {
+    Response::mimeTypes.insert(std::pair<std::string, std::string>(".aac", "audio/aac"));
     try
     {
         if (this->resourceType == REDIRECT)
