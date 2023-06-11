@@ -526,6 +526,9 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
                key_value.second[0].erase(key_value.second[0].end() - 1);
             try
             {
+                //std::cout << COLOR_YELLOW <<  "LOCATION KEYS = " << key_value.second[0] << std::endl;
+                if (result.first_location_key.empty())
+                    result.first_location_key = key_value.second[0];
                 result.location.insert(std::make_pair(key_value.second[0], new_location_creation(line_range, file_range)));
             }
             catch(ParsingErr &e)

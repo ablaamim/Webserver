@@ -1,7 +1,7 @@
 #include "../Response.hpp"
 #include <stdlib.h>
 
-char    **getEns(Response& resp)
+char    **getEnvs(Response& resp)
 {
     char **env = NULL;
     std::vector<std::string> envs;
@@ -64,13 +64,10 @@ void    executeCGI(Response &resp, const std::string& interpreter)
     char    **fullExecutable;
     childPID = fork();
     if (childPID == -1)
-    {
-        std::cout << COLOR_YELLOW << "fork() failed" << COLOR_RESET << std::endl;
         resp.serveERROR("500", "Internal Server Error");
-    }
     else if (childPID == 0)
     {
-        char **env = getEns(resp);
+        char **env = getEnvs(resp);
         for (int i = 0; env[i]; i++)
             std::cout << env[i] << std::endl;
         std::cout << "interpreter: " << interpreter << std::endl;

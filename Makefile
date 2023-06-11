@@ -8,6 +8,7 @@ SRC = ./MainInc/main.cpp \
 	./parsing/libcpp.cpp \
 	./Servers/Servers.cpp \
 	./global_interface/Webserv.cpp \
+	./global_interface/matchLocation.cpp \
 	./response/Response.cpp \
 	./response/utils.cpp \
 	./response/checkRequest.cpp \
