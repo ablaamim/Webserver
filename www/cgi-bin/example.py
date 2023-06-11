@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+#print "Hello, Python!"
 print "Content-type:text/html\r\n\r\n"
 print '<html>'
 print '<head>'

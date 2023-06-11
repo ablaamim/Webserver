@@ -55,7 +55,7 @@ void Response::serve()
     }
     catch (const std::exception &e)
     {
-        std::cout << "Exception: 3" << e.what() << std::endl;
+        //std::cout << "Exception: 3" << e.what() << std::endl;
         throw Response_err(e.what());
     }
 }

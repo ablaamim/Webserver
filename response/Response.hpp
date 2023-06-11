@@ -6,7 +6,7 @@
 class Response
 {
     public:
-        Response(Request req, int id, configurationSA::location location, char **env); 
+        Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location location, char **env); 
         Response(void);
         Response(int id);
         Response(const Response &other);
@@ -21,6 +21,8 @@ class Response
         size_t                                                  currentSize;
         size_t                                                  lastChunkSize;
         int                                                     resourceType;
+        std::string                                             port;
+        std::string                                             ip;
 
         
         bool                                                    isCompleted;
@@ -39,7 +41,6 @@ class Response
         std::map    <std::string, std::string>                  headers;
         std::map<std::string, void(Response::*)()>              _methods;
         std::map    <std::string, std::vector<std::string> >    kwargs;
-
         
         void                                                    init_methods();
         void                                                    print_request();

@@ -20,13 +20,17 @@ std::string getContentType(std::string path)
 
 Response::Response(void) { /* DEFAULT CONSTRUCTOR */ };
 
-Response::Response(Request req, int id, configurationSA::location location, char **env)
+Response::Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location location, char **env)
 {
-	/* That's for now, we will complete initialization in Response::init() */
+	/*That's for now, we will complete initialization in Response::init()*/
+	//std::cout << "IP AND PORT = " << clientIP << " " << clientPort << std::endl;
 	this->_req = req;
 	this->_location = location;
 	this->_env = env;
 	this->clientSocket = id;
+	this->ip = clientIP;
+	this->port = clientPort;
+
 }
 
 void    Response::init()
@@ -49,6 +53,7 @@ void    Response::init()
 		this->kwargsInsertion();
         this->checkRequest();
         this->setResourceInfo();
+
     }
     catch(const std::exception& e)
     {
@@ -58,7 +63,6 @@ void    Response::init()
 
 Response::~Response()
 {
-	std::cout << "Response destructor called" << std::endl;
     if (this->fs)
 	{
         this->fs->close();
@@ -90,6 +94,8 @@ Response::Response(const Response &other)
 	this->isCGI = other.isCGI;
     this->_location = other._location;
     this->fs = other.fs;
+	this->ip = other.ip;
+	this->port = other.port;
 }
 
 void Response::insert_Location_kwargs(std::string key, std::vector<std::string> value)
@@ -124,5 +130,4 @@ void Response::kwargsInsertion()
 		std::vector<std::string> values = it->second;
 		this->kwargs.insert(std::make_pair(key, values));
 	}
-	this->print_kwargs();
 }
