@@ -138,10 +138,11 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     {
                         //std::cout << "Server destructor" << std::endl;
                     }
-
+                    // get first location
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
                     typedef std::set<std::string>                         type_server_name; // set of server names
+                    std::string                                           first_location_key;
                     
                     type_listen                                           listen;       // map of listen ports and interfaces (ip, set<port>)
                     type_server_name                                      server_name;  // set of server names
@@ -174,6 +175,27 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                             std::cout << COLOR_BLUE << "Server_name : " << COLOR_RESET << COLOR_YELLOW << " [" << *it << " ]" << COLOR_RESET;
                         std::cout << std::endl;
                     };
+
+                    void print_type_location()
+                    {
+                        if (location.empty())
+                        {
+                            std::cout << COLOR_RED << "location is empty" << COLOR_RESET << std::endl;
+                            exit(EXIT_FAILURE);
+                        }
+                        for (type_location::iterator it = location.begin(); it != location.end(); it++)
+                        {
+                            std::cout << COLOR_BLUE << "Location : " << COLOR_RESET << COLOR_YELLOW << " [" << it->first << " ]" << COLOR_RESET << std::endl;
+                            it->second.print_unique_key();
+                            it->second.print_none_unique_key();
+                        }
+                    }
+
+                    // get type location
+                    type_location &get_location()
+                    {
+                        return (location);
+                    }
              
             }; // END OF SERVER 
 

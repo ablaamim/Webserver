@@ -97,8 +97,11 @@ void lookForIndex(Response &resp)
         
 }
 
-std::string getFileExtension(const std::string& path)
+std::string getFileExtension(const std::string path)
 {
+    // get ride of query string
+    path.substr(0, path.find("?"));
+    std::cout << "path: " << path << std::endl;
     size_t pos = path.find_last_of(".");
     if (pos != std::string::npos)
         return path.substr(pos);

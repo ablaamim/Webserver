@@ -45,7 +45,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    std::cout << "REQUEST PATH  = " << request.path << std::endl;
     configurationSA::location   _obj_location = match_location(request.path, _obj_server);
     Response newResponse(request, curr_event->ident, _obj_location, env);
     
@@ -85,14 +84,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
             //newResponse.kwargs_alloc->insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
         }
-        
         newResponse.init();
-        for (std::map<std::string, std::vector<std::string> >::iterator it = newResponse.kwargs.begin(); it != newResponse.kwargs.end(); it++)
-        {
-            std::cout << COLOR_YELLOW << "[ " << it->first << " ]" << COLOR_RESET << std::endl;
-            for (std::vector<std::string>::iterator it_vec = it->second.begin(); it_vec != it->second.end(); it_vec++)
-                std::cout << COLOR_YELLOW << "[ " << *it_vec << " ]" << COLOR_RESET << std::endl;
-        }
         responsePool.insert(std::make_pair(curr_event->ident, newResponse));
     }
     catch(const std::exception& e)
@@ -128,20 +120,6 @@ configurationSA::Server Webserv::Select_server(std::string ip, std::string port,
     return (*iter);
 }
 
-configurationSA::location Webserv::match_location(std::string trgt, configurationSA::Server server)
-{
-    configurationSA::location		result;
-    std::vector<std::string>	    splited_trgt = split(trgt, "/");
-
-	for (std::vector<std::string>::reverse_iterator	re_it = splited_trgt.rbegin(); re_it != splited_trgt.rend(); re_it++)
-	{
-		std::string	current_location;
-		for (std::vector<std::string>::iterator it = splited_trgt.begin(); std::reverse_iterator< std::vector<std::string>::iterator >(it) != re_it; it++)
-			current_location += "/" + *it;		
-	}	
-    //result.insert(server.location["/"]);
-    return (result);
-}
 
 void Webserv::change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
 {
