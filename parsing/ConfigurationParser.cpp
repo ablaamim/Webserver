@@ -538,23 +538,16 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         }
         else
         {
-            // CGI SHOULD NOT BE IN A SERVER CONTEXT
             if (key_value.first == "cgi-bin")
-                throw ParsingErr(" : CGI should not be in a server context");
-            // RETURN SHOULD NOT BE IN A SERVER CONTEXT
-            
+                throw ParsingErr(" : CGI should not be in a server context");            
             else if (key_value.first == "return")
                 throw ParsingErr(" : Return should not be in a server context");
-            
             else if (key_value.first == "index")
                 throw ParsingErr(" : index should not be in server context");
-            
             else if (key_value.first == "root")
                 throw ParsingErr(" : root should not be in server context");
-
             else if (key_value.first == "auto_index")
                 throw ParsingErr(" : auto index should not be in server context");
-            
             else if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
                 insert_keyvalue_location(server_location_config, key_value, start_last_line, *file_range.first);
             
@@ -563,8 +556,6 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
             
             else
                 throw ParsingErr(" : Unknown key '" + key_value.first + "'");
-            
-            //std::cout << "key_value.first : " << key_value.first << std::endl;
         }
         
         go_to_next_word_in_file(line_range, file_range);
@@ -572,8 +563,6 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         start_last_line = (int) (line_range.first - file_range.first->begin());
         
         key_value = get_keyvalue(line_range);
-        //server_location_config.print_none_unique_key();
-        //server_location_config.print_unique_key();
     }
 
     if (*line_range.first == '{')
@@ -585,8 +574,6 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
     line_range.first++;
     //result.location["/"].insert(server_location_config);
     //result.location["/"].insert(configuration::_default_values);
-    //server_location_config.print_none_unique_key();
-    //server_location_config.print_unique_key();
     return (result);
 }
 

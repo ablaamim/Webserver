@@ -46,14 +46,10 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
     configurationSA::location   _obj_location = match_location(request.path, _obj_server);
-    Response newResponse(request, curr_event->ident, _obj_location, env);
+    Response newResponse(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), request, curr_event->ident, _obj_location, env);
     
     try
-    {
-        // allocate memory for kwargs
-        
-        //newResponse.kwargs_alloc = new std::map<std::string, std::vector<std::string> >;
-        
+    {   
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
         {
             //newResponse.kwargs_alloc->insert(std::make_pair(it->first, it->second));
@@ -81,7 +77,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
         }
         for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
         {
-            //newResponse.kwargs_alloc->insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
             newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
         }
         newResponse.init();
@@ -119,7 +114,6 @@ configurationSA::Server Webserv::Select_server(std::string ip, std::string port,
     }
     return (*iter);
 }
-
 
 void Webserv::change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
 {

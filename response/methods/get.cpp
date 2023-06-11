@@ -92,8 +92,10 @@ void Response::serveGET() {
          serveFile(*this);
       else if (this->resourceType == DIRECTORY)
          serveDirectory(*this);
-   } catch (const std::exception &e) {
-      std::cout << "exception 2 " << e.what() << std::endl;
+   }
+   catch (const std::exception &e)
+   {
+      //std::cout << "exception 2 " << e.what() << std::endl;
       throw Response_err(e.what());
    }
 }
