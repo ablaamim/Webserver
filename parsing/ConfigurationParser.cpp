@@ -583,8 +583,8 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         throw ParsingErr(" : Server context should be closed by a '}'");
 
     line_range.first++;
-    result.location["/"].insert(server_location_config);
-    result.location["/"].insert(configuration::_default_values);
+    //result.location["/"].insert(server_location_config);
+    //result.location["/"].insert(configuration::_default_values);
     //server_location_config.print_none_unique_key();
     //server_location_config.print_unique_key();
     return (result);
