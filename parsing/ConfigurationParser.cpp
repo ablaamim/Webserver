@@ -79,7 +79,7 @@ void configurationSA::configuration::initialize_data(void)
         
         std::make_pair("auto_index", raw_configuration(UNIQUE_KEYTYPE, NULL, 1, autoindex, SIZEOF(autoindex))),                 // AUTOINDEX
         
-        std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)),                                                   // UPLOAD
+        std::make_pair("upload_pass", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)),                                                   // UPLOAD
         
         std::make_pair("index", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)),                                     // INDEX
         
