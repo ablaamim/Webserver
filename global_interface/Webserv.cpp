@@ -182,7 +182,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         this->clients[curr_event->ident] = buf;
         if (this->request[curr_event->ident].parse_request(std::string(buf,n)) == _PARSE_REQUEST_DONE)
         {
-            //this->request[curr_event->ident].print_params();
             std::cout << COLOR_GREEN << "request parsed" << COLOR_RESET << std::endl;
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
@@ -216,7 +215,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
                     std::cout << "Error: " << e.what() << std::endl;
                     client_cleanup(curr_event->ident);
                 }
-                    
             }
         }
     }
@@ -249,7 +247,6 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
 {
     int new_events;
     
-    /* stattic mimeTypes map initialization */
     Response::initMimeTypes();
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
     std::setw(40) << "Server is running size " << fds_socket.size() << COLOR_RESET << std::endl;

@@ -16,41 +16,33 @@
 # include <list>
 # include <unistd.h>
 # include "../defines/defines.hpp"
-# include "../parsing/debug.hpp"
 # include "../parsing/libcpp.hpp"
 
-class Webserv;
 class configurationSA
 {
     private :
-        typedef std::string::iterator                             line_iterator;   // iterator for a line in configuration file
-        typedef std::vector<std::string>::iterator                file_iterator;   // iterator for a file in configuration file
-        typedef std::pair<line_iterator, line_iterator>           line_range_type; // pair of iterators for a line in configuration file
-        typedef std::pair<file_iterator, file_iterator>           file_range_type; // pair of iterators for a file in configuration file
-        typedef std::pair<std::string, std::vector<std::string> > key_value_type;  // pair of key and value in configuration file
+        typedef std::string::iterator                             line_iterator;   
+        typedef std::vector<std::string>::iterator                file_iterator;   
+        typedef std::pair<line_iterator, line_iterator>           line_range_type; 
+        typedef std::pair<file_iterator, file_iterator>           file_range_type; 
+        typedef std::pair<std::string, std::vector<std::string> > key_value_type;
     
     public :
-        // Location struct will contain a map of none unique keys and a map of unique keys
-        class location // BEGININING OF LOCATION 
+        class location
         {
             public :
-                
-                typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
-                typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;     // map of unique keys that have only one value
+                typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
+                typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
             
                 UniqueKey_t     UniqueKey;
                 NoneUniqueKey_t NoneUniqueKey;
 
                 location()
                 {
-                    //std::cout << "location constructor" << std::endl;
-                    //this->UniqueKey.clear();
-                    //this->NoneUniqueKey.clear();
                 }
                 
                 ~location()
                 {
-                    //std::cout << "location destructor" << std::endl;
                 }
 
                 bool error_if_empty_keys()
@@ -75,10 +67,6 @@ class configurationSA
                         for (std::vector<std::string>::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
                             std::cout << COLOR_YELLOW << *iter << " " << COLOR_RESET;
                         std::cout << std::endl;
-                        // if (it->first == "root")
-                        //     std::cout << COLOR_BLUE << "root : " << COLOR_RESET << COLOR_YELLOW << it->second[0] << COLOR_RESET << std::endl;
-                        // if (it->first == "upload")
-                        //     std::cout << COLOR_BLUE << "upload : " << COLOR_RESET << COLOR_YELLOW << it->second[0] << COLOR_RESET << std::endl;
                     }
 
                 };
@@ -104,38 +92,25 @@ class configurationSA
                     }
                 };
 
-                // Insert a unique key in the location 
                 static void insert_unique_key(const UniqueKey_t &lval, UniqueKey_t &rval)
                 {
                     for (UniqueKey_t::const_iterator it = lval.begin(); it != lval.end(); it++)
                         rval.insert(*it);
                 }
-                // Insert a none unique key in the location struct
                 void insert(const location &otherInsert)
                 {
                     insert_unique_key(otherInsert.UniqueKey, UniqueKey);
-                    // Insert none unique keys in the location struct
                     for (NoneUniqueKey_t::const_iterator iter = otherInsert.NoneUniqueKey.begin(); iter != otherInsert.NoneUniqueKey.end(); iter++)
                         insert_unique_key(iter->second, NoneUniqueKey[iter->first]);
                 }
             
-            }; // END OF LOCATION 
-            // Server struct will contain a map of locations and a set of server 
-            // names and a map of listen ports.
-            class Server // BEGIN OF SERVER
+            };
+            class Server 
             {
                 public :
 
-                    Server()
-                    {
-                        //std::cout << "Server constructor" << std::endl;
-                    }
-
-                    ~Server()
-                    {
-                        //std::cout << "Server destructor" << std::endl;
-                    }
-                    // get first location
+                    Server(){}
+                    ~Server(){}
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
                     typedef std::set<std::string>                         type_server_name; // set of server names
@@ -144,7 +119,6 @@ class configurationSA
                     type_listen                                           listen;       // map of listen ports and interfaces (ip, set<port>)
                     type_server_name                                      server_name;  // set of server names
                     type_location                                         location;     // map of locations
-                    
                     void print_type_listen()
                     {
                         if (listen.empty())
@@ -187,19 +161,15 @@ class configurationSA
                             it->second.print_none_unique_key();
                         }
                     }
-
-                    // get type location
                     type_location &get_location()
                     {
                         return (location);
                     }
              
-            }; // END OF SERVER 
+            };
 
-            private :
-                
-                // Configuration 
-                class configuration // BEGIN OF CONF 
+            public :
+                class configuration
                 {
                     public :
                         enum KEYTYPE
@@ -209,8 +179,6 @@ class configurationSA
                             UNIQUE_KEYTYPE,         // UNIQUE_KEYTYPE is used to check if the key is a unique key
                             NONE_UNIQUE_KEYTYPE     // NONE_UNIQUE_KEYTYPE is used to check if the key is a none unique key
                         };
-                        // sub struct it contains information about each defined key 
-                        // in the configuration file.
                         class raw_configuration // FINAL CONTAINER
                         {
                             public :
@@ -222,7 +190,6 @@ class configurationSA
 
                                 raw_configuration()
                                 {
-                                    //std::cout << "raw_configuration default constructor" << std::endl;
                                 };
                     
                                 raw_configuration(const KEYTYPE &keytype, void (*func)(key_value_type &, size_t &start_last_line, std::string &line), size_t maxParameters, std::string validParameterstab[], size_t validParamettersSize)
@@ -235,10 +202,7 @@ class configurationSA
                                 };
                 };
 
-                // map of raw_configuration, key = key name, value = raw_configuration :
                 typedef std::map<std::string, raw_configuration> data_type;
-                // map of rawConf, key = key name, value = rawConf s:
-                //typedef std::map<std::string, rawConf> data_type;
                 static data_type                       _data;
                 static location                        _default_values;
                 static void                            initialize_data(void);
@@ -260,7 +224,6 @@ class configurationSA
         typedef     std::vector<Server> data_type;    
         data_type   _data;  
 
-        void            print_data_type();
         static void     listen_format(key_value_type &key_value, size_t &start_last_line, std::string &line);
         static void     check_port(std::string str, size_t &start_last_line, std::string &line);
         static void     check_root(key_value_type &key_values, size_t &start_last_line, std::string &line);
@@ -284,9 +247,8 @@ class configurationSA
         static void     color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color);
     
     public :
-        configurationSA()
-        {};
         configurationSA(char *config_file);
+        configurationSA();
         ~configurationSA();        
         data_type get_data(void);
         
