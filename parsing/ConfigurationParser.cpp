@@ -1,23 +1,6 @@
 #include "ConfigurationParser.hpp"
 
 /*
-* COLORS :
-*/
-
-void configurationSA::color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color)
-{
-   std::string reset(COLOR_RESET);
-   if (line.find(word, start) == std::string::npos)
-       return ;
-
-    start = line.find(word, start);
-    line.insert(start, color);
-    start += color.size() + word.size();
-    line.insert(start, reset);
-    start += reset.size();
-}
-
-/*
 * default constructor : this function is used to initialize the configuration class.
 */
 
@@ -104,35 +87,14 @@ void configurationSA::configuration::initialize_default_values(void)
 {    
     if (!_default_values.NoneUniqueKey.empty() && !_default_values.UniqueKey.empty())
         return ;
-    std::pair<std::string, std::vector<std::string> > return_tab[] =
-    {
-        //std::make_pair("200", std::vector<std::string> (1, "OK")),
-        //
-        //std::make_pair("403", std::vector<std::string> (1, "Forbidden")),
-        //
-        //std::make_pair("404", std::vector<std::string> (1, "Not Found")),
-        //
-        //std::make_pair("405", std::vector<std::string> (1, "Method Not Allowed")),
-        //
-        //std::make_pair("413", std::vector<std::string> (1, "Request Entity Too Large")),
-        //
-        //std::make_pair("500", std::vector<std::string> (1, "Internal Server Error")),
-    };
-    //std::pair<std::string, std::map<std::string, std::vector<std::string> > > noneUniqueKey[] =
-    //{
-        //std::make_pair("return", std::map<std::string, std::vector<std::string> >(return_tab, return_tab + SIZEOF(return_tab))),
-    //};
-    
-    //_default_values.NoneUniqueKey.insert(noneUniqueKey, noneUniqueKey + SIZEOF(noneUniqueKey));
-    
-    // UNIQUE KEY DEFAULT VALUES.
-    std::string allowed_methods[] = {"GET", "POST", "DELETE"};
+
+    std::string allowed_methods[] = {"GET"};
     
     std::pair <std::string, std::vector<std::string> > uniqueKey[] =
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "off")),
         
-        std::make_pair("max_body_size", std::vector<std::string>(1, "100000000000000000000000000")),
+        std::make_pair("max_body_size", std::vector<std::string>(1, "1000000000")),
         
         std::make_pair("allowed_methods", std::vector<std::string>(allowed_methods, allowed_methods + SIZEOF(allowed_methods))),
     };
@@ -475,11 +437,8 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
     if (file_range.first == file_range.second)
         throw ParsingErr(" : Location context should be closed by a '}'");
 
-    line_range.first++;
-    
+    line_range.first++;    
     go_to_next_word_in_file(line_range, file_range);
-    //result.print_none_unique_key();         // CGI / RETUN / ERROR PAGES
-    //result.print_unique_key();
     return (result);
 }
 
@@ -489,9 +448,19 @@ void  configurationSA::insert_keyvalue_server(Server &result, key_value_type &ke
     
     check_keyvalues(key_value, keyConfig, start_last_line, line);
     
-    if (key_value.first == "listen" && !result.listen[key_value.second[0]].insert(key_value.second[1]).second)
-        throw ParsingErr("Error : Key listen already exists" + key_value.second[0] + " " + key_value.second[1]);
-    
+    std::cout << "key_value.first : " << key_value.first << std::endl;
+
+    if (key_value.first == "listen")
+    {
+        std::cout << "Listen insert" << std::endl;
+        result.listen[key_value.second[0]].insert(key_value.second[1]);
+        //throw ParsingErr("Error : Key listen already exists" + key_value.second[0] + " " + key_value.second[1]);
+        std::cout << result.listen[key_value.second[0]].count(key_value.second[1]) << std::endl;
+    }
+    if (result.listen[key_value.second[0]].size() > 1)
+    {
+        throw ParsingErr(" : More than one listen");
+    }
     else if (key_value.first == "server_name")
     {
         size_t old_size = result.server_name.size();
@@ -557,11 +526,8 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
             else
                 throw ParsingErr(" : Unknown key '" + key_value.first + "'");
         }
-        
         go_to_next_word_in_file(line_range, file_range);
-        
         start_last_line = (int) (line_range.first - file_range.first->begin());
-        
         key_value = get_keyvalue(line_range);
     }
 
@@ -630,43 +596,28 @@ std::string     configurationSA::get_word_skip_space(line_range_type &line_range
     return (word);
 }
 
-///////////////////////// ACCESSORS : /////////////////////////
-
 configurationSA::data_type configurationSA::get_data(void)
 {
     return (_data);
 }
 
-///////////////////////  CONSTUCTORS : ///////////////////////
-
 configurationSA::configurationSA(char *config_file)
 {
-    // init data.
-    configuration::initialize_data();
-    
-    // init default values.
-    configuration::initialize_default_values();
-
     std::ifstream            input(config_file);
     std::vector<std::string> fullFile;
 
-    // open file and check if it is open.
-
+    configuration::initialize_data();
+    configuration::initialize_default_values();
     if (!input.is_open())
     {
        throw ParsingErr(" : File does not open : " + std::string(config_file));
     }
-    // Read file line by line.
-
     for (std::string line; !input.eof();)
     {
         std::getline(input, line);
         fullFile.push_back(line);
     }
-    // close fd
     input.close();    
-    // Check if file is empty.
-    
     line_range_type line_range(fullFile.begin()->begin(), fullFile.begin()->end());
     file_range_type file_range(fullFile.begin(), fullFile.end());
     try
@@ -682,7 +633,6 @@ configurationSA::configurationSA(char *config_file)
                 {
                     _data.push_back(new_server_creation(line_range, file_range));
                 }
-                
                 catch (ParsingErr &e)
                 {
                     throw ParsingErr("Server " + std::to_string(_data.size()) + " : " + e.what()); 
@@ -699,5 +649,22 @@ configurationSA::configurationSA(char *config_file)
         throw ParsingErr(std::string(e.what()) + "\n" + "line " + std::to_string(fullFile.size() - (file_range.second - file_range.first) + 1) + " : " + \
         ((file_range.first == file_range.second) ? *(file_range.first - 1) : *file_range.first));
     }
-    //input.close();
+}
+
+/*
+* COLORS :
+*/
+
+void configurationSA::color_words_in_range(size_t &start, const std::string &word, std::string &line, \
+const std::string &color)
+{
+   std::string reset(COLOR_RESET);
+   
+   if (line.find(word, start) == std::string::npos)
+       return ;
+    start = line.find(word, start);
+    line.insert(start, color);
+    start += color.size() + word.size();
+    line.insert(start, reset);
+    start += reset.size();
 }

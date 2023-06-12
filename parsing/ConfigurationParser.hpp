@@ -1,4 +1,4 @@
-#ifndef CONFIGURATION_PARSER_HPP // BEGIN OF CONFIGURATION_PARSER_HPP
+#ifndef CONFIGURATION_PARSER_HPP 
 # define CONFIGURATION_PARSER_HPP
 
 # include <iostream>
@@ -19,11 +19,8 @@
 # include "../parsing/debug.hpp"
 # include "../parsing/libcpp.hpp"
 
-//class Response;
-
 class Webserv;
-
-class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
+class configurationSA
 {
     private :
         typedef std::string::iterator                             line_iterator;   // iterator for a line in configuration file
@@ -256,74 +253,43 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     return ((_data.count(key)) ? _data[key].keyType : NONE_KEYTYPE);
                 }
         
-        }; // END OF CONF 
+        };
 
     public :
         
-        typedef std::vector<Server> data_type;    
+        typedef     std::vector<Server> data_type;    
+        data_type   _data;  
+
+        void            print_data_type();
+        static void     listen_format(key_value_type &key_value, size_t &start_last_line, std::string &line);
+        static void     check_port(std::string str, size_t &start_last_line, std::string &line);
+        static void     check_root(key_value_type &key_values, size_t &start_last_line, std::string &line);
+        static void     check_ip(std::vector<std::string> ip, size_t &start_last_line, std::string &line);
+        static void     check_cgi(key_value_type &key_value, size_t &start_last_line, std::string &line);
+        static void     check_body_size(key_value_type &key_value, size_t &start_last_line, std::string &line);
+        std::string     get_word(line_range_type &line_range);
+        void            go_to_next_word_in_file(line_range_type &line_range, file_range_type &file_range);
+        void            skip_charset(line_range_type &line_range, const std::string &charSet);
+        std::string     get_word_skip_space(line_range_type &line_range);
+        bool            is_server_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range);
+        key_value_type  get_keyvalue(line_range_type &line_range);
+        bool            is_location_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, size_t start_last_line);
+        bool            check_duplicated_parametters(std::vector<std::string> parameters, size_t &start_last_line, std::string &line);
+        bool            check_valid_parametters(std::vector<std::string> parameters, std::set<std::string> validParamters, size_t &start_last_line, std::string &line);
+        void            insert_keyvalue_location(location &location, key_value_type &key_value, size_t &start_last_line, std::string &line);
+        void            check_keyvalues(key_value_type &keyVals, const configuration::raw_configuration &keyConfig, size_t start_last_line,std::string &line);
+        location        new_location_creation(line_range_type &line_range, file_range_type &file_range);
+        void            insert_keyvalue_server(Server &server, key_value_type &key_value, size_t &start_last_line, std::string &line); 
+        Server          new_server_creation(line_range_type &line_range, file_range_type &file_range);
+        static void     color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color);
     
-        data_type   _data;
-        
-        void print_data_type()
-        {
-            if (_data.empty())
-            {
-                std::cout << "Data is empty" << std::endl;
-                return ;
-            }
-            for (data_type::const_iterator it = _data.begin(); it != _data.end(); it++)
-            {
-                std::cout << "Server name : " << std::endl;
-                
-                for (std::set<std::string>::const_iterator iter = it->server_name.begin(); iter != it->server_name.end(); iter++)
-                    std::cout << *iter << " ";
-                std::cout << std::endl;
-                std::cout << "Listen : " << std::endl;
-                
-                for (Server::type_listen::const_iterator iter = it->listen.begin(); iter != it->listen.end(); iter++)
-                {
-                    std::cout << iter->first << std::endl;
-                    for (std::set<std::string>::const_iterator ite = iter->second.begin(); ite != iter->second.end(); ite++)
-                        std::cout << *ite << std::endl;
-                }
-            }
-        };
-/////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
-    static void     listen_format(key_value_type &key_value, size_t &start_last_line, std::string &line);
-    static void     check_port(std::string str, size_t &start_last_line, std::string &line);
-    static void     check_root(key_value_type &key_values, size_t &start_last_line, std::string &line);
-    static void     check_ip(std::vector<std::string> ip, size_t &start_last_line, std::string &line);
-    static void     check_cgi(key_value_type &key_value, size_t &start_last_line, std::string &line);
-    static void     check_body_size(key_value_type &key_value, size_t &start_last_line, std::string &line);
-    std::string     get_word(line_range_type &line_range);
-    void            go_to_next_word_in_file(line_range_type &line_range, file_range_type &file_range);
-    void            skip_charset(line_range_type &line_range, const std::string &charSet);
-    std::string     get_word_skip_space(line_range_type &line_range);
-    bool            is_server_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range);
-    key_value_type  get_keyvalue(line_range_type &line_range);
-    bool            is_location_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, size_t start_last_line);
-    bool            check_duplicated_parametters(std::vector<std::string> parameters, size_t &start_last_line, std::string &line);
-    bool            check_valid_parametters(std::vector<std::string> parameters, std::set<std::string> validParamters, size_t &start_last_line, std::string &line);
-    void            insert_keyvalue_location(location &location, key_value_type &key_value, size_t &start_last_line, std::string &line);
-    void            check_keyvalues(key_value_type &keyVals, const configuration::raw_configuration &keyConfig, size_t start_last_line,std::string &line);
-    location        new_location_creation(line_range_type &line_range, file_range_type &file_range);
-    void            insert_keyvalue_server(Server &server, key_value_type &key_value, size_t &start_last_line, std::string &line); 
-    Server          new_server_creation(line_range_type &line_range, file_range_type &file_range);
-    static void     color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color);
-///////////////////////////////// END PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
     public :
-        // CONSTRUCTORS AND DESTRUCTORS :
         configurationSA()
         {};
-        
         configurationSA(char *config_file);
-        
-        ~configurationSA();
-                
-        // GETTERS AND SETTERS :
+        ~configurationSA();        
         data_type get_data(void);
-
-        // EXCEPTIONS :
+        
         class ParsingErr : public std::exception
         {
             private :
@@ -342,6 +308,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     return (_word);
                 }
         };
-}; // END OF CONFIGURATIONSA
+}; 
 
-#endif // CONFIGURATIONSA_HPP
+#endif 
