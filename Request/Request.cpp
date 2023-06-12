@@ -201,6 +201,7 @@ void Request::get_content_extension(void)
     if (this->params.find("Content-Type") != this->params.end())
     {
         this->params["Content-Extension"] = this->params["Content-Type"];
+        this->content_type = this->params["Content-Type"];
         if ((line = this->params["Content-Type"].rfind("/")) != std::string::npos)
             this->params["Content-Extension"] = this->params["Content-Type"].substr(line + 1);
     }

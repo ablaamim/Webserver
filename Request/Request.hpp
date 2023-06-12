@@ -20,6 +20,7 @@ class Request
         std::string         path;
         std::string         version;
         size_t              content_length;
+        std::string         content_type;
         std::string         file_body_name;
         std::ofstream       *file;
 

@@ -8,16 +8,18 @@ SRC = ./MainInc/main.cpp \
 	./parsing/libcpp.cpp \
 	./Servers/Servers.cpp \
 	./global_interface/Webserv.cpp \
+	./global_interface/matchLocation.cpp \
 	./response/Response.cpp \
 	./response/utils.cpp \
 	./response/checkRequest.cpp \
 	./response/debug.cpp \
-	./response/resource.cpp \
 	./response/error.cpp \
-	./response/sendResponse.cpp \
+	./response/serve.cpp \
+	./response/mimeTypes.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \
 	./response/methods/delete.cpp \
+	./response/methods/cgi.cpp \
 	
 
 
