@@ -42,11 +42,7 @@ void Response::serve()
     try
     {
         if (needsRedirection(*this))
-        {
-            std::cout << "needs redirection" << std::endl;
             return ;
-        }
-            
         if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
             lookForIndex(*this);
         if (this->method == GET)

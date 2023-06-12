@@ -15,6 +15,8 @@ void    CGIManager::setCleanURI()
     if (pos != std::string::npos)
         cleanURI.erase(pos);
     this->cleanURI = cleanURI;
+    if (fileExists(this->cleanURI.c_str()) == false)
+        this->resp.serveERROR("404", "Not Found");
 }
 
 void    CGIManager::setExtension()
@@ -36,19 +38,23 @@ void    CGIManager::setInterpreter()
     std::vector<std::string>::iterator it = std::find(directiveValues.begin(), directiveValues.end(), this->extension);
     if (it != directiveValues.end())
         this->interpreter = *(it + 1);
-    resp.serveERROR("501", "Not Implemented");
+    else
+        this->resp.serveERROR("501", "Not Implemented");
 }
 
 void    CGIManager::setQueryParams()
 {
     this->queryParams = "";
     std::string::size_type pos = this->resp.resourceFullPath.find("?");
+    std::cout << "pos: " << pos << std::endl;
     if (pos != std::string::npos)
         this->queryParams = this->resp.resourceFullPath.substr(pos + 1);
 }
 
 void    CGIManager::setEnv()
 {
+    for (int i = 0; resp._env[i]; i++)
+        this->env.push_back(resp._env[i]);
     this->env.push_back("REQUEST_METHOD=" + resp.method);
     this->env.push_back("PATH_INFO=" + resp.resourceFullPath);
     this->env.push_back("HTTP_USER_AGENT=" + getRequestParam("User-Agent"));
@@ -66,11 +72,9 @@ void    CGIManager::setEnv()
     this->env.push_back("HTTP_CONNECTION=" + getRequestParam("Connection"));
     this->env.push_back("SCRIPT_NAME=" + getRequestParam("Url"));
     this->env.push_back("HTTP_ACCEPT_ENCODING=" + getRequestParam("Accept-Encoding"));
-    for (int i = 0; resp._env[i]; i++)
-        this->env.push_back(resp._env[i]);
     if (resp.method == GET)
     {
-        this->env.push_back("QUERY_STRING=" + extractQueryParams(resp.resourceFullPath));
+        this->env.push_back("QUERY_STRING=" + this->queryParams);
     }
     else if (resp.method == POST)
     {
@@ -101,44 +105,59 @@ void    CGIManager::setExecveEnv()
     this->execveEnv[this->env.size()] = NULL;
 }
 
-// void executeCGI(Response &resp, const std::string &interpreter)
-// {
-//     int fd[2];
-//     int tmpFD;
-//     int childPID;
-//     char **fullExecutable;
-//     childPID = fork();
-//     if (childPID == -1)
-//         resp.serveERROR("500", "Internal Server Error");
-//     else if (childPID == 0)
-//     {
-//         char **env = getEnvs(resp);
-//         for (int i = 0; env[i]; i++)
-//             std::cout << env[i] << std::endl;
-//         // std::cout << "interpreter: " << interpreter << std::endl;
-//         dup2(fd[1], 1);
-//         close(fd[1]);
-//         close(fd[0]);
-//         if (resp.method == POST)
-//         {
-//             // std::cout << "Response file body name = " << resp._req.file_body_name << std::endl;
-//             tmpFD = open(resp._req.file_body_name.c_str(), O_RDONLY);
-//             // if (tmpFD == -1)
-//             // {
-//             //     std::cout << COLOR_YELLOW << "open() failed" << COLOR_RESET << std::endl;
-//             //     resp.serveERROR("500", "Internal Server Error");
-//             // }
-//             dup2(tmpFD, 0);
-//             close(tmpFD);
-//         }
-//         fullExecutable = getFullExecutable(interpreter, resp.resourceFullPath);
-//         if (execve(interpreter.c_str(), fullExecutable, resp._env) == -1)
-//         {
-//             std::cout << COLOR_YELLOW << "execve() failed" << COLOR_RESET << std::endl;
-//             exit(1);
-//         }
-//     }
-//     waitpid(childPID, NULL, 0);
-//     parseCGIoutput(resp, fd[0]);
-//     resp.sendResponse(HEADERS_ONLY);
-// }
+void    CGIManager::setInputFd()
+{
+    this->inputFd = runSystemCall(open(this->resp._req.file_body_name.c_str(), O_RDONLY));
+    runSystemCall(dup2(this->inputFd, 0));
+    runSystemCall(close(this->inputFd));
+}
+
+int    CGIManager::runSystemCall(int returnCode)
+{
+    if (returnCode == -1)
+        throw std::logic_error("System call failed");
+    return (returnCode);
+}
+
+
+void    CGIManager::parseOutput()
+{
+    /* read from this->fd[0] and parse the output (headers should be set accordingly */
+    int rd = -1;
+    char buffer[BUFFER_SIZE];
+    while(rd)
+    {
+        rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE));
+        this->resp.body.append(buffer, rd);
+    }
+    runSystemCall(close(this->fd[0]));
+}
+
+void    CGIManager::execute()
+{
+    try
+    {
+        runSystemCall(pipe(this->fd));
+        this->pid = runSystemCall(fork());
+        if (this->pid == 0)
+        {
+            runSystemCall(close(this->fd[0]));
+            runSystemCall(dup2(this->fd[1], 1));
+            runSystemCall(close(this->fd[1]));
+            if (this->resp._req.method == POST)
+                setInputFd();
+            runSystemCall(execve(this->execveArgs[0], this->execveArgs, this->execveEnv));
+            exit(0);
+        }
+        else
+        {
+            runSystemCall(close(this->fd[1]));
+            waitpid(this->pid, 0, 0);
+            parseOutput();
+        }
+    }
+    catch(const std::exception& e)
+    {
+        this->resp.serveERROR("500", "Internal Server Error");
+    }
+}
