@@ -2,7 +2,7 @@
 
 std::vector<int> Servers::fd_vector;
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **env)
 {
     try
     {
@@ -10,8 +10,7 @@ int main(int argc, char **argv)
         get_help(argv[1]);
         signal(SIGPIPE, SIG_IGN);
         configurationSA config(argv[1]);
-        signal(SIGPIPE, SIG_IGN);  // ignore SIGPIPE
-        Webserv webserv(config, argv);   // init Webserv
+        Webserv webserv(config, env);   // init Webserv
     }
     catch (std::exception &e)
     {
