@@ -19,7 +19,9 @@ SRC = ./MainInc/main.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \
 	./response/methods/delete.cpp \
-	./response/methods/cgi.cpp \
+	./response/cgi/CGIManager.cpp \
+	./response/cgi/utils.cpp \
+	
 	
 
 

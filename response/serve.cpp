@@ -41,9 +41,12 @@ void Response::serve()
 {
     try
     {
-        std::cout << "isCGI: " << this->isCGI << std::endl;
-        if (this->resourceType == REDIRECT)
-            serveRedirect();
+        if (needsRedirection(*this))
+        {
+            std::cout << "needs redirection" << std::endl;
+            return ;
+        }
+            
         if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
             lookForIndex(*this);
         if (this->method == GET)
@@ -55,7 +58,6 @@ void Response::serve()
     }
     catch (const std::exception &e)
     {
-        //std::cout << "Exception: 3" << e.what() << std::endl;
         throw Response_err(e.what());
     }
 }
