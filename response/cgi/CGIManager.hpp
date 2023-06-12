@@ -5,6 +5,9 @@
 class CGIManager
 {
     int                         fd[2];
+    int                         inputFd;
+    int                         outputFd;
+    int                         pid;
     Response                    &resp;
     std::string                 extension;
     std::string                 interpreter;
@@ -30,5 +33,8 @@ class CGIManager
         void            setExecveEnv();
         void            setExtension();
         std::string     getRequestParam(std::string key);
+        void            setInputFd();
+        int             runSystemCall(int returnCode);
+
         ~CGIManager();
 };

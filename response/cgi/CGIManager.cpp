@@ -24,9 +24,13 @@ void    CGIManager::init()
     try
     {
         this->setCleanURI();
+        std::cout << "cleanURI: " << cleanURI << std::endl;
         this->setExtension();
+        std::cout << "extension: " << extension << std::endl;
         this->setInterpreter();
+        std::cout << "interpreter: " << interpreter << std::endl;
         this->setQueryParams();
+        std::cout << "queryParams: " << queryParams << std::endl;
         this->setEnv();
         this->setExecveArgs();
         this->setExecveEnv();
@@ -49,10 +53,10 @@ void    Response::serveCGI()
 {
     try
     {
+        std::cout << COLOR_YELLOW << "serveCGI()" << COLOR_RESET << std::endl;
         CGIManager cgi(*this);
         cgi.init();
-        //cgi.execute();
-        //cgi.parseOutput();
+        cgi.execute();
         this->sendResponse(FULL);
     }
     catch(const std::exception& e)

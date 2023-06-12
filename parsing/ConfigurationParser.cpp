@@ -79,7 +79,7 @@ void configurationSA::configuration::initialize_data(void)
         
         std::make_pair("auto_index", raw_configuration(UNIQUE_KEYTYPE, NULL, 1, autoindex, SIZEOF(autoindex))),                 // AUTOINDEX
         
-        std::make_pair("upload", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)),                                                   // UPLOAD
+        std::make_pair("upload_pass", raw_configuration(UNIQUE_KEYTYPE, NULL, 1)),                                                   // UPLOAD
         
         std::make_pair("index", raw_configuration(NONE_UNIQUE_KEYTYPE, NULL, UNLIMITED_PARAMS)),                                     // INDEX
         
@@ -489,9 +489,15 @@ void  configurationSA::insert_keyvalue_server(Server &result, key_value_type &ke
     
     check_keyvalues(key_value, keyConfig, start_last_line, line);
     
-    if (key_value.first == "listen" && !result.listen[key_value.second[0]].insert(key_value.second[1]).second)
-        throw ParsingErr("Error : Key listen already exists" + key_value.second[0] + " " + key_value.second[1]);
-    
+    if (key_value.first == "listen")
+    {
+        result.listen[key_value.second[0]].insert(key_value.second[1]);
+    }
+    //std::cout << result.listen.size() << std::endl;
+    if (result.listen[key_value.second[0]].size() > 1)
+    {
+        throw ParsingErr(" : More than one listen");
+    }
     else if (key_value.first == "server_name")
     {
         size_t old_size = result.server_name.size();
