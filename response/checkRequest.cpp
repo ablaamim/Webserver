@@ -10,8 +10,8 @@ void    checkHTTP(Response& resp)
 
 void    Response::checkRequest()
 {
+    // root iterator
     std::vector<std::string> allowedMethods = this->kwargs["allowed_methods"];
-
     if (_req.method != "GET" && _req.method != "POST" && _req.method != "DELETE")
         this->serveERROR("501", "Not Implemented");
     if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.params["Method"]) == allowedMethods.end())

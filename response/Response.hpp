@@ -100,5 +100,6 @@ std::string                                                     pathJoin(std::st
 void                                                            lookForIndex(Response &resp);
 std::string                                                     getFileExtension(const std::string path);
 std::string                                                     getInterpreter(Response &resp, const std::string &fileExtension);
-std::string extractQueryParams(std::string &path);
+std::string                                                     extractQueryParams(std::string &path);
+bool                                                            needsRedirection(Response& resp);
 #endif

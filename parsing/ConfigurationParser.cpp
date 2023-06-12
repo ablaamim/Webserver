@@ -572,8 +572,12 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         throw ParsingErr(" : Server context should be closed by a '}'");
 
     line_range.first++;
-    //result.location["/"].insert(server_location_config);
-    //result.location["/"].insert(configuration::_default_values);
+    if(result.location.empty())
+    {
+        //std::cout << "LOCATION IS EMPTY" << std::endl;
+        result.location["/"].insert(server_location_config);
+        result.location["/"].insert(configuration::_default_values);
+    }
     return (result);
 }
 
@@ -690,7 +694,6 @@ configurationSA::configurationSA(char *config_file)
             }
             else if (file_range.first != file_range.second)
                 throw ParsingErr(" : Wrong server context");
-            
             go_to_next_word_in_file(line_range, file_range);
         }
     }
