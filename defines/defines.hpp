@@ -44,6 +44,7 @@
 # define _PARSE_REQUEST_DONE 0
 # define _CHUNCKED_REQUEST 2
 # define _CONTENT_ "Content_body"
+# define _TMP_FILE_ "tmp/"
 
 /*  Response defines */
 
@@ -62,8 +63,7 @@
 # define POST "POST"
 # define DELETE "DELETE"
 
-# define ERROR 1
-# define INDEX_EXISTS 2
+# define DEFAULT_ROOT "/Users/afaris/Desktop/Webserver/www/html"
 
 /* end of Response defines */
 

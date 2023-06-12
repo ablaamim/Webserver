@@ -2,22 +2,13 @@
 
 std::string    getCustomErrorPage(Response& resp)
 {
-    /* 
-        trying to find custom error page in kwargs
-        if found return it else return empty string
-    */
     std::map<std::string, std::vector<std::string> >::iterator it;
     it = resp.kwargs.find("error_pages");
-    /* kwargs are empty */
-    //resp.print_kwargs();
     if (it != resp.kwargs.end())
     {
-        resp.print_kwargs();
         std::vector<std::string> errorPages = it->second;
-        std::vector<std::string>::iterator it2;
-        it2 = std::find(errorPages.begin(), errorPages.end(), resp.status.first);
-        if (it2 != errorPages.end())
-            return (*(it2 + 1)); // return next element (which is error page path) (e.g. 404 /error_pages/404.html)
+        if (errorPages[0] == resp.status.first)
+            return (errorPages[1]);
     }
     return ("");
 }
@@ -42,37 +33,17 @@ void    generateDefaultErrorPage(Response& resp)
 
 void    Response::serveERROR(std::string errorCode, std::string errorMsg)
 {
-    /*
-        find custom error page in kwargs (if exists)
-        otherwise, generate default error page with current status code and message,
-        send response, throw exception, which will be catched in Webserv.cpp.
-    */
     std::string errorPage;
 
     this->status.first = errorCode;
     this->status.second = errorMsg;
     errorPage = getCustomErrorPage(*this);
     std::cout << "errorPage = " << errorPage << std::endl;
-    std::cout << "referer = " << this->referer << std::endl;
-    if (errorPage.length() > 0 && this->referer != ERROR)
+    if (errorPage.length() > 0 && this->customErrorFound == false)
     {
-        /*
-            only if we found custom error page and we are not already serving error page
-            we will serve custom error page
-            we will keep status code and message as is
-            then serve it like a normal resource,
-            we will set referer to ERROR, so that we don't try to find custom error page again
-            this is the behaviour of nginx
-        */
-        std::string root = this->kwargs["root"][0];
-        if (errorPage[0] != '/')
-            root.append("/");
-        if (errorPage[0] == '/')
-            errorPage.erase(0, 1);
-        this->resourceFullPath = root.append(errorPage);
-        std::cout << "Serving custom error page: " << this->resourceFullPath << std::endl;
+        this->resourceFullPath = pathJoin(this->kwargs["root"][0], errorPage);
         this->method = GET;
-        this->referer = ERROR;
+        this->customErrorFound = true;
         this->resourceType = getResourceType();
     }
     else

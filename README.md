@@ -199,22 +199,6 @@ if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 ◦ Make the route able to accept uploaded files and configure where they should
 be saved.
 
-∗ Do you wonder what a CGI is?
-
-∗ Because you won’t call the CGI directly, use the full path as PATH_INFO.
-
-∗ Just remember that, for chunked request, your server needs to unchunk
-it, the CGI will expect EOF as end of the body.
-
-∗ Same things for the output of the CGI. If no content_length is returned
-from the CGI, EOF will mark the end of the returned data.
-
-∗ Your program should call the CGI with the file requested as first argument.
-
-∗ The CGI should be run in the correct directory for relative path file access.
-
-∗ Your server should work with one CGI (php-CGI, Python, and so forth).
-
 ---
 
 ### Configuration file, Nginx like config :
@@ -229,78 +213,25 @@ Here is an example fie that shows config file format and supported directives.
 
 server 
 {
-    listen 8001;                        # listening port, mandatory parameter
-    server_name test;                   # specify server_name, need to be added into /etc/hosts to work
-    error_page 404 /error/404.html;     # default error page
-    client_max_body_size 1024;          # max request body size in bytes
-    root docs/fusion_web/;              # root folder of site directory, full or relative path, mandatory parameter
-    index index.html;                   # default page when requesting a directory, index.html by default
+    listen 127.0.0.1 8001;              # listening ip/port
+    error_pages 404 /error/404.html;    # default error page
+    max_body_size 1024;                 # max request body size in bytes
+    index index.html index2.html;       # default page when requesting a directory, index.html by default
 
     location /
     {                   
-        root docs/fusion_web;           # root folder of the location, if not specified, taken from the server. 
-        autoindex on;                   # turn on/off directory listing
-        allow_methods POST GET;         # allowed methods in location, GET only by default
+        root Webserver/www/html;        # root folder of site directory, full or relative path
+        auto_index on;                  # turn on/off directory listing
+        allowed_methods POST GET;       # allowed methods in location, only get is set by default
         index index.html;               # default page when requesting a directory, copies root index by default
         return abc/index1.html;         # redirection
     }
 
-    location / {
-        root ./;                                      # cgi-bin location, mandatory parameter
-        cgi .py /usr/bin/python3;                     # location of interpreters installed on the current system, mandatory parameter and extensions for executable files, mandatory parameter
+    location /
+    {
+        bin-cgi .py /usr/bin/python3;   # location of interpreters installed on the current system, mandatory parameter and extensions for executable files, mandatory parameter
     }
 }
-  ```
-
-
----
-
-### Steps :
-
----
-
-> In order to build a WebServer that can parse configuration files and handle HTTP requests. Here are the steps i followed to parse the configuration file:
-
-* STEP 0 :
-
-> Entry point of the program which is the main function : it contains simple error handling before and after calling my constructor.
-
-```c
-int main(int argc, char **argv, char **env)
-{
-    if (argc != 2)
-    {
-        std::cerr << "Invalid number of arguments : Usage ./Parsing <configuration file>" << std::endl;
-        return (EXIT_FAILURE);
-    }
-    try
-    {
-        //std::cout << "Parsing config file: " << argv[1] << "..." << std::endl
-        configurationSA config(argv[1]);
-    }
-    catch (std::exception &e)
-    {
-        std::cerr << "Failed to init, error : " << e.what() << std::endl;
-        return (EXIT_FAILURE);
-    }
-    return (EXIT_SUCCESS);
-}
 ```
-
-* STEP 1 :
-
-> My entry point which is the main function starts by a constructor call that takes a char pointer as argument, which is assumed to be a filename.
-
-> configurationSA stands for 'configuration syntax analysis'.
-
-```c
-configurationSA(char *config_file);
-```
-
-> This contructor begins by calling two other functions from a class called 'configuration', configuration::initialize_data() and configuration::initialize_default_values().
-
-> configuration::initialize_data() : this function initializes a collection of configuration data that is used by configurationSA
-class to parse server configuration file, The method first checks if the data collection is empty, and if not, it returns immediately. Otherwise, it initializes the data collection by creating an array of key-value pairs. Each key is a string that represents a configuration option, and each value is an instance of the raw_configuration class. The raw class is a container for configuration values, and it contains a function pointer to a function that validates the configuration value.
-After creating the array of key-value pairs, the method inserts them into the _data collection, which is a member variable of the Configuration class. The _data collection is a map that maps a string key to a raw_configuration value.
 
 ---

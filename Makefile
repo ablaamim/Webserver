@@ -4,43 +4,42 @@ SRC = ./MainInc/main.cpp \
 	./tools/tools.cpp \
 	./parsing/ConfigurationParser.cpp \
 	./Request/Request.cpp \
-	./parsing/debug.cpp \
 	./parsing/libcpp.cpp \
 	./Servers/Servers.cpp \
 	./global_interface/Webserv.cpp \
+	./global_interface/matchLocation.cpp \
 	./response/Response.cpp \
 	./response/utils.cpp \
 	./response/checkRequest.cpp \
 	./response/debug.cpp \
-	./response/resource.cpp \
 	./response/error.cpp \
-	./response/sendResponse.cpp \
+	./response/serve.cpp \
+	./response/mimeTypes.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \
 	./response/methods/delete.cpp \
+	./response/cgi/CGIManager.cpp \
+	./response/cgi/utils.cpp \
 	
-
-
 CC = clang++
 
-CFLAGS =  -std=c++98 -g3 #-fsanitize=address -Wall -Wextra -Werror
+CFLAGS =  -std=c++98  -g3 -fsanitize=address
 
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
-	@echo "\033[32m[Webserv] Compiled\033[0m"
-
-%.o: %.cpp
-	@$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+	@echo "\033[32m[Webserv] \033[0m\033[1;32mCompilation done\033[0m"
 
 clean:
-	@rm -rf $(OBJ)
-	@echo "\033[32m[Webserv] Cleaned\033[0m"
+	rm -rf $(OBJ)
+	@echo "\033[32m[Webserv] \033[0m\033[1;32mObjects removed\033[0m"
 
 fclean: clean
+	rm -rf $(NAME)
+	@echo "\033[32m[Webserv] \033[0m\033[1;32mExecutable removed\033[0m"
 
 re: fclean all
 

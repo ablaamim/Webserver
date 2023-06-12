@@ -1,4 +1,4 @@
-#ifndef CONFIGURATION_PARSER_HPP // BEGIN OF CONFIGURATION_PARSER_HPP
+#ifndef CONFIGURATION_PARSER_HPP 
 # define CONFIGURATION_PARSER_HPP
 
 # include <iostream>
@@ -16,44 +16,33 @@
 # include <list>
 # include <unistd.h>
 # include "../defines/defines.hpp"
-# include "../parsing/debug.hpp"
 # include "../parsing/libcpp.hpp"
 
-//class Response;
-
-class Webserv;
-
-class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
+class configurationSA
 {
     private :
-        typedef std::string::iterator                             line_iterator;   // iterator for a line in configuration file
-        typedef std::vector<std::string>::iterator                file_iterator;   // iterator for a file in configuration file
-        typedef std::pair<line_iterator, line_iterator>           line_range_type; // pair of iterators for a line in configuration file
-        typedef std::pair<file_iterator, file_iterator>           file_range_type; // pair of iterators for a file in configuration file
-        typedef std::pair<std::string, std::vector<std::string> > key_value_type;  // pair of key and value in configuration file
+        typedef std::string::iterator                             line_iterator;   
+        typedef std::vector<std::string>::iterator                file_iterator;   
+        typedef std::pair<line_iterator, line_iterator>           line_range_type; 
+        typedef std::pair<file_iterator, file_iterator>           file_range_type; 
+        typedef std::pair<std::string, std::vector<std::string> > key_value_type;
     
     public :
-        // Location struct will contain a map of none unique keys and a map of unique keys
-        class location // BEGININING OF LOCATION 
+        class location
         {
             public :
-                
-                typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
-                typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;     // map of unique keys that have only one value
+                typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t;
+                typedef std::map<std::string, std::vector<std::string> >                         UniqueKey_t;
             
                 UniqueKey_t     UniqueKey;
                 NoneUniqueKey_t NoneUniqueKey;
 
                 location()
                 {
-                    //std::cout << "location constructor" << std::endl;
-                    //this->UniqueKey.clear();
-                    //this->NoneUniqueKey.clear();
                 }
                 
                 ~location()
                 {
-                    //std::cout << "location destructor" << std::endl;
                 }
 
                 bool error_if_empty_keys()
@@ -78,10 +67,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                         for (std::vector<std::string>::const_iterator iter = it->second.begin(); iter != it->second.end(); iter++)
                             std::cout << COLOR_YELLOW << *iter << " " << COLOR_RESET;
                         std::cout << std::endl;
-                        // if (it->first == "root")
-                        //     std::cout << COLOR_BLUE << "root : " << COLOR_RESET << COLOR_YELLOW << it->second[0] << COLOR_RESET << std::endl;
-                        // if (it->first == "upload_pass")
-                        //     std::cout << COLOR_BLUE << "upload : " << COLOR_RESET << COLOR_YELLOW << it->second[0] << COLOR_RESET << std::endl;
                     }
 
                 };
@@ -107,46 +92,33 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     }
                 };
 
-                // Insert a unique key in the location 
                 static void insert_unique_key(const UniqueKey_t &lval, UniqueKey_t &rval)
                 {
                     for (UniqueKey_t::const_iterator it = lval.begin(); it != lval.end(); it++)
                         rval.insert(*it);
                 }
-                // Insert a none unique key in the location struct
                 void insert(const location &otherInsert)
                 {
                     insert_unique_key(otherInsert.UniqueKey, UniqueKey);
-                    // Insert none unique keys in the location struct
                     for (NoneUniqueKey_t::const_iterator iter = otherInsert.NoneUniqueKey.begin(); iter != otherInsert.NoneUniqueKey.end(); iter++)
                         insert_unique_key(iter->second, NoneUniqueKey[iter->first]);
                 }
             
-            }; // END OF LOCATION 
-            // Server struct will contain a map of locations and a set of server 
-            // names and a map of listen ports.
-            class Server // BEGIN OF SERVER
+            };
+            class Server 
             {
                 public :
 
-                    Server()
-                    {
-                        //std::cout << "Server constructor" << std::endl;
-                    }
-
-                    ~Server()
-                    {
-                        //std::cout << "Server destructor" << std::endl;
-                    }
-
+                    Server(){}
+                    ~Server(){}
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
                     typedef std::set<std::string>                         type_server_name; // set of server names
+                    std::string                                           first_location_key;
                     
                     type_listen                                           listen;       // map of listen ports and interfaces (ip, set<port>)
                     type_server_name                                      server_name;  // set of server names
                     type_location                                         location;     // map of locations
-                    
                     void print_type_listen()
                     {
                         if (listen.empty())
@@ -174,13 +146,30 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                             std::cout << COLOR_BLUE << "Server_name : " << COLOR_RESET << COLOR_YELLOW << " [" << *it << " ]" << COLOR_RESET;
                         std::cout << std::endl;
                     };
-             
-            }; // END OF SERVER 
 
-            private :
-                
-                // Configuration 
-                class configuration // BEGIN OF CONF 
+                    void print_type_location()
+                    {
+                        if (location.empty())
+                        {
+                            std::cout << COLOR_RED << "location is empty" << COLOR_RESET << std::endl;
+                            exit(EXIT_FAILURE);
+                        }
+                        for (type_location::iterator it = location.begin(); it != location.end(); it++)
+                        {
+                            std::cout << COLOR_BLUE << "Location : " << COLOR_RESET << COLOR_YELLOW << " [" << it->first << " ]" << COLOR_RESET << std::endl;
+                            it->second.print_unique_key();
+                            it->second.print_none_unique_key();
+                        }
+                    }
+                    type_location &get_location()
+                    {
+                        return (location);
+                    }
+             
+            };
+
+            public :
+                class configuration
                 {
                     public :
                         enum KEYTYPE
@@ -190,8 +179,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                             UNIQUE_KEYTYPE,         // UNIQUE_KEYTYPE is used to check if the key is a unique key
                             NONE_UNIQUE_KEYTYPE     // NONE_UNIQUE_KEYTYPE is used to check if the key is a none unique key
                         };
-                        // sub struct it contains information about each defined key 
-                        // in the configuration file.
                         class raw_configuration // FINAL CONTAINER
                         {
                             public :
@@ -203,7 +190,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
 
                                 raw_configuration()
                                 {
-                                    //std::cout << "raw_configuration default constructor" << std::endl;
                                 };
                     
                                 raw_configuration(const KEYTYPE &keytype, void (*func)(key_value_type &, size_t &start_last_line, std::string &line), size_t maxParameters, std::string validParameterstab[], size_t validParamettersSize)
@@ -216,10 +202,7 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                                 };
                 };
 
-                // map of raw_configuration, key = key name, value = raw_configuration :
                 typedef std::map<std::string, raw_configuration> data_type;
-                // map of rawConf, key = key name, value = rawConf s:
-                //typedef std::map<std::string, rawConf> data_type;
                 static data_type                       _data;
                 static location                        _default_values;
                 static void                            initialize_data(void);
@@ -234,74 +217,41 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     return ((_data.count(key)) ? _data[key].keyType : NONE_KEYTYPE);
                 }
         
-        }; // END OF CONF 
-
-    public :
-        
-        typedef std::vector<Server> data_type;    
-    
-        data_type   _data;
-        
-        void print_data_type()
-        {
-            if (_data.empty())
-            {
-                std::cout << "Data is empty" << std::endl;
-                return ;
-            }
-            for (data_type::const_iterator it = _data.begin(); it != _data.end(); it++)
-            {
-                std::cout << "Server name : " << std::endl;
-                
-                for (std::set<std::string>::const_iterator iter = it->server_name.begin(); iter != it->server_name.end(); iter++)
-                    std::cout << *iter << " ";
-                std::cout << std::endl;
-                std::cout << "Listen : " << std::endl;
-                
-                for (Server::type_listen::const_iterator iter = it->listen.begin(); iter != it->listen.end(); iter++)
-                {
-                    std::cout << iter->first << std::endl;
-                    for (std::set<std::string>::const_iterator ite = iter->second.begin(); ite != iter->second.end(); ite++)
-                        std::cout << *ite << std::endl;
-                }
-            }
         };
-/////////////////////////////////// PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
-    static void     listen_format(key_value_type &key_value, size_t &start_last_line, std::string &line);
-    static void     check_port(std::string str, size_t &start_last_line, std::string &line);
-    static void     check_root(key_value_type &key_values, size_t &start_last_line, std::string &line);
-    static void     check_ip(std::vector<std::string> ip, size_t &start_last_line, std::string &line);
-    static void     check_cgi(key_value_type &key_value, size_t &start_last_line, std::string &line);
-    static void     check_body_size(key_value_type &key_value, size_t &start_last_line, std::string &line);
-    std::string     get_word(line_range_type &line_range);
-    void            go_to_next_word_in_file(line_range_type &line_range, file_range_type &file_range);
-    void            skip_charset(line_range_type &line_range, const std::string &charSet);
-    std::string     get_word_skip_space(line_range_type &line_range);
-    bool            is_server_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range);
-    key_value_type  get_keyvalue(line_range_type &line_range);
-    bool            is_location_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, size_t start_last_line);
-    bool            check_duplicated_parametters(std::vector<std::string> parameters, size_t &start_last_line, std::string &line);
-    bool            check_valid_parametters(std::vector<std::string> parameters, std::set<std::string> validParamters, size_t &start_last_line, std::string &line);
-    void            insert_keyvalue_location(location &location, key_value_type &key_value, size_t &start_last_line, std::string &line);
-    void            check_keyvalues(key_value_type &keyVals, const configuration::raw_configuration &keyConfig, size_t start_last_line,std::string &line);
-    location        new_location_creation(line_range_type &line_range, file_range_type &file_range);
-    void            insert_keyvalue_server(Server &server, key_value_type &key_value, size_t &start_last_line, std::string &line); 
-    Server          new_server_creation(line_range_type &line_range, file_range_type &file_range);
-    static void     color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color);
-///////////////////////////////// END PARSING FUNCTIONS LOGIC : ///////////////////////////////////////
-    public :
-        // CONSTRUCTORS AND DESTRUCTORS :
-        configurationSA()
-        {};
-        
-        configurationSA(char *config_file);
-        
-        ~configurationSA();
-                
-        // GETTERS AND SETTERS :
-        data_type get_data(void);
 
-        // EXCEPTIONS :
+    public :
+        
+        typedef     std::vector<Server> data_type;    
+        data_type   _data;  
+
+        static void     listen_format(key_value_type &key_value, size_t &start_last_line, std::string &line);
+        static void     check_port(std::string str, size_t &start_last_line, std::string &line);
+        static void     check_root(key_value_type &key_values, size_t &start_last_line, std::string &line);
+        static void     check_ip(std::vector<std::string> ip, size_t &start_last_line, std::string &line);
+        static void     check_cgi(key_value_type &key_value, size_t &start_last_line, std::string &line);
+        static void     check_body_size(key_value_type &key_value, size_t &start_last_line, std::string &line);
+        std::string     get_word(line_range_type &line_range);
+        void            go_to_next_word_in_file(line_range_type &line_range, file_range_type &file_range);
+        void            skip_charset(line_range_type &line_range, const std::string &charSet);
+        std::string     get_word_skip_space(line_range_type &line_range);
+        bool            is_server_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range);
+        key_value_type  get_keyvalue(line_range_type &line_range);
+        bool            is_location_context(key_value_type key_value, line_range_type &line_range, file_range_type &file_range, size_t start_last_line);
+        bool            check_duplicated_parametters(std::vector<std::string> parameters, size_t &start_last_line, std::string &line);
+        bool            check_valid_parametters(std::vector<std::string> parameters, std::set<std::string> validParamters, size_t &start_last_line, std::string &line);
+        void            insert_keyvalue_location(location &location, key_value_type &key_value, size_t &start_last_line, std::string &line);
+        void            check_keyvalues(key_value_type &keyVals, const configuration::raw_configuration &keyConfig, size_t start_last_line,std::string &line);
+        location        new_location_creation(line_range_type &line_range, file_range_type &file_range);
+        void            insert_keyvalue_server(Server &server, key_value_type &key_value, size_t &start_last_line, std::string &line); 
+        Server          new_server_creation(line_range_type &line_range, file_range_type &file_range);
+        static void     color_words_in_range(size_t &start, const std::string &word, std::string &line, const std::string &color);
+    
+    public :
+        configurationSA(char *config_file);
+        configurationSA();
+        ~configurationSA();        
+        data_type get_data(void);
+        
         class ParsingErr : public std::exception
         {
             private :
@@ -320,6 +270,6 @@ class configurationSA   // BEGIN OF CONFIGURATIONSA "SA means SYNTAX ANALYSIS"
                     return (_word);
                 }
         };
-}; // END OF CONFIGURATIONSA
+}; 
 
-#endif // CONFIGURATIONSA_HPP
+#endif 
