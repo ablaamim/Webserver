@@ -233,5 +233,16 @@ server
     }
 }
 ```
+---
+
+### TESTING LOGS :
 
 ---
+
+<img src= "https://files.realpython.com/media/YXhT6fA.d277d5317026.gif" width="700">
+
+---
+
+| TEST RUN | PART | CONFIG TO TEST WITH | AUTHOR |
+|--- |--- |--- |--- |
+| No index and no auto_index provided | Response |  [config_file](./TESTING/conf00.conf) |

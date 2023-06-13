@@ -67,6 +67,7 @@ void lookForIndex(Response &resp)
             index_path = pathJoin(resp.resourceFullPath, *it2);
             if (fileExists(index_path.c_str()))
             {
+                //std::cout << "index found: " << index_path << std::endl;
                 resp.resourceFullPath = index_path;
                 resp.resourceType = FILE;
                 return;
