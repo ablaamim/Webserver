@@ -255,6 +255,7 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
             throw Webserv::Webserv_err("kevent failed");
         else
             event_check(new_events, fds_socket, config, server, env);
+        //system("leaks Webserv");
     }
 }
 
