@@ -314,15 +314,9 @@ void configurationSA::check_keyvalues(key_value_type &keyVals, const configurati
             throw ParsingErr("Unknown Parameter for key " + keyVals.first);
     }
     if (check_duplicated_parametters(keyVals.second, start_last_line, line))
-<<<<<<< HEAD
         throw ParsingErr("Duplicated parameters for key " + keyVals.first);
     if (keyConfig.max_Parameters && sParameters.size() > keyConfig.max_Parameters)
         throw ParsingErr("Too many parameters for key " + keyVals.first);
-=======
-        throw ParsingErr("Duplicated parameters");
-    if (keyConfig.max_Parameters && sParameters.size() > keyConfig.max_Parameters)
-        throw ParsingErr("Too many parameters");
->>>>>>> master
     if (keyConfig.func)
         keyConfig.func(keyVals, start_last_line, line);
 }
@@ -339,11 +333,7 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
         key_value.second.erase(key_value.second.begin());
     }
     if (insertPoint.count(key_value.first))
-<<<<<<< HEAD
         throw ParsingErr("Already exists" + keyValueFirstCopy);
-=======
-        throw ParsingErr(" : Already exists" + keyValueFirstCopy);
->>>>>>> master
     try
     {
         check_keyvalues(key_value, keyConfig ,start_last_line, line);
