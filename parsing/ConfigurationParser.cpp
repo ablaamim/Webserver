@@ -309,14 +309,14 @@ void configurationSA::check_keyvalues(key_value_type &keyVals, const configurati
     if (!keyConfig.validParametters.empty())
     {
         if (keyConfig.keyType == configuration::UNIQUE_KEYTYPE && check_valid_parametters(keyVals.second, keyConfig.validParametters, start_last_line, line))
-            throw ParsingErr("Unknown Parameter");
+            throw ParsingErr("Unknown Parameter for key " + keyVals.first);
         else if (keyConfig.keyType == configuration::NONE_UNIQUE_KEYTYPE && !keyConfig.validParametters.count(keyVals.first))
-            throw ParsingErr("Unknown Parameter");
+            throw ParsingErr("Unknown Parameter for key " + keyVals.first);
     }
     if (check_duplicated_parametters(keyVals.second, start_last_line, line))
-        throw ParsingErr("Duplicated parameters");
+        throw ParsingErr("Duplicated parameters for key " + keyVals.first);
     if (keyConfig.max_Parameters && sParameters.size() > keyConfig.max_Parameters)
-        throw ParsingErr("Too many parameters");
+        throw ParsingErr("Too many parameters for key " + keyVals.first);
     if (keyConfig.func)
         keyConfig.func(keyVals, start_last_line, line);
 }
@@ -333,7 +333,7 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
         key_value.second.erase(key_value.second.begin());
     }
     if (insertPoint.count(key_value.first))
-        throw ParsingErr(" : Already exists" + keyValueFirstCopy);
+        throw ParsingErr("Already exists" + keyValueFirstCopy);
     try
     {
         check_keyvalues(key_value, keyConfig ,start_last_line, line);
@@ -395,6 +395,9 @@ void  configurationSA::insert_keyvalue_server(Server &result, key_value_type &ke
     {
         size_t old_size = result.server_name.size();
         
+        if (key_value.second.size() > 1)
+            throw ParsingErr("Too many parameters for key " + key_value.first);
+        
         result.server_name.insert(key_value.second.begin(), key_value.second.end());
         
         if (result.server_name.size() != old_size + key_value.second.size())
@@ -443,7 +446,9 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
             else if (key_value.first == "index")
                 throw ParsingErr("index should not be in server context");
             else if (key_value.first == "root")
-                throw ParsingErr("Root should not be in server context");
+            {
+                result.root = key_value.second[0];
+            }    
             else if (key_value.first == "auto_index")
                 throw ParsingErr("Auto index should not be in server context");
             else if (key_value.first == "error_pages")
