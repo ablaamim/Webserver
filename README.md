@@ -251,12 +251,13 @@ server
 | No index and no auto_index provided in conf | Response | Segmentation fault | [config_file](./TESTING/conf00.conf) |  Achraf | :x: |
 | No root in location context | Parsing | Unapropriate behavior | [config_file](./TESTING/conf01.conf) | Abdessamaad | :white_check_mark: |
 | Protection of all system calls | The whole program | Exceptions must be thrown | None needed | Team | :white_check_mark: |
-| HTTP Response Code 413 (Content too large) | Request check | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
-| HTTP Response Code 411 (Content length required) | Request check | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
-| HTTP Response Code 400 (Bad Request) | Request check | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 413 (Content too large) | Request check | Error code not accurate | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 411 (Content length required) | Request check | Error code not accurate  | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 400 (Bad Request) | Request check | Error code not accurate | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
 | HTTP Response Code 501 (Not implemented) for Transfert encoding not chuncked | Request check | [config_file](./TESTING/conf03.conf) | Zineb | :x: |
 | Setup multiple Servers with different ports | Socket creation and Parsing | Working | [config_file](./TESTING/conf04.conf) | Abdessamad | :white_check_mark: |
 | Setup multiple servers with different hostnames/server_names | Program | Working | [config_file](./TESTING/conf05.conf) + curl http://www.example.com --resolve www.example.com:8080:127.0.0.1 | team | :white_check_mark: |
 | Limit the client body | - | i didnt understand the test from the correction page | (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit") | - | :x: |
+| Setup routes in a server to different directories | Parsing/Response  | Working | [config_file](./TESTING/conf07.conf) | Abdessamad/Achraf | :white_check_mark: |
 
 ---
