@@ -46,7 +46,11 @@ int     Response::getResourceType()
 
 void    Response::setResourceInfo()
 {
+<<<<<<< HEAD
     if (this->kwargs.find("root") == this->kwargs.end() || this->kwargs["root"][0] == "")
+=======
+    if (this->kwargs.find("root") == this->kwargs.end())
+>>>>>>> master
         this->serveERROR("404", "Not Found");
     this->resourceFullPath = pathJoin(this->kwargs["root"][0], _req.path);
     this->resourceType = getResourceType(); 
