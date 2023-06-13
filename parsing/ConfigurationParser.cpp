@@ -476,8 +476,8 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
     if(result.location.empty())
     {
         result.location["/"].insert(server_location_config);
-        result.location["/"].insert(configuration::_default_values);
     }
+    result.location["/"].insert(configuration::_default_values);
     return (result);
 }
 
