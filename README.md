@@ -261,7 +261,7 @@ server
 | Setup multiple servers with different hostnames/server_names | Program | Working | [config_file](./TESTING/conf05.conf) + curl http://www.example.com --resolve www.example.com:8080:127.0.0.1 | team | :white_check_mark: |
 | Limit the client body | - | i didnt understand the test from the correction page | (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit") | - | :x: |
 | Setup routes in a server to different directories | Parsing/Response  | Working | [config_file](./TESTING/conf07.conf) | Abdessamad/Achraf | :white_check_mark: |
-| Setup a list of methods accepted for a certain route [GET] | Response | Get method on a video doesnt render it | [config_file](./TESTING/conf08.conf) | Achraf | :x: |
+| Setup a list of methods accepted for a certain route [GET] | Response | Get method on a video doesnt render it | [config_file](./TESTING/conf08.conf) | Achraf | :white_check_mark: |
 | Try to list a directory | Response | Working | [config_file](./TESTING/conf09.conf) | Abdessamad | :white_check_mark: |
 | Setup multiple Servers with same configuration, the first server must be the default to select | Parsing/Response | Working | [config_file](./TESTING/conf10.conf) | Achraf/Abdessamad | :white_check_mark: |
 | Verify there is no memory leak (Monitor the process memory usage. It should not go up indefinitely) | Program | - | [leaks.sh](./leaks.sh) + [config_file](./TESTING/conf00.conf) | Team | - |

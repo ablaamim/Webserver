@@ -21,16 +21,16 @@ SRC = ./MainInc/main.cpp \
 	./response/cgi/CGIManager.cpp \
 	./response/cgi/utils.cpp \
 	
-CC = clang++
+CC = g++
 
-CFLAGS =  -std=c++98  -fsanitize=address  -g3 -Wall -Wextra -Werror 
+CPPFLAGS =  -std=c++98  -fsanitize=address  -g3 -Wall -Wextra -Werror 
 
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 	@echo "\033[32m[Webserv] \033[0m\033[1;32mCompilation done\033[0m"
 
 clean:
