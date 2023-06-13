@@ -38,6 +38,10 @@ void openFile(Response &resp) {
       resp.fs->seekg(0, std::ios::end);
       std::streampos length = resp.fs->tellg();
       resp.resourceSize = static_cast<size_t>(length);
+<<<<<<< HEAD
+=======
+      std::cout << "resourceSize: " << resp.resourceSize << std::endl;
+>>>>>>> master
    }
 }
 
