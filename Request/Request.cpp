@@ -35,7 +35,6 @@ Request::~Request(){};
 
 Request & Request::operator=(Request const &ob)
 {
-    //std::cout << "Assignemnt operator" << std::endl;
     this->headers_done = ob.headers_done;
     this->first_line = ob.first_line;
     this->is_chuncked = ob.is_chuncked;
@@ -194,6 +193,7 @@ void Request::parse_headers(std::string str)
     if (str != "")
         this->get_other_lines(str);
 }
+
 void Request::get_content_extension(void)
 {
     size_t      line;
