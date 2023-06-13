@@ -250,7 +250,7 @@ server
 | Siege & stress test | Multiplexing | Siege Result is 100% Also server never hangs (Always Available) | siege -b localhost:8080 | Zineb | :white_check_mark: |
 | You should be able to use siege indefinitely without having to restart the server (take a look at siege -b) | Multiplexing | Working | siege -b localhost:8080 | Zineb | :white_check_mark: |
 | Multiple Listen inside same server-context | Parsing | each server could bind more than one socket | [config_file](./TESTING/conf02.conf) | Abdessamad | :white_check_mark: |
-| No index and no auto_index provided in conf | Response | Segmentation fault | [config_file](./TESTING/conf00.conf) |  Achraf | :x: |
+| No index and no auto_index provided in conf | Response | Segmentation fault | [config_file](./TESTING/conf00.conf) |  Achraf | :white_check_mark:  |
 | No root in location context | Parsing | Unapropriate behavior | [config_file](./TESTING/conf01.conf) | Abdessamaad | :white_check_mark: |
 | Protection of all system calls | The whole program | Exceptions must be thrown | None needed | Team | :white_check_mark: |
 | HTTP Response Code 413 (Content too large) | Request check | Error code not accurate | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |

@@ -46,8 +46,12 @@ int     Response::getResourceType()
 
 void    Response::setResourceInfo()
 {
-    if (this->kwargs.find("root") == this->kwargs.end() || this->kwargs["root"][0] == "")
+    if (this->kwargs.find("root") == this->kwargs.end())
+    {
+        //std::cout << COLOR_BLUE << "root not found" << COLOR_RESET << std::endl;
         this->serveERROR("404", "Not Found");
+    }
+    std::cout << "ROOT BEFORE CONCATENATION = " << this->kwargs["root"][0] << std::endl;
     this->resourceFullPath = pathJoin(this->kwargs["root"][0], _req.path);
     this->resourceType = getResourceType(); 
 }

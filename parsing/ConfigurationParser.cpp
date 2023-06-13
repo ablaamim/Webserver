@@ -49,7 +49,7 @@ void configurationSA::configuration::initialize_default_values(void)
     if (!_default_values.NoneUniqueKey.empty() && !_default_values.UniqueKey.empty())
         return ;
 
-    std::string allowed_methods[] = {"GET"};
+    std::string allowed_methods[] = {"GET", "POST", "DELETE"};
     
     std::pair <std::string, std::vector<std::string> > uniqueKey[] =
     {
@@ -344,6 +344,7 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
         throw ParsingErr(keyValueFirstCopy + " : " + e.what());
     }
     insertPoint[key_value.first] = key_value.second;
+    // insert default values of allowed methods
 }
 
 configurationSA::location configurationSA::new_location_creation(line_range_type &line_range, file_range_type &file_range)
@@ -431,6 +432,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
                 if (result.first_location_key.empty())
                     result.first_location_key = key_value.second[0];
                 result.location.insert(std::make_pair(key_value.second[0], new_location_creation(line_range, file_range)));
+                // insert default values                
             }
             catch(ParsingErr &e)
             {
@@ -448,7 +450,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
             else if (key_value.first == "root")
             {
                 result.root = key_value.second[0];
-            }    
+            }
             else if (key_value.first == "auto_index")
                 throw ParsingErr("Auto index should not be in server context ");
             else if (key_value.first == "error_pages")
@@ -473,11 +475,14 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         throw ParsingErr("Server context should be closed by a '}' ");
 
     line_range.first++;
-    if(result.location.empty())
+    if(result.location.size() == 0)
     {
+        //std::cout << "INSERTING DEFAULT VALUES" << std::endl;
         result.location["/"].insert(server_location_config);
+        result.location["/"].insert(configuration::_default_values);
     }
-    result.location["/"].insert(configuration::_default_values);
+    //result.location["/"].insert(server_location_config);
+    //result.location["/"].insert(configuration::_default_values);
     return (result);
 }
 
