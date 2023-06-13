@@ -245,9 +245,18 @@ server
 
 | TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH | AUTHOR | STATUS |
 |--- |--- |--- |--- | ---|--- |
-| siege -b on an empty file | Multiplexing | No Error/Result 100% | No configuration needed | Zineb | :white_check_mark: |
+| Makefile | Program | No relink | Makefile in root | Team | :white_check_mark: |
+| Siege & stress test | Multiplexing | Siege Result is 100% Also server never hangs | No configuration needed | Zineb | :white_check_mark: |
 | Multiple Listen inside same server-context | Parsing | each server could bind more than one socket | [config_file](./TESTING/conf02.conf) | Abdessamad | :white_check_mark: |
 | No index and no auto_index provided in conf | Response | Segmentation fault | [config_file](./TESTING/conf00.conf) |  Achraf | :x: |
 | No root in location context | Parsing | Unapropriate behavior | [config_file](./TESTING/conf01.conf) | Abdessamaad | :white_check_mark: |
+| Protection of all system calls | The whole program | Exceptions must be thrown | None needed | Team | :white_check_mark: |
+| HTTP Response Code 413 (Content too large) | Request check | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 411 (Content length required) | Request check | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 400 (Bad Request) | Request check | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 501 (Not implemented) for Transfert encoding not chuncked | Request check | [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| Setup multiple Servers with different ports | Socket creation and Parsing | Working | [config_file](./TESTING/conf04.conf) | Abdessamad | :white_check_mark: |
+| Setup multiple servers with different hostnames/server_names | Program | Working | [config_file](./TESTING/conf05.conf) + curl http://www.example.com --resolve www.example.com:8080:127.0.0.1 | team | :white_check_mark: |
+| Limit the client body | - | i didnt understand the test from the correction page | (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit") | - | :x: |
 
 ---

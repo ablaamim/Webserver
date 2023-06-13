@@ -48,7 +48,9 @@ void    Response::servePOST()
                 servePostFile(*this);
         }
         else
+        {
             this->serveERROR("403", "Forbidden");
+        }
     }
     catch(const std::exception& e)
     {

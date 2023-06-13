@@ -87,7 +87,7 @@ void lookForIndex(Response &resp)
     }
     if (resp.kwargs["auto_index"][0] != "on" && resp.isCGI == false)
     {
-        std::cout << "auto_index: " << resp.kwargs["auto_index"][0] << std::endl;
+        //std::cout << "auto_index: " << resp.kwargs["auto_index"][0] << std::endl;
         resp.serveERROR("403", "Forbidden");
     }
         

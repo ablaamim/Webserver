@@ -32,7 +32,9 @@ void openFile(Response &resp) {
    if (access(resp.resourceFullPath.c_str(), F_OK) != 0)
       resp.serveERROR("404", "Not Found");
    if (access(resp.resourceFullPath.c_str(), R_OK) != 0)
+   {
       resp.serveERROR("403", "Forbidden");
+   }
    resp.fs = new std::ifstream(resp.resourceFullPath.c_str(), std::ios::binary);
    if (resp.fs->good()) {
       resp.fs->seekg(0, std::ios::end);
