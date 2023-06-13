@@ -54,7 +54,6 @@ void    Response::setResourceInfo()
 
 void lookForIndex(Response &resp)
 {
-    bool indexFound = false;
     std::string index_path = "";
 
     resp.indexChecked = true;

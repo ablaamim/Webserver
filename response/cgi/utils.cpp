@@ -97,7 +97,7 @@ void    CGIManager::setExecveArgs()
 void    CGIManager::setExecveEnv()
 {
     this->execveEnv = new char *[this->env.size() + 1];
-    for (int i = 0; i < this->env.size(); i++)
+    for (size_t i = 0; i < this->env.size(); i++)
     {
         this->execveEnv[i] = new char[this->env[i].length() + 1];
         strcpy(this->execveEnv[i], this->env[i].c_str());
