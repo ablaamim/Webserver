@@ -35,12 +35,14 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
             matchedLocations.push_back(locationPath);
     }
     if (matchedLocations.size() == 0)
-    {
         result = location[server.first_location_key];
-    }
     else
         result = location[getMaxLocation(matchedLocations)];
     if (result.UniqueKey["root"].empty())
         result.UniqueKey["root"].push_back(server.root);
+    if (result.UniqueKey["allowed_methods"].empty())
+        result.UniqueKey["allowed_methods"].push_back("GET");
+    result.print_none_unique_key();
+    result.print_unique_key();
     return (result);
 }

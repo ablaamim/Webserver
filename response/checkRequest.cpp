@@ -11,11 +11,19 @@ void    checkHTTP(Response& resp)
 void    Response::checkRequest()
 {
     // root iterator
-    std::vector<std::string> allowedMethods = this->kwargs["allowed_methods"];
+    std::vector<std::string> allowedMethods = this->_location.UniqueKey["allowed_methods"];
+    for (std::vector<std::string>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
+    {
+        std::cout << std::endl << std::endl;
+        std::cout << *it << std::endl;
+    }
     if (_req.method != "GET" && _req.method != "POST" && _req.method != "DELETE")
         this->serveERROR("501", "Not Implemented");
-    if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.params["Method"]) == allowedMethods.end())
+    if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.method) == allowedMethods.end())
+    {
+        std::cerr << "Method not allowed" << std::endl;
         this->serveERROR("405", "Method Not Allowed");
+    }
     checkHTTP(*this);
     if (this->_req.params.find("Host") == this->_req.params.end())
         this->serveERROR("400", "Bad Request");

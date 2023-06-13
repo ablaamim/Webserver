@@ -112,7 +112,7 @@ void Response::serveDirectory(Response &resp)
 void Response::serveGET() {
    try
    {
-      //std::cout << this->resourceFullPath << std::endl;
+      std::cout << this->resourceFullPath << std::endl;
       if (this->isCGI)
          this->serveCGI();
       else if (this->resourceType == FILE)
