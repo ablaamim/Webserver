@@ -45,7 +45,7 @@ void Response::serve()
             return ;
         if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
         {
-            std::cout << COLOR_RED << std::endl << "SEGFAULT HERE !!!!!!" << std::endl << std::endl << COLOR_RESET;
+            std::cout << COLOR_RED << std::endl << "!!lookForIndex() needs a fix!!!" << std::endl << std::endl << COLOR_RESET;
             lookForIndex(*this);
         }
         if (this->method == GET)

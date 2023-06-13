@@ -46,7 +46,7 @@ int     Response::getResourceType()
 
 void    Response::setResourceInfo()
 {
-    if (this->kwargs.find("root") == this->kwargs.end())
+    if (this->kwargs.find("root") == this->kwargs.end() || this->kwargs["root"][0] == "")
         this->serveERROR("404", "Not Found");
     this->resourceFullPath = pathJoin(this->kwargs["root"][0], _req.path);
     this->resourceType = getResourceType(); 
@@ -67,7 +67,6 @@ void lookForIndex(Response &resp)
             index_path = pathJoin(resp.resourceFullPath, *it2);
             if (fileExists(index_path.c_str()))
             {
-                //std::cout << "index found: " << index_path << std::endl;
                 resp.resourceFullPath = index_path;
                 resp.resourceType = FILE;
                 return;

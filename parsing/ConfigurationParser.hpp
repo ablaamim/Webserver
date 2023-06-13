@@ -115,6 +115,7 @@ class configurationSA
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
                     typedef std::set<std::string>                         type_server_name; // set of server names
                     std::string                                           first_location_key;
+                    std::string                                           root;
                     
                     type_listen                                           listen;       // map of listen ports and interfaces (ip, set<port>)
                     type_server_name                                      server_name;  // set of server names

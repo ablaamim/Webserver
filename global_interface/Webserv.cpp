@@ -182,7 +182,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         this->clients[curr_event->ident] = buf;
         if (this->request[curr_event->ident].parse_request(std::string(buf,n)) == _PARSE_REQUEST_DONE)
         {
-            std::cout << COLOR_GREEN << "request parsed" << COLOR_RESET << std::endl;
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
             entry_point(curr_event, this->request[curr_event->ident], config, server, env);
@@ -201,7 +200,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             {
                 if (it->second.isCompleted)
                 {
-                    std::cout << COLOR_GREEN << "response sent" << COLOR_RESET << std::endl;
                     client_cleanup(curr_event->ident);
                 }
                 else
