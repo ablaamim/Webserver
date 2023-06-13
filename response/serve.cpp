@@ -44,7 +44,14 @@ void Response::serve()
         if (needsRedirection(*this))
             return ;
         if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
+<<<<<<< HEAD:response/serve.cpp
+        {
+            std::cout << COLOR_RED << std::endl << "!!lookForIndex() needs a fix!!!" << std::endl << std::endl << COLOR_RESET;
             lookForIndex(*this);
+        }
+=======
+            lookForIndex(*this);
+>>>>>>> master:response/serve.cpp
         if (this->method == GET)
             this->serveGET();
         else if (this->method == POST)

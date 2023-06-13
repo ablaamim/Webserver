@@ -9,8 +9,13 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
+<<<<<<< HEAD
+            "program": "/Users/afaris/Desktop/newV/Webserv",
+            "args": ["/Users/afaris/Desktop/newV/config_response_test/response_conf00.conf"],
+=======
             "program": "/Users/afaris/Desktop/Webserver-3/Webserv",
             "args": ["/Users/afaris/Desktop/Webserver-3/config_response_test/response_conf00.conf"],
+>>>>>>> master
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

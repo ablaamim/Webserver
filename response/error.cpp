@@ -38,7 +38,10 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
     this->status.first = errorCode;
     this->status.second = errorMsg;
     errorPage = getCustomErrorPage(*this);
+<<<<<<< HEAD
+=======
     std::cout << "errorPage = " << errorPage << std::endl;
+>>>>>>> master
     if (errorPage.length() > 0 && this->customErrorFound == false)
     {
         this->resourceFullPath = pathJoin(this->kwargs["root"][0], errorPage);
