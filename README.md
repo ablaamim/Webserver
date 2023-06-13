@@ -243,10 +243,12 @@ server
 
 ---
 
-| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH | AUTHOR | STATUS |
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
 |--- |--- |--- |--- | ---|--- |
 | Makefile | Program | No relink | Makefile in root | Team | :white_check_mark: |
-| Siege & stress test | Multiplexing | Siege Result is 100% Also server never hangs | No configuration needed | Zineb | :white_check_mark: |
+| Take a configuration file as argument or use default path | Program | Should run with or without configuration file | None | Abdessamad | :white_check_mark: |
+| Siege & stress test | Multiplexing | Siege Result is 100% Also server never hangs (Always Available) | siege -b localhost:8080 | Zineb | :white_check_mark: |
+| You should be able to use siege indefinitely without having to restart the server (take a look at siege -b) | Multiplexing | Working | siege -b localhost:8080 | Zineb | :white_check_mark: |
 | Multiple Listen inside same server-context | Parsing | each server could bind more than one socket | [config_file](./TESTING/conf02.conf) | Abdessamad | :white_check_mark: |
 | No index and no auto_index provided in conf | Response | Segmentation fault | [config_file](./TESTING/conf00.conf) |  Achraf | :x: |
 | No root in location context | Parsing | Unapropriate behavior | [config_file](./TESTING/conf01.conf) | Abdessamaad | :white_check_mark: |
@@ -263,5 +265,7 @@ server
 | Try to list a directory | Response | Working | [config_file](./TESTING/conf09.conf) | Abdessamad | :white_check_mark: |
 | Setup multiple Servers with same configuration, the first server must be the default to select | Parsing/Response | Working | [config_file](./TESTING/conf10.conf) | Achraf/Abdessamad | :white_check_mark: |
 | Verify there is no memory leak (Monitor the process memory usage. It should not go up indefinitely) | Program | - | [leaks.sh](./leaks.sh) + [config_file](./TESTING/conf00.conf) | Team | - |
+| Set one server_name per server, stop the program otherwise | Parsing | Need to throw an exception | [config_file](./TESTING/conf09.conf) | Abdessamad | :white_check_mark: |
+| UNKNOWN requests should not result in a crash | Check request | Accurate error code | POSTMAN + [config_file](./TESTING/conf10.conf) | Abdessamad | :white_check_mark: |
 
 ---

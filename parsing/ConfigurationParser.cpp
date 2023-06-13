@@ -333,7 +333,7 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
         key_value.second.erase(key_value.second.begin());
     }
     if (insertPoint.count(key_value.first))
-        throw ParsingErr("Already exists" + keyValueFirstCopy);
+        throw ParsingErr("Already exists key " + keyValueFirstCopy);
     try
     {
         check_keyvalues(key_value, keyConfig ,start_last_line, line);
@@ -360,7 +360,7 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
             insert_keyvalue_location(result, key_value, start_last_line, *file_range.first);
 
         else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
-            throw ParsingErr("Server context should not be in a location context");
+            throw ParsingErr("Server context should not be in a location context ");
         
         else
             throw ParsingErr("Unknown key " + key_value.first);
@@ -372,10 +372,10 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
         key_value = get_keyvalue(line_range);
     }
     if (*line_range.first == '{')
-        throw ParsingErr("Location context should not be followed by a '{'");
+        throw ParsingErr("Location context should not be followed by a '{' ");
     
     if (file_range.first == file_range.second)
-        throw ParsingErr("Location context should be closed by a '}'");
+        throw ParsingErr("Location context should be closed by a '}' ");
 
     line_range.first++;    
     go_to_next_word_in_file(line_range, file_range);
@@ -390,18 +390,16 @@ void  configurationSA::insert_keyvalue_server(Server &result, key_value_type &ke
     if (key_value.first == "listen")
         result.listen[key_value.second[0]].insert(key_value.second[1]);
     if (result.listen[key_value.second[0]].size() > 1)
-        throw ParsingErr("More than one listen");
-    else if (key_value.first == "server_name")
-    {
-        size_t old_size = result.server_name.size();
-        
+        throw ParsingErr("More than one listen ");
+    else if (key_value.first == "server_name ")
+    {        
         if (key_value.second.size() > 1)
             throw ParsingErr("Too many parameters for key " + key_value.first);
         
         result.server_name.insert(key_value.second.begin(), key_value.second.end());
         
-        if (result.server_name.size() != old_size + key_value.second.size())
-            throw ParsingErr("Duplicated server_name");
+        if (result.server_name.size() > 1)
+            throw ParsingErr("More than one server_name ");
     }
 }
 
@@ -518,7 +516,7 @@ std::string     configurationSA::get_word(line_range_type &line_range)
         if (*line_range.first == '\\')
             line_range.first++;
         if (line_range.first == line_range.second)
-           throw configurationSA::ParsingErr("Unexpected end of line.");         
+           throw configurationSA::ParsingErr("Unexpected end of line");         
         result.push_back(*line_range.first++);
     }
     return (result);
