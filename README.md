@@ -201,7 +201,7 @@ be saved.
 
 ---
 
-### Configuration file, Nginx like config :
+### Configuration file specifications :
 
 ---
 
@@ -227,8 +227,9 @@ server
         return abc/index1.html;         # redirection
     }
 
-    location /
+    location /cgi-bin
     {
+        root root Webserver/www/        # root folder of cgi
         bin-cgi .py /usr/bin/python3;   # location of interpreters installed on the current system, mandatory parameter and extensions for executable files, mandatory parameter
     }
 }
