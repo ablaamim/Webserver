@@ -38,7 +38,10 @@ void openFile(Response &resp) {
       resp.fs->seekg(0, std::ios::end);
       std::streampos length = resp.fs->tellg();
       resp.resourceSize = static_cast<size_t>(length);
+<<<<<<< HEAD
+=======
       std::cout << "resourceSize: " << resp.resourceSize << std::endl;
+>>>>>>> master
    }
 }
 
@@ -85,7 +88,9 @@ void Response::serveDirectory(Response &resp) {
 }
 
 void Response::serveGET() {
-   try {
+   try
+   {
+      std::cout << this->resourceFullPath << std::endl;
       if (this->isCGI)
          this->serveCGI();
       else if (this->resourceType == FILE)
@@ -95,7 +100,6 @@ void Response::serveGET() {
    }
    catch (const std::exception &e)
    {
-      //std::cout << "exception 2 " << e.what() << std::endl;
       throw Response_err(e.what());
    }
 }

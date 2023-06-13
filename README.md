@@ -233,5 +233,21 @@ server
     }
 }
 ```
+---
+
+#### :wrench: Testing :wrench: :
+
+---
+
+<img src= "https://files.realpython.com/media/YXhT6fA.d277d5317026.gif" width="700">
+
+---
+
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH | AUTHOR | STATUS |
+|--- |--- |--- |--- | ---|--- |
+| siege -b on an empty file | Multiplexing | No Error/Result 100% | - | Zineb | :white_check_mark: |
+| Multiple Listen inside same server-context | Parsing | each server could bind more than one socket | [config_file](./TESTING/conf02.conf) | Abdessamad | :white_check_mark: |
+| No index and no auto_index provided in conf | Response | Segmentation fault | [config_file](./TESTING/conf00.conf) |  Achraf | :x: |
+| No root in location context | Parsing | Unapropriate behavior | [config_file](./TESTING/conf01.conf) | Abdessamaad | :white_check_mark: |
 
 ---
