@@ -94,6 +94,10 @@ void Response::serveDirectory(Response &resp)
            it != list_of_files.end(); ++it)
       {
          std::string file_name = *it;
+         if (file_name.find(".") == std::string::npos)
+            file_name += "/";
+         else
+            file_name += " ";
          std::string file_path = resp.resourceFullPath + "/" + file_name;
          std::string file_type = getContentType(file_path);
          std::string file_size = std::to_string(getFileSize(file_path)) + " bytes";

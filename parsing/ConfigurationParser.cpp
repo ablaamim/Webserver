@@ -325,7 +325,8 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
 {
     std::string                              keyValueFirstCopy = key_value.first;
     configuration::raw_configuration         keyConfig = configuration::_data[key_value.first];
-    location::UniqueKey_t                    &insertPoint = (keyConfig.keyType == configuration::UNIQUE_KEYTYPE) ? Location.UniqueKey : Location.NoneUniqueKey[key_value.first];
+    location::UniqueKey_t                    &insertPoint = (keyConfig.keyType == configuration::UNIQUE_KEYTYPE) \
+    ? Location.UniqueKey : Location.NoneUniqueKey[key_value.first];
 
     if (keyConfig.keyType == configuration::NONE_UNIQUE_KEYTYPE && !key_value.second.empty())
     {
@@ -356,7 +357,8 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
     
     while (file_range.first != file_range.second && !key_value.first.empty())
     {
-        if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
+        if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || \
+        configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
             insert_keyvalue_location(result, key_value, start_last_line, *file_range.first);
 
         else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
@@ -418,7 +420,7 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         if (is_location_context(key_value, line_range, file_range, start_last_line))
         {
            if (result.location.count(key_value.second[0]))
-                throw ParsingErr("Location context already exists");
+                throw ParsingErr("Location context already exists ");
            
            go_to_next_word_in_file(line_range, file_range);
            line_range.first++;
@@ -438,20 +440,21 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         else
         {
             if (key_value.first == "cgi-bin")
-                throw ParsingErr("CGI should not be in a server context");            
+                throw ParsingErr("CGI should not be in a server context ");            
             else if (key_value.first == "return")
-                throw ParsingErr("Return should not be in a server context");
+                throw ParsingErr("Return should not be in a server context ");
             else if (key_value.first == "index")
-                throw ParsingErr("index should not be in server context");
+                throw ParsingErr("index should not be in server context ");
             else if (key_value.first == "root")
             {
                 result.root = key_value.second[0];
             }    
             else if (key_value.first == "auto_index")
-                throw ParsingErr("Auto index should not be in server context");
+                throw ParsingErr("Auto index should not be in server context ");
             else if (key_value.first == "error_pages")
-                throw ParsingErr("Error pages should not be in server context");
-            else if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
+                throw ParsingErr("Error pages should not be in server context ");
+            else if (configuration::get_keytype(key_value.first) == configuration::UNIQUE_KEYTYPE || \
+            configuration::get_keytype(key_value.first) == configuration::NONE_UNIQUE_KEYTYPE)
                 insert_keyvalue_location(server_location_config, key_value, start_last_line, *file_range.first);
             else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
                 insert_keyvalue_server(result, key_value, start_last_line, *file_range.first);
@@ -464,10 +467,10 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
     }
 
     if (*line_range.first == '{')
-        throw ParsingErr("Server context should not be followed by a '{'");
+        throw ParsingErr("Server context should not be followed by a '{' ");
     
     if (file_range.first == file_range.second)
-        throw ParsingErr("Server context should be closed by a '}'");
+        throw ParsingErr("Server context should be closed by a '}' ");
 
     line_range.first++;
     if(result.location.empty())
@@ -516,7 +519,7 @@ std::string     configurationSA::get_word(line_range_type &line_range)
         if (*line_range.first == '\\')
             line_range.first++;
         if (line_range.first == line_range.second)
-           throw configurationSA::ParsingErr("Unexpected end of line");         
+           throw configurationSA::ParsingErr("Unexpected end of line ");         
         result.push_back(*line_range.first++);
     }
     return (result);
@@ -544,9 +547,7 @@ configurationSA::configurationSA(char *config_file)
     configuration::initialize_data();
     configuration::initialize_default_values();
     if (!input.is_open())
-    {
        throw ParsingErr("File does not open : " + std::string(config_file));
-    }
     for (std::string line; !input.eof();)
     {
         std::getline(input, line);
@@ -574,13 +575,15 @@ configurationSA::configurationSA(char *config_file)
                 }
             }
             else if (file_range.first != file_range.second)
-                throw ParsingErr("Wrong server context");
+                throw ParsingErr("Wrong server context ");
             go_to_next_word_in_file(line_range, file_range);
         }
     }
     catch (ParsingErr &e)
     {
-        throw ParsingErr(std::string(e.what()) + "\n" + "ParseError at Line " + std::to_string(fullFile.size() - (file_range.second - file_range.first) + 1) +  ",Col " + std::to_string(line_range.first - file_range.first->begin() + 1) + " : " + remove_front_whitespaces(*file_range.first));
+        throw ParsingErr(std::string(e.what()) + "\n" + "ParseError at Line " + std::to_string(fullFile.size() -\
+         (file_range.second - file_range.first) + 1) +  ",Col " + std::to_string(line_range.first - file_range.first->begin() + 1) + " : " + \
+         remove_front_whitespaces(*file_range.first));
     }
 }
 
