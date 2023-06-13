@@ -23,12 +23,7 @@ SRC = ./MainInc/main.cpp \
 	
 CC = clang++
 
-<<<<<<< HEAD
 CFLAGS =  -std=c++98  -fsanitize=address  -g3 -Wall -Wextra -Werror 
-=======
-CFLAGS =  -std=c++98  -g3 -fsanitize=address
-
->>>>>>> master
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
