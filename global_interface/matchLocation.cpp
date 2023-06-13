@@ -40,7 +40,5 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
     }
     else
         result = location[getMaxLocation(matchedLocations)];
-    result.print_unique_key();
-    result.print_none_unique_key();
     return (result);
 }
