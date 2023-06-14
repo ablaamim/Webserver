@@ -164,7 +164,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
-        this->request[client_socket].fd_accept = client_socket;
         this->request[client_socket].fd_server = curr_event->ident;
         clients_list.insert(std::make_pair(client_socket, this->request[client_socket].fd_server));     
 
@@ -180,15 +179,49 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         }
         buf[n] = '\0';
         this->clients[curr_event->ident] = buf;
-        if (this->request[curr_event->ident].parse_request(std::string(buf,n)) == _PARSE_REQUEST_DONE)
+        k = this->request[curr_event->ident].parse_request(std::string(buf,n));
+        /*if (this->request[curr_event->ident].headers_done)
+            check_before_get_chuncked_messages(config,server, this->request[curr_event->ident], curr_event);*/
+        if (k == _PARSE_REQUEST_DONE)
         {
-            //this->request[curr_event->ident].print_params();
-            std::cout << COLOR_GREEN << "request parsed" << COLOR_RESET << std::endl;
+            this->request[curr_event->ident].print_params();
+            /*std::cout << COLOR_GREEN << "request parsed" << COLOR_RESET << std::endl;
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
-            entry_point(curr_event, this->request[curr_event->ident], config, server, env);
+            entry_point(curr_event, this->request[curr_event->ident], config, server, env);*/
         }          
     }
+}
+
+void    Webserv::check_before_get_chuncked_messages(configurationSA &config, Servers &server, Request & request, struct kevent *curr_event)
+{
+    std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
+
+    configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+    configurationSA::location   _obj_location = match_location(request.path, _obj_server);
+    std::map<std::string, std::vector<std::string> >::iterator iter = _obj_location.UniqueKey.begin();
+
+    std::cout << _obj_location.UniqueKey["max_body_size"][0] << std::endl;
+    if (request.method != "POST")
+        return ;
+    if (request.params.find("Accept-Encoding") == request.params.end() && \
+    request.params.find("Content-Length") == request.params.end())
+    {
+        request.erro_msg = "BAD REQUEST";
+        request.error = 400;
+    }
+    else if (request.params.find("Accept-Encoding") == request.params.end() || \
+    request.params.find("Content-Length") == request.params.end())
+    {
+        request.erro_msg = "LENGTH REQUIRED";
+        request.error = 411;
+    }
+    else if (request.params.find("Content-Length") != _obj_location.UniqueKey["max_body_size"][0])
+    {
+        request.erro_msg = "LENGTH REQUIRED";
+        request.error = 413;
+    }
+    
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)

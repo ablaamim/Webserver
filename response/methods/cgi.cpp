@@ -34,10 +34,7 @@ char    **getEnvs(Response& resp)
     envs.push_back("HTTP_ACCEPT_ENCODING=" + resp._req.params["Accept-Encoding"]);
     
     if (resp.method == GET)
-    {
         envs.push_back("QUERY_STRING=" + extractQueryParams(resp.resourceFullPath));
-    }
-    
     else if (resp.method == POST)
     {
         envs.push_back("CONTENT_LENGTH=" + std::to_string(resp._req.content_length));

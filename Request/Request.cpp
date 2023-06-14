@@ -9,9 +9,11 @@ Request::Request()
 {
     this->headers_done = false;
     this->content_length = 0;
+    this->error = 0;
     this->first_line = false;
     this->is_chuncked = false;
     this->file_body_name = "";
+    this->erro_msg = "";
     this->file = NULL;
 }
 
@@ -40,7 +42,6 @@ Request & Request::operator=(Request const &ob)
     this->first_line = ob.first_line;
     this->is_chuncked = ob.is_chuncked;
     this->params = ob.params;
-    this->fd_accept = ob.fd_accept;
     this->fd_server = ob.fd_server;
     this->method = ob.method;
     this->path = ob.path;
@@ -50,6 +51,8 @@ Request & Request::operator=(Request const &ob)
         std::remove(this->file_body_name.c_str());
     this->file_body_name = ob.file_body_name;
     this->file = ob.file;
+    this->erro_msg = ob.erro_msg;
+    this->error = ob.error;
     return *this;
 }
 
@@ -59,7 +62,7 @@ std::ostream & operator<<(std::ostream & o, Request const & ref)
 {
     param para =  ref.params;
     std::cout << std::endl << COLOR_GREEN << "Request :" << COLOR_RESET << std::endl;
-    std::cout << "Server fd :" << ref.fd_server <<  "  Client fd : " << ref.fd_accept << std::endl;
+    std::cout << "Server fd :" << ref.fd_server << std::endl;
     for(it_param it = para.begin(); it != para.end(); it++ )
         std::cout << it->first << " : '" << it->second << "'" << std::endl;
     return o;
@@ -107,6 +110,7 @@ void    Request::reset_request()
     this->headers_done = false;
     this->first_line = false;
     this->is_chuncked = false;
+    this->error = 0;
     this->params.clear();
     std::remove(this->file_body_name.c_str());
     if (this->file)
@@ -265,6 +269,7 @@ int Request::get_chuncked_msg(std::string str)
 
 int Request::parse_request(std::string str)
 {
+    std::cout << str << std::endl;
     if (!str.size())
         return _ERR_PARSE_REQUEST;
     else if (!this->headers_done)
