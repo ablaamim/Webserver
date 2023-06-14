@@ -32,13 +32,14 @@ void openFile(Response &resp) {
    if (access(resp.resourceFullPath.c_str(), F_OK) != 0)
       resp.serveERROR("404", "Not Found");
    if (access(resp.resourceFullPath.c_str(), R_OK) != 0)
+   {
       resp.serveERROR("403", "Forbidden");
+   }
    resp.fs = new std::ifstream(resp.resourceFullPath.c_str(), std::ios::binary);
    if (resp.fs->good()) {
       resp.fs->seekg(0, std::ios::end);
       std::streampos length = resp.fs->tellg();
       resp.resourceSize = static_cast<size_t>(length);
-      std::cout << "resourceSize: " << resp.resourceSize << std::endl;
    }
 }
 
@@ -62,30 +63,56 @@ void Response::serveFile(Response &resp) {
    }
 }
 
-void Response::serveDirectory(Response &resp) {
-   if (this->kwargs["auto_index"][0] == "off") {
+int getFileSize(std::string &path) {
+   struct stat st;
+   stat(path.c_str(), &st);
+   return st.st_size;
+}
+
+std::string getLastModified(std::string &path) {
+   struct stat st;
+   stat(path.c_str(), &st);
+   std::string last_modified = "<td>" + std::string(ctime(&st.st_mtime)) + "</td>";
+   return last_modified;
+}
+
+void Response::serveDirectory(Response &resp)
+{
+   if (this->kwargs["auto_index"][0] == "off")
       resp.serveERROR("403", "Forbidden");
-   } else {
+   else
+   {
       std::vector<std::string> list_of_files =
           resp.listing_directory(resp.resourceFullPath);
       resp.headers["Content-Type"] = "text/html";
       resp.body = "<h1> Index of " + resp.resourceFullPath + "</h1> ";
+
+      // List directories on browser with some css
+      resp.body += "<style> table, th, td { border: 1px solid black; border-collapse: collapse; } </style>";
+      resp.body += "<table style=\"width:100%\"> <tr> <th>Name</th> <th>Type</th> <th>Size</th> <th>Last Modified</th> </tr>";
       for (std::vector<std::string>::iterator it = list_of_files.begin();
-           it != list_of_files.end(); ++it) {
-         if (resp._req.path == "/") resp._req.path = "";
-         std::string path = resp._req.path + "/" + *it;
-         resp.body += "<a href=\"";
-         resp.body += path;
-         resp.body += "\">";
-         resp.body += *it;
-         resp.body += "</a><br>";
+           it != list_of_files.end(); ++it)
+      {
+         std::string file_name = *it;
+         if (file_name.find(".") == std::string::npos)
+            file_name += "/";
+         else
+            file_name += " ";
+         std::string file_path = resp.resourceFullPath + "/" + file_name;
+         std::string file_type = getContentType(file_path);
+         std::string file_size = std::to_string(getFileSize(file_path)) + " bytes";
+         std::string last_modified = getLastModified(file_path);
+
+         resp.body += "<tr> <td><a href=\"" + file_name + "\">" + file_name + "</a></td> <td>" + file_type + "</td> <td>" + file_size + "</td> " + last_modified + "</tr>";
       }
    }
    resp.sendResponse(FULL);
 }
 
 void Response::serveGET() {
-   try {
+   try
+   {
+      std::cout << this->resourceFullPath << std::endl;
       if (this->isCGI)
          this->serveCGI();
       else if (this->resourceType == FILE)
@@ -95,7 +122,6 @@ void Response::serveGET() {
    }
    catch (const std::exception &e)
    {
-      //std::cout << "exception 2 " << e.what() << std::endl;
       throw Response_err(e.what());
    }
 }

@@ -40,6 +40,7 @@ void    Response::init()
         this->httpVersion = this->_req.version;
         this->status = std::make_pair("200", "OK");
         this->headers["Server"] = "Webserver/1.0";
+		this->headers["Connection"] = "close";
         this->currentSize = 0;
         this->resourceSize = 0;
         this->lastChunkSize = 0;
