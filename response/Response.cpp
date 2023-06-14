@@ -20,12 +20,11 @@ std::string getContentType(std::string path)
 
 Response::Response(void) { /* DEFAULT CONSTRUCTOR */ };
 
-Response::Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location location, char **env)
+Response::Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location& location, char **env) : _location(location)
 {
 	/*That's for now, we will complete initialization in Response::init()*/
 	//std::cout << "IP AND PORT = " << clientIP << " " << clientPort << std::endl;
 	this->_req = req;
-	this->_location = location;
 	this->_env = env;
 	this->clientSocket = id;
 	this->ip = clientIP;
@@ -48,6 +47,7 @@ void    Response::init()
         this->isChunked = false;
 		this->customErrorFound = false;
 		this->indexChecked = false;
+		this->indexFound = false;
 		this->fs = NULL;
 		this->method = this->_req.method;
 		this->isCGI = false;
@@ -86,6 +86,7 @@ Response::Response(const Response &other)
     this->isChunked = other.isChunked;
 	this->customErrorFound = other.customErrorFound;
 	this->indexChecked = other.indexChecked;
+	this->indexFound = other.indexFound;
 	this->clientSocket = other.clientSocket;
     this->resourceSize = other.resourceSize;
     this->method = other.method;

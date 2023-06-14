@@ -2,7 +2,7 @@
 
 bool    uploadSupported(Response& resp)
 {
-    std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("upload");
+    std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("upload_pass");
     if (it == resp.kwargs.end())
         return false;
     return true;
@@ -10,7 +10,7 @@ bool    uploadSupported(Response& resp)
 
 void    servePostFile(Response& resp)
 {
-    std::string full_path = resp.kwargs["upload"][0] + resp._req.params["Url"] + "." + resp._req.params["Content-Extension"];
+    std::string full_path = resp.kwargs["upload_pass"][0] + resp._req.params["Url"] + "." + resp._req.params["Content-Extension"];
     //std::cout << "full_path: " << full_path << std::endl;
     std::ifstream file(full_path.c_str(), std::ios::binary);
     if (file.good())
@@ -37,7 +37,7 @@ void    Response::servePOST()
 {
     try
     {
-        std::cout << "servePOST" << std::endl;
+        //std::cout << "servePOST" << std::endl;
         if (this->isCGI)
             this->serveCGI();
         else if (uploadSupported(*this))
@@ -48,9 +48,7 @@ void    Response::servePOST()
                 servePostFile(*this);
         }
         else
-        {
             this->serveERROR("403", "Forbidden");
-        }
     }
     catch(const std::exception& e)
     {

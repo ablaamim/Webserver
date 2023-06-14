@@ -6,7 +6,7 @@
 class Response
 {
     public:
-        Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location location, char **env); 
+        Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location &location, char **env); 
         Response(void);
         Response(int id);
         Response(const Response &other);
@@ -28,6 +28,7 @@ class Response
         bool                                                    isCompleted;
         bool                                                    isChunked;
         bool                                                    indexChecked;
+        bool                                                    indexFound;
         bool                                                    isCGI;
         bool                                                    customErrorFound;
 

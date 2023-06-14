@@ -10,29 +10,7 @@ void    checkHTTP(Response& resp)
 
 void    Response::checkRequest()
 {
-    // root iterator
-    std::vector<std::string> allowedMethods = this->_location.UniqueKey["allowed_methods"];
-    for (std::vector<std::string>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
-    {
-        std::cout << std::endl << std::endl;
-        std::cout << *it << std::endl;
-    }
-    if (_req.method != "GET" && _req.method != "POST" && _req.method != "DELETE")
-        this->serveERROR("501", "Not Implemented");
-    if (std::find(allowedMethods.begin(), allowedMethods.end(), this->_req.method) == allowedMethods.end())
-    {
-        std::cerr << "Method not allowed" << std::endl;
-        this->serveERROR("405", "Method Not Allowed");
-    }
+    if (_req.error)
+        this->serveERROR(std::to_string(_req.error), _req.erro_msg);
     checkHTTP(*this);
-    if (this->_req.params.find("Host") == this->_req.params.end())
-        this->serveERROR("400", "Bad Request");
-    /*
-        CHECKING IF THE REQUEST BODY IS LARGER THAN MAX_BODY_SIZE FROM CONFIG FILE
-        WE ARE CHECKING JUST THE DEFAULT VALUE, NOT THE VALUE FROM THE CONFIG FILE FOR NOW
-        NEEDS TO BE FIXED ...
-    */
-    if (this->_req.content_length > MAX_BODY_SIZE)
-        this->serveERROR("413", "Request Entity Too Large");
-    
 }

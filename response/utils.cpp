@@ -51,7 +51,7 @@ void    Response::setResourceInfo()
         //std::cout << COLOR_BLUE << "root not found" << COLOR_RESET << std::endl;
         this->serveERROR("404", "Not Found");
     }
-    std::cout << "ROOT BEFORE CONCATENATION = " << this->kwargs["root"][0] << std::endl;
+    // std::cout << "ROOT BEFORE CONCATENATION = " << this->kwargs["root"][0] << std::endl;
     this->resourceFullPath = pathJoin(this->kwargs["root"][0], _req.path);
     this->resourceType = getResourceType(); 
 }
@@ -59,7 +59,7 @@ void    Response::setResourceInfo()
 void lookForIndex(Response &resp)
 {
     std::string index_path = "";
-
+    resp.print_kwargs();
     resp.indexChecked = true;
     std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("index");
     if (it != resp.kwargs.end())
@@ -72,19 +72,21 @@ void lookForIndex(Response &resp)
             {
                 resp.resourceFullPath = index_path;
                 resp.resourceType = FILE;
+                resp.indexFound = true;
                 return;
             }
         }
         if (resp.kwargs["auto_index"][0] != "on")
             resp.serveERROR("403", "Forbidden");
     }
-    else if (resp.isCGI == false && resp.method == GET)
+    else if (resp.method == GET)
     {
         index_path = pathJoin(resp.resourceFullPath, "index.html");
         if (fileExists(index_path.c_str()))
         {
             resp.resourceFullPath = index_path;
             resp.resourceType = FILE;
+            resp.indexFound = true;
             return;
         }
     }
