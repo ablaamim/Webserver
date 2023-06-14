@@ -46,19 +46,18 @@ int     Response::getResourceType()
 
 void    Response::setResourceInfo()
 {
-    if (this->_location.UniqueKey["root"].empty())
+    if (this->kwargs.find("root") == this->kwargs.end())
     {
-        std::cout << "root is empty" << std::endl;
+        //std::cout << COLOR_BLUE << "root not found" << COLOR_RESET << std::endl;
         this->serveERROR("404", "Not Found");
     }
-
-    this->resourceFullPath = pathJoin(this->_location.UniqueKey["root"][0], _req.path);
+    std::cout << "ROOT BEFORE CONCATENATION = " << this->kwargs["root"][0] << std::endl;
+    this->resourceFullPath = pathJoin(this->kwargs["root"][0], _req.path);
     this->resourceType = getResourceType(); 
 }
 
 void lookForIndex(Response &resp)
 {
-    bool indexFound = false;
     std::string index_path = "";
 
     resp.indexChecked = true;
@@ -66,8 +65,7 @@ void lookForIndex(Response &resp)
     if (it != resp.kwargs.end())
     {
         std::vector<std::string> index_pages = it->second;
-        for (std::vector<std::string>::iterator it2 = index_pages.begin();
-             it2 != index_pages.end(); it2++)
+        for (std::vector<std::string>::iterator it2 = index_pages.begin(); it2 != index_pages.end(); it2++)
         {
             index_path = pathJoin(resp.resourceFullPath, *it2);
             if (fileExists(index_path.c_str()))
@@ -77,7 +75,8 @@ void lookForIndex(Response &resp)
                 return;
             }
         }
-        resp.serveERROR("403", "Forbidden");
+        if (resp.kwargs["auto_index"][0] != "on")
+            resp.serveERROR("403", "Forbidden");
     }
     else if (resp.isCGI == false && resp.method == GET)
     {
@@ -90,10 +89,7 @@ void lookForIndex(Response &resp)
         }
     }
     if (resp.kwargs["auto_index"][0] != "on" && resp.isCGI == false)
-    {
-        std::cout << "auto_index: " << resp.kwargs["auto_index"][0] << std::endl;
         resp.serveERROR("403", "Forbidden");
-    }
         
 }
 
@@ -127,9 +123,23 @@ std::string extractQueryParams(std::string &path)
     return query_string;
 }
 
-void    setAllowedExtensions(std::vector<std::string>& allowedExtensions)
+bool    needsRedirection(Response& resp)
 {
-    allowedExtensions.push_back(".php");
-    allowedExtensions.push_back(".py");
-    allowedExtensions.push_back(".sh");
+    if (resp.resourceType == REDIRECT)
+    {
+        resp.serveRedirect();
+        return true;
+    }
+    else if (resp.resourceType == DIRECTORY)
+    {
+        if (resp._req.path[resp._req.path.length() - 1] != '/')
+        {
+            resp._req.path.append("/");
+            resp.headers["Location"] = resp._req.path;
+            resp.status = std::make_pair("301", "Moved Permanently");
+            resp.sendResponse(HEADERS_ONLY);
+            return true;
+        }
+    }
+    return false;
 }

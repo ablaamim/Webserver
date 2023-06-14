@@ -31,17 +31,18 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
     for (type_location::iterator it = location.begin(); it != location.end(); it++)
     {
         std::string locationPath = it->first;
-        //std::cout << COLOR_GREEN <<"locationPath: " << locationPath << std::endl;
         if (startsWith(trgt, locationPath))
             matchedLocations.push_back(locationPath);
     }
-    //std::cout << server.first_location_key << std::endl;
     if (matchedLocations.size() == 0)
-    {
-        //std::cout << COLOR_RED << server.first_location_key << std::endl;
         result = location[server.first_location_key];
-    }
     else
         result = location[getMaxLocation(matchedLocations)];
+    if (result.UniqueKey["root"].empty())
+        result.UniqueKey["root"].push_back(server.root);
+    if (result.UniqueKey["allowed_methods"].empty())
+        result.UniqueKey["allowed_methods"].push_back("GET");
+    result.print_none_unique_key();
+    result.print_unique_key();
     return (result);
 }

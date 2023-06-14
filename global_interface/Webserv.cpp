@@ -52,7 +52,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     {   
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
         {
-            //newResponse.kwargs_alloc->insert(std::make_pair(it->first, it->second));
             newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         }
         
@@ -73,7 +72,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
                 it_map++;
             }
             newResponse.kwargs.insert(std::make_pair(key, values));
-            //newResponse.kwargs_alloc->insert(std::make_pair(key, values));
         }
         for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
         {
@@ -160,7 +158,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-        std::cout << COLOR_YELLOW << "accept new client: " << client_socket << COLOR_RESET << std::endl;
+        std::cout << COLOR_YELLOW << "Client Id : " << client_socket << COLOR_RESET << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
@@ -235,7 +233,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             {
                 if (it->second.isCompleted)
                 {
-                    std::cout << COLOR_GREEN << "response sent" << COLOR_RESET << std::endl;
                     client_cleanup(curr_event->ident);
                 }
                 else
@@ -249,7 +246,6 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
                     std::cout << "Error: " << e.what() << std::endl;
                     client_cleanup(curr_event->ident);
                 }
-                    
             }
         }
     }
@@ -282,10 +278,9 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
 {
     int new_events;
     
-    /* stattic mimeTypes map initialization */
     Response::initMimeTypes();
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
-    std::setw(40) << "Server is running size " << fds_socket.size() << COLOR_RESET << std::endl;
+    std::setw(40) << "Server is running\n" << COLOR_RESET << std::endl;
     while (1337)
     {
         new_events = kevent(this->kq, NULL, 0, this->event_list, fds_socket.size(), NULL);
@@ -293,6 +288,7 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
             throw Webserv::Webserv_err("kevent failed");
         else
             event_check(new_events, fds_socket, config, server, env);
+        //system("leaks Webserv");
     }
 }
 

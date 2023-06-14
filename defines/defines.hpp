@@ -63,6 +63,8 @@
 # define POST "POST"
 # define DELETE "DELETE"
 
+# define DEFAULT_ROOT "/Users/afaris/Desktop/Webserver/www/html"
+
 /* end of Response defines */
 
 #endif
