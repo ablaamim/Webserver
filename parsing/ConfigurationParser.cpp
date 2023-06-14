@@ -475,8 +475,12 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         throw ParsingErr("Server context should be closed by a '}' ");
 
     line_range.first++;
-    //result.location["/"].insert(server_location_config);
-    //result.location["/"].insert(configuration::_default_values);
+    if(result.location.size() == 0)
+    {
+        //std::cout << "INSERTING DEFAULT VALUES" << std::endl;
+        result.location["/"].insert(server_location_config);
+        result.location["/"].insert(configuration::_default_values);
+    }
     return (result);
 }
 

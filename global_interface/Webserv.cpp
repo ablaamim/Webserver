@@ -38,14 +38,12 @@ void print_client_list(std::map<int, int> clients_list)
         std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Server Socket : " << iter->second << " ]" << COLOR_RESET << std::endl;
 }
 
-void Webserv::entry_point(struct kevent *curr_event, Request request, configurationSA &config, Servers &server, char **env)
+void Webserv::entry_point(struct kevent *curr_event, Request request, configurationSA::location &_obj_location, char **env, Servers &server, configurationSA::Server &_obj_server)
 {
     Request req = this->request[curr_event->ident];
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
     std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
-    configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    configurationSA::location   _obj_location = match_location(request.path, _obj_server);
     Response newResponse(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), request, curr_event->ident, _obj_location, env);
     
     try
@@ -152,6 +150,9 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     int client_socket;
     char buf[BUFFER_SIZE] = {0};
     int n = 0, k = 120;
+    std::map<int, int>::iterator pair_contact;
+    configurationSA::Server     _obj_server;
+    configurationSA::location   _obj_location ;
 
     (void)config; (void)server; (void)env;
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
@@ -163,7 +164,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
         this->request[client_socket].fd_server = curr_event->ident;
-        clients_list.insert(std::make_pair(client_socket, this->request[client_socket].fd_server));     
+        clients_list.insert(std::make_pair(client_socket, this->request[client_socket].fd_server));    
 
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
@@ -178,45 +179,59 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         buf[n] = '\0';
         this->clients[curr_event->ident] = buf;
         k = this->request[curr_event->ident].parse_request(std::string(buf,n));
-        /*if (this->request[curr_event->ident].headers_done)
-            check_before_get_chuncked_messages(config,server, this->request[curr_event->ident], curr_event);*/
-        if (k == _PARSE_REQUEST_DONE)
+        if (this->request[curr_event->ident].headers_done)
+        {
+            pair_contact = clients_list.find(curr_event->ident);
+            _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+            _obj_location = match_location(this->request[curr_event->ident].path, _obj_server); 
+            check_before_get_chuncked_messages(_obj_location , this->request[curr_event->ident]);
+        }
+        if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error)
         {
             this->request[curr_event->ident].print_params();
-            /*std::cout << COLOR_GREEN << "request parsed" << COLOR_RESET << std::endl;
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
-            entry_point(curr_event, this->request[curr_event->ident], config, server, env);*/
+            entry_point(curr_event, this->request[curr_event->ident], _obj_location, env,server, _obj_server);
         }          
     }
 }
 
-void    Webserv::check_before_get_chuncked_messages(configurationSA &config, Servers &server, Request & request, struct kevent *curr_event)
+void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
-    std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
-
-    configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    configurationSA::location   _obj_location = match_location(request.path, _obj_server);
-    std::map<std::string, std::vector<std::string> >::iterator iter = _obj_location.UniqueKey.begin();
-
-    std::cout << _obj_location.UniqueKey["max_body_size"][0] << std::endl;
-    if (request.method != "POST")
-        return ;
-    if (request.params.find("Accept-Encoding") == request.params.end() && \
-    request.params.find("Content-Length") == request.params.end())
+    it_param content = request.params.find("Content-Length");
+    std::vector<std::string> allowedMethods = _obj_location.UniqueKey["allowed_methods"];
+    
+    if (request.method != "GET" && request.method != "POST" && request.method != "DELETE")
     {
-        request.erro_msg = "BAD REQUEST";
+        request.erro_msg = "Not Implemented";
+        request.error = 501;
+    }
+    if (std::find(allowedMethods.begin(), allowedMethods.end(), request.method) == allowedMethods.end())
+    {
+        request.erro_msg = "Method not allowed";
+        request.error = 405;
+    }
+    if (request.params.find("Host") == request.params.end())
+    {
+        request.erro_msg = "Bad Request";
         request.error = 400;
     }
-    else if (request.params.find("Accept-Encoding") == request.params.end() || \
-    request.params.find("Content-Length") == request.params.end())
+    if (request.method != "POST")
+        return ;
+    // if (request.params.find("Transfer-Encoding") == request.params.end() && \
+    // content == request.params.end())
+    // {
+    //     request.erro_msg = "BAD REQUEST";
+    //     request.error = 400;
+    // }
+    else if (content == request.params.end())
     {
         request.erro_msg = "LENGTH REQUIRED";
         request.error = 411;
     }
-    else if (request.params.find("Content-Length") != _obj_location.UniqueKey["max_body_size"][0])
+    else if (std::atof(content->second.c_str()) > std::atof(_obj_location.UniqueKey["max_body_size"][0].c_str()))
     {
-        request.erro_msg = "LENGTH REQUIRED";
+        request.erro_msg = "Payload Too Large";
         request.error = 413;
     }
     

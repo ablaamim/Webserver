@@ -110,6 +110,7 @@ void    Request::reset_request()
     this->first_line = false;
     this->is_chuncked = false;
     this->error = 0;
+    this->erro_msg = "";
     this->params.clear();
     std::remove(this->file_body_name.c_str());
     if (this->file)
@@ -269,7 +270,6 @@ int Request::get_chuncked_msg(std::string str)
 
 int Request::parse_request(std::string str)
 {
-    std::cout << str << std::endl;
     if (!str.size())
         return _ERR_PARSE_REQUEST;
     else if (!this->headers_done)

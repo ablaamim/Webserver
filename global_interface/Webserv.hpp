@@ -28,11 +28,11 @@ class Webserv
         void                        run(std::vector<int> & fds_socket, configurationSA &config, Servers &servers, char **env);
         void                        delete_event(int fd, int16_t filter, std::string str);
         void                        event_check(int new_events, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env);
-        void                        entry_point(struct kevent *curr_event, Request request, configurationSA &config, Servers &server, char **env);
+        void                        entry_point(struct kevent *curr_event, Request request, configurationSA::location &_obj_location, char **env, Servers &, configurationSA::Server &);
         configurationSA::Server     Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname);
         configurationSA::location   match_location(std::string trgt, configurationSA::Server server);
         void                        client_cleanup(int client_fd);
-        void                        check_before_get_chuncked_messages(configurationSA &config, Servers &server, Request & request, struct kevent *curr_event);
+        void                        check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request);
         class Webserv_err : public std::exception
         {
             private :
