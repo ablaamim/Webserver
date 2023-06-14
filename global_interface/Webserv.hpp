@@ -32,6 +32,7 @@ class Webserv
         configurationSA::Server     Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname);
         configurationSA::location   match_location(std::string trgt, configurationSA::Server server);
         void                        client_cleanup(int client_fd);
+        void                        check_before_get_chuncked_messages(configurationSA &config, Servers &server, Request & request, struct kevent *curr_event);
         class Webserv_err : public std::exception
         {
             private :

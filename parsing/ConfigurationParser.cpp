@@ -132,7 +132,7 @@ void configurationSA::configuration::initialize_default_values(void)
     {
         std::make_pair("auto_index", std::vector<std::string>(1, "off")),
         
-        std::make_pair("max_body_size", std::vector<std::string>(1, "100000000000000000000000000")),
+        std::make_pair("max_body_size", std::vector<std::string>(1, "1000000000")),
         
         std::make_pair("allowed_methods", std::vector<std::string>(allowed_methods, allowed_methods + SIZEOF(allowed_methods))),
     };
@@ -572,8 +572,8 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         throw ParsingErr(" : Server context should be closed by a '}'");
 
     line_range.first++;
-    //result.location["/"].insert(server_location_config);
-    //result.location["/"].insert(configuration::_default_values);
+    result.location["/"].insert(server_location_config);
+    result.location["/"].insert(configuration::_default_values);
     return (result);
 }
 
