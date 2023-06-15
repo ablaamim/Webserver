@@ -37,7 +37,7 @@ void    CGIManager::init()
     }
     catch(const std::exception& e)
     {
-        std::logic_error(e.what());
+        throw CGI_exception(e.what());
     }
 }
 
