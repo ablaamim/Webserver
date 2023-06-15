@@ -64,8 +64,17 @@ void Response::serveFile(Response &resp) {
 
 std::string getFileSize(std::string &path) {
    struct stat st;
+   std::string size = "-";
+
    stat(path.c_str(), &st);
-   // if (st % 10000)
+   if ((st.st_size / 1000000000) > 0)
+      size = std::to_string(st.st_size / 1000000000) + "Gb";
+   else if ((st.st_size / 1000000) > 0)
+      size = std::to_string(st.st_size / 1000000) + "Mb";
+   else if ((st.st_size / 1000) > 0)
+      size = std::to_string(st.st_size / 1000) + "Kb";
+   else
+      size = std::to_string(st.st_size) + "Bytes";
    return std::to_string(st.st_size);
 }
 
