@@ -72,7 +72,7 @@ void    Response::setResourceInfo()
 void lookForIndex(Response &resp)
 {
     std::string index_path = "";
-    resp.print_kwargs();
+    //resp.print_kwargs();
     resp.indexChecked = true;
     std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("index");
     if (it != resp.kwargs.end())
