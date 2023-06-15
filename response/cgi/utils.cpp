@@ -169,7 +169,7 @@ void    CGIManager::execute()
         {
             runSystemCall(close(this->fd[1]));
             waitpid(this->pid, 0, 0);
-            parseOutput();
+            //parseOutput();
         }
     }
     catch(const std::exception& e)
