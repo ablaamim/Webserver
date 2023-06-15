@@ -37,4 +37,16 @@ class CGIManager
         int             runSystemCall(int returnCode);
 
         ~CGIManager();
+
+    class CGI_exception : public std::exception
+    {
+        private : 
+            std::string _msg;
+
+        public :
+            CGI_exception(std::string msg) : _msg(msg) {}
+            CGI_exception() : _msg("CGI exception") {}
+            virtual ~CGI_exception() throw() {}
+            virtual const char* what() const throw() { return _msg.c_str(); }
+    };
 };
