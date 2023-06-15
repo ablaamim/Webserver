@@ -81,11 +81,12 @@
 # define _CS_409 "409"
 # define _CS_411 "411"
 # define _CS_413 "413"
+# define _CS_414 "414"
+# define _CS_426 "426"
 # define _CS_500 "500"
 # define _CS_501 "501"
 # define _CS_505 "505"
 # define _CS_520 "520"
-# define _CS_414 "414"
 
 // Server Code Status Messages
 # define _CS_200_m "OK"
@@ -98,10 +99,11 @@
 # define _CS_409_m "Conflict"
 # define _CS_411_m "Length Required"
 # define _CS_413_m "Payload Too Large"
+# define _CS_414_m "Request URI Too Long"
+# define _CS_426_m "Upgrade Required"
 # define _CS_500_m "Internal Server Error"
 # define _CS_501_m "Not Implemented"
-# define _CS_505_m "HTTP Version Not Supporte"
+# define _CS_505_m "HTTP Version Not Supported"
 # define _CS_520_m "Web Server Returned an Unknown Error"
-# define _CS_414_m "Request URI Too Long"
 
 #endif

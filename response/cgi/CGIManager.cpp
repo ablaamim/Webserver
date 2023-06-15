@@ -1,13 +1,11 @@
 #include "CGIManager.hpp"
 
-CGIManager::CGIManager(const CGIManager& src) : resp(src.resp)
+CGIManager::CGIManager(const CGIManager &src) : resp(src.resp)
 {
     this->fd[0] = src.fd[0];
     this->fd[1] = src.fd[1];
     this->extension = src.extension;
     this->interpreter = src.interpreter;
-    this->cleanURI = src.cleanURI;
-    this->queryParams = src.queryParams;
     this->env = src.env;
     this->execveArgs = src.execveArgs;
     this->execveEnv = src.execveEnv;
@@ -19,24 +17,19 @@ CGIManager::CGIManager(Response &resp) : resp(resp)
     this->fd[1] = -1;
 }
 
-void    CGIManager::init()
+void CGIManager::init()
 {
     try
     {
-        std::cout << COLOR_YELLOW << "init()" << COLOR_RESET << std::endl;
-        this->setCleanURI();
-        std::cout << "cleanURI: " << cleanURI << std::endl;
+        if (!fileExists(this->resp.resourceFullPath.c_str()))
+            this->resp.serveERROR(_CS_404, _CS_404_m);
         this->setExtension();
-        std::cout << "extension: " << extension << std::endl;
         this->setInterpreter();
-        std::cout << "interpreter: " << interpreter << std::endl;
-        this->setQueryParams();
-        std::cout << "queryParams: " << queryParams << std::endl;
         this->setEnv();
         this->setExecveArgs();
         this->setExecveEnv();
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
         throw CGI_exception(e.what());
     }
@@ -50,7 +43,7 @@ CGIManager::~CGIManager()
         close(this->fd[1]);
 }
 
-void    Response::serveCGI()
+void Response::serveCGI()
 {
     try
     {
@@ -60,7 +53,7 @@ void    Response::serveCGI()
         cgi.execute();
         this->sendResponse(FULL);
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
         throw Response_err(e.what());
     }

@@ -89,26 +89,35 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     }
 }
 
-configurationSA::Server Webserv::Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname)
+configurationSA::Server Webserv::Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostName)
 {
+    std::cout << "HOST NAME : " << hostName << std::endl;
+    // Host name without port
     
-    configurationSA::data_type::iterator iter = Servers_vector.end();
+    if (hostName.find(':') != std::string::npos)
+        hostName = hostName.substr(0, hostName.find(':'));
     
-    for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
-    {
-        if (!it->listen.count(ip) || !it->listen[ip].count(port))
-            continue ;
-        else if (iter == Servers_vector.end())
-            iter = it;
-        if (iter == Servers_vector.end())
-        {
-            std::cout << "ip" << ip << std::endl
-            << "port" << port << std::endl
-            << "hostname" << hostname << std::endl;
-            throw Webserv::Webserv_err("Select_server : no server found");
-        }
-    }
-    return (*iter);
+    std::cout << "HOST NAME : " << hostName << std::endl;
+    configurationSA::data_type::iterator   firstOccu = Servers_vector.end();
+
+   	for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
+   	{
+        std::cout << "Server name : " << it->server_name.begin()->substr(0, it->server_name.begin()->find(':')) << std::endl;
+        std::cout << "Server port : " << it->listen.begin()->first << std::endl;
+          
+		if (it->server_name.count(hostName))
+			return (*it);
+		else if (firstOccu == Servers_vector.end())
+			firstOccu = it;
+   	}
+	if (firstOccu == Servers_vector.end())
+	{
+		std::cout << "ip : " << ip << std::endl
+				  << "port : " << port << std::endl
+				  << "hostname : " << hostName << std::endl;
+		throw Webserv::Webserv_err("No server found");
+	}
+   	return (*firstOccu);
 }
 
 void Webserv::change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
@@ -145,14 +154,49 @@ void print_env(char **env)
         std::cout << COLOR_YELLOW << "[ " << env[i] << " ]" << COLOR_RESET << std::endl;
 }
 
-void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env)
+void Webserv::start_reading_from_client(struct kevent *curr_event,configurationSA &config, Servers &server, char **env)
 {
-    int client_socket;
     char buf[BUFFER_SIZE] = {0};
-    int n = 0, k = 120;
+    int n ,k;
     std::map<int, int>::iterator pair_contact;
     configurationSA::Server     _obj_server;
     configurationSA::location   _obj_location ;
+
+    
+    n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
+    if (n <= 0)
+    {
+        disconnect_client(curr_event->ident, this->clients, "read error ");
+        this->request[curr_event->ident].reset_request();
+        return ;
+    }
+    buf[n] = '\0';
+    this->clients[curr_event->ident] = buf;
+    k = this->request[curr_event->ident].parse_request(std::string(buf,n));
+    if (this->request[curr_event->ident].headers_done)
+    {
+        pair_contact = clients_list.find(curr_event->ident);
+        _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), \
+        config.get_data(), this->request[curr_event->ident].params["Host"]);
+        _obj_location = match_location(this->request[curr_event->ident].path, _obj_server); 
+        check_before_get_chuncked_messages(_obj_location , this->request[curr_event->ident]);
+    }
+    if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error)
+    {
+        this->request[curr_event->ident].print_params();
+        change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
+        entry_point(curr_event, this->request[curr_event->ident], _obj_location, env,server, _obj_server);
+        std::cout << COLOR_RED << "END of read" << COLOR_RESET <<std::endl;
+    }          
+
+}
+
+
+void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env)
+{
+    int client_socket;
+    int k = 0;
 
     (void)config; (void)server; (void)env;
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
@@ -168,68 +212,35 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
 
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
-    {
-        n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
-        if (n <= 0)
-        {
-            disconnect_client(curr_event->ident, this->clients, "read error ");
-            this->request[curr_event->ident].reset_request();
-            return ;
-        }
-        buf[n] = '\0';
-        this->clients[curr_event->ident] = buf;
-        k = this->request[curr_event->ident].parse_request(std::string(buf,n));
-        if (this->request[curr_event->ident].headers_done)
-        {
-            pair_contact = clients_list.find(curr_event->ident);
-            _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-            _obj_location = match_location(this->request[curr_event->ident].path, _obj_server); 
-            check_before_get_chuncked_messages(_obj_location , this->request[curr_event->ident]);
-        }
-        if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error)
-        {
-            //this->request[curr_event->ident].print_params();
-            change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
-            entry_point(curr_event, this->request[curr_event->ident], _obj_location, env,server, _obj_server);
-            std::cout << COLOR_RED << "END of read" << COLOR_RESET <<std::endl;
-        }          
-    }
+        start_reading_from_client(curr_event, config, server, env);
+        
 }
+
+void    Webserv::fill_request_err(std::string err, std::string msg, Request & request)
+{
+    request.error = std::stoi(err);
+    request.erro_msg = msg;
+}
+
 
 void    Webserv::check_methods(configurationSA::location &_obj_location, Request & request)
 {
     std::vector<std::string> allowedMethods = _obj_location.UniqueKey["allowed_methods"];
     
-    if (request.method != GET && request.method != POST && request.method != "DELETE")
-    {
-        request.erro_msg = _CS_501_m;
-        request.error = std::stoi(_CS_501);
-    }
+    if (request.method != GET && request.method != POST && request.method != DELETE)
+        fill_request_err(_CS_501, _CS_501_m, request);
     if (std::find(allowedMethods.begin(), allowedMethods.end(), request.method) == allowedMethods.end())
-    {
-        request.erro_msg = _CS_405_m;
-        request.error = std::stoi(_CS_405);
-    }
+        fill_request_err(_CS_405, _CS_405_m, request);
     if (request.params.find("Host") == request.params.end())
-    {
-        request.erro_msg = _CS_400_m;
-        request.error = std::stoi(_CS_400);
-    }
+        fill_request_err(_CS_400, _CS_400_m, request);
 }
 
 void    Webserv::checkHTTP(Request & request)
 {
     if (request.version.substr(0, 5) != "HTTP/")
-    {
-        request.erro_msg = _CS_505_m;
-        request.error = std::stoi(_CS_505);
-    }
+        fill_request_err(_CS_400, _CS_400_m, request);
     if (request.version.substr(5) != "1.1")
-    {
-        request.erro_msg = _CS_400_m;
-        request.error = std::stoi(_CS_400);
-    }
+        fill_request_err(_CS_505, _CS_505_m, request);
 }
 
 void    Webserv::check_Transfer_Encoding(Request & request)
@@ -238,8 +249,8 @@ void    Webserv::check_Transfer_Encoding(Request & request)
 
     if (transfer != request.params.end() && transfer->second != "chunked")
     {
-        request.erro_msg = _CS_501_m;
-        request.error = std::stoi(_CS_501);
+        //std::cout << "HHHennanananludfhh" << std::endl;
+        fill_request_err(_CS_501, _CS_501_m, request);
     }
 }
 
@@ -250,32 +261,38 @@ void    Webserv::check_Content_Length(Request & request, configurationSA::locati
     if (request.method != POST)
     {
         if (content != request.params.end())
-        {
-            request.erro_msg = _CS_400_m;
-            request.error = std::stoi(_CS_400);
-        }
+            fill_request_err(_CS_400, _CS_400_m, request);
         return;
     }
     if (content == request.params.end())
-    {
-        request.erro_msg = _CS_411_m;
-        request.error = std::stoi(_CS_411);
-    }
+        fill_request_err(_CS_411, _CS_411_m, request);
     else if (std::atof(content->second.c_str()) > std::atof(_obj_location.UniqueKey["max_body_size"][0].c_str()))
-    {
-        request.erro_msg = _CS_413_m;
-        request.error =  std::stoi(_CS_413);
-    }
+        fill_request_err(_CS_413, _CS_413_m, request);
 }
 
-void check_uri_length(Request &request)
+void    Webserv::check_uri_length(Request &request)
 {
     if (request.path.length() > 2048)
-    {
-        request.erro_msg = _CS_414_m;
-        request.error = std::stoi(_CS_414);
-    }
+        fill_request_err(_CS_414, _CS_414_m, request);
 }
+
+// void    Webserv::check_uri_allowed_characters(Request &request)
+// {
+//     std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
+//     std::string::iterator it = request.path.begin();
+
+//     std::cout << "CHECK ALLOWED CHARACTERS" << std::endl;
+
+//     while (it != request.path.end())
+//     {
+//         if (allowed_characters.find(*it) == std::string::npos)
+//         {
+//             fill_request_err(_CS_400, _CS_400_m, request);
+//             return;
+//         }
+//         it++;
+//     }
+// }
 
 void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
@@ -284,6 +301,7 @@ void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_
     check_Transfer_Encoding(request);
     check_Content_Length(request, _obj_location);
     check_uri_length(request);
+    //check_uri_allowed_characters(request);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)
@@ -360,17 +378,11 @@ Webserv::Webserv(configurationSA &config, char **env)
 {
     Servers         server(config);
     this->kq = server.kq;
-    this->log_fd = open("log.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    //this->log_fd = open("log.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     this->event_list = new struct kevent [Servers::fd_vector.size()];
     this->run(Servers::fd_vector, config, server, env);
 }
 
-Webserv::Webserv()
-{
-    return ;
-}
+Webserv::Webserv(){}
 
-Webserv::~Webserv()
-{   
-    delete [] this->event_list;
-}
+Webserv::~Webserv(){delete [] this->event_list;}

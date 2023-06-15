@@ -394,7 +394,7 @@ void  configurationSA::insert_keyvalue_server(Server &result, key_value_type &ke
         result.listen[key_value.second[0]].insert(key_value.second[1]);
     if (result.listen[key_value.second[0]].size() > 1)
         throw ParsingErr("More than one listen ");
-    else if (key_value.first == "server_name ")
+    else if (key_value.first == "server_name")
     {        
         if (key_value.second.size() > 1)
             throw ParsingErr("Too many parameters for key " + key_value.first);
