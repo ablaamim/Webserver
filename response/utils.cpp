@@ -72,32 +72,32 @@ void lookForIndex(Response &resp)
             {
                 resp.resourceFullPath = index_path;
                 resp.resourceType = FILE;
-                resp.indexFound = true;
                 return;
             }
         }
         if (resp.kwargs["auto_index"][0] != "on")
             resp.serveERROR(_CS_403, _CS_403_m);
     }
-    else if (resp.method == GET)
+    else
     {
-        index_path = pathJoin(resp.resourceFullPath, "index.html");
-        if (fileExists(index_path.c_str()))
+        if (resp.method == GET)
         {
-            resp.resourceFullPath = index_path;
-            resp.resourceType = FILE;
-            resp.indexFound = true;
-            return;
+            resp.isCGI = false; /* since the resource is a directory, and none of index files were found, we will serve the directory or index.html no need for CGI, that is/ */
+            index_path = pathJoin(resp.resourceFullPath, "index.html");
+            if (fileExists(index_path.c_str()))
+            {
+                resp.resourceFullPath = index_path;
+                resp.resourceType = FILE;
+                return;
+            }
         }
     }
-    if (resp.kwargs["auto_index"][0] != "on" && resp.isCGI == false)
+    if (resp.kwargs["auto_index"][0] != "on")
         resp.serveERROR(_CS_403, _CS_403_m);
-        
 }
 
 std::string getFileExtension(const std::string path)
 {
-    // get ride of query string
     path.substr(0, path.find("?"));
     std::cout << "path: " << path << std::endl;
     size_t pos = path.find_last_of(".");
