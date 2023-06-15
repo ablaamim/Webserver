@@ -192,49 +192,88 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
             entry_point(curr_event, this->request[curr_event->ident], _obj_location, env,server, _obj_server);
+            std::cout << COLOR_RED << "END of read" << COLOR_RESET <<std::endl;
         }          
+    }
+}
+
+void    Webserv::check_methods(configurationSA::location &_obj_location, Request & request)
+{
+    std::vector<std::string> allowedMethods = _obj_location.UniqueKey["allowed_methods"];
+    
+    if (request.method != GET && request.method != POST && request.method != "DELETE")
+    {
+        request.erro_msg = _CS_501_m;
+        request.error = std::stoi(_CS_501);
+    }
+    if (std::find(allowedMethods.begin(), allowedMethods.end(), request.method) == allowedMethods.end())
+    {
+        request.erro_msg = _CS_405_m;
+        request.error = std::stoi(_CS_405);
+    }
+    if (request.params.find("Host") == request.params.end())
+    {
+        request.erro_msg = _CS_400_m;
+        request.error = std::stoi(_CS_400);
+    }
+}
+
+void    Webserv::checkHTTP(Request & request)
+{
+    if (request.version.substr(0, 5) != "HTTP/")
+    {
+        request.erro_msg = _CS_505_m;
+        request.error = std::stoi(_CS_505);
+    }
+    if (request.version.substr(5) != "1.1")
+    {
+        request.erro_msg = _CS_400_m;
+        request.error = std::stoi(_CS_400);
+    }
+}
+
+void    Webserv::check_Transfer_Encoding(Request & request)
+{
+    it_param transfer = request.params.find("Transfer-Encoding");
+
+    if (transfer != request.params.end() && transfer->second != "chunked")
+    {
+        request.erro_msg = _CS_501_m;
+        request.error = std::stoi(_CS_501);
+    }
+}
+
+void    Webserv::check_Content_Length(Request & request, configurationSA::location &_obj_location)
+{
+    it_param content = request.params.find("Content-Length");
+
+    if (request.method != POST)
+    {
+        if (content != request.params.end())
+        {
+            request.erro_msg = _CS_400_m;
+            request.error = std::stoi(_CS_400);
+        }
+        return;
+    }
+    if (content == request.params.end())
+    {
+        request.erro_msg = _CS_411_m;
+        request.error = std::stoi(_CS_411);
+    }
+    else if (std::atof(content->second.c_str()) > std::atof(_obj_location.UniqueKey["max_body_size"][0].c_str()))
+    {
+        request.erro_msg = _CS_413_m;
+        request.error =  std::stoi(_CS_413);
     }
 }
 
 void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
-    it_param content = request.params.find("Content-Length");
-    std::vector<std::string> allowedMethods = _obj_location.UniqueKey["allowed_methods"];
-    
-    if (request.method != "GET" && request.method != "POST" && request.method != "DELETE")
-    {
-        request.erro_msg = "Not Implemented";
-        request.error = 501;
-    }
-    if (std::find(allowedMethods.begin(), allowedMethods.end(), request.method) == allowedMethods.end())
-    {
-        request.erro_msg = "Method not allowed";
-        request.error = 405;
-    }
-    if (request.params.find("Host") == request.params.end())
-    {
-        request.erro_msg = "Bad Request";
-        request.error = 400;
-    }
-    if (request.method != "POST")
-        return ;
-    // if (request.params.find("Transfer-Encoding") == request.params.end() && \
-    // content == request.params.end())
-    // {
-    //     request.erro_msg = "BAD REQUEST";
-    //     request.error = 400;
-    // }
-    else if (content == request.params.end())
-    {
-        request.erro_msg = "LENGTH REQUIRED";
-        request.error = 411;
-    }
-    else if (std::atof(content->second.c_str()) > std::atof(_obj_location.UniqueKey["max_body_size"][0].c_str()))
-    {
-        request.erro_msg = "Payload Too Large";
-        request.error = 413;
-    }
-    
+    check_methods(_obj_location, request);
+    checkHTTP(request);
+    check_Transfer_Encoding(request);
+    check_Content_Length(request, _obj_location);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)

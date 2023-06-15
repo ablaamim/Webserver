@@ -1,4 +1,4 @@
-#include "../Response.hpp"
+#include "../../MainInc/main.hpp"
 
 bool isDirectoryEmpty(const std::string& folderPath)
 {
@@ -21,22 +21,22 @@ bool isDirectoryEmpty(const std::string& folderPath)
 bool deleteFiles(const std::string& path, Response& resp)
 {
     if (access(path.c_str(), F_OK) != 0)
-        resp.serveERROR("404", "Not Found");
+        resp.serveERROR(_CS_404, _CS_404_m);
     if (access(path.c_str(), W_OK) != 0)
-        resp.serveERROR("403", "Forbidden");
+        resp.serveERROR(_CS_403, _CS_403_m);
     if (isDirectoryEmpty(path))
     {
         if (rmdir(path.c_str()) == 0)
             return true;
         else
-            resp.serveERROR("409", "Conflict");
+            resp.serveERROR(_CS_409, _CS_409_m);
     } 
     else
     {
         if (remove(path.c_str()) == 0)
             return true;
         else
-            resp.serveERROR("409", "Conflict");
+            resp.serveERROR(_CS_409, _CS_409_m);
     }
     return false;
 }

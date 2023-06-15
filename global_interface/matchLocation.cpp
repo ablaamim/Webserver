@@ -41,7 +41,7 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
     if (result.UniqueKey["root"].empty())
         result.UniqueKey["root"].push_back(server.root);
     if (result.UniqueKey["allowed_methods"].empty())
-        result.UniqueKey["allowed_methods"].push_back("GET");
+        result.UniqueKey["allowed_methods"].push_back(GET);
     if (result.UniqueKey["max_body_size"].empty())
         result.UniqueKey["max_body_size"].push_back("1000000000");
     if (result.UniqueKey["auto_index"].empty())

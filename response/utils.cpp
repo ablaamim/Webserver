@@ -1,4 +1,4 @@
-#include "Response.hpp"
+#include "../MainInc/main.hpp"
 
 bool    isDirectory(std::string path)
 {
@@ -49,7 +49,7 @@ void    Response::setResourceInfo()
     if (this->kwargs.find("root") == this->kwargs.end())
     {
         //std::cout << COLOR_BLUE << "root not found" << COLOR_RESET << std::endl;
-        this->serveERROR("404", "Not Found");
+        this->serveERROR(_CS_404, _CS_404_m);
     }
     // std::cout << "ROOT BEFORE CONCATENATION = " << this->kwargs["root"][0] << std::endl;
     this->resourceFullPath = pathJoin(this->kwargs["root"][0], _req.path);
@@ -77,7 +77,7 @@ void lookForIndex(Response &resp)
             }
         }
         if (resp.kwargs["auto_index"][0] != "on")
-            resp.serveERROR("403", "Forbidden");
+            resp.serveERROR(_CS_403, _CS_403_m);
     }
     else if (resp.method == GET)
     {
@@ -91,7 +91,7 @@ void lookForIndex(Response &resp)
         }
     }
     if (resp.kwargs["auto_index"][0] != "on" && resp.isCGI == false)
-        resp.serveERROR("403", "Forbidden");
+        resp.serveERROR(_CS_403, _CS_403_m);
         
 }
 
@@ -138,7 +138,7 @@ bool    needsRedirection(Response& resp)
         {
             resp._req.path.append("/");
             resp.headers["Location"] = resp._req.path;
-            resp.status = std::make_pair("301", "Moved Permanently");
+            resp.status = std::make_pair(_CS_301, _CS_301_m);
             resp.sendResponse(HEADERS_ONLY);
             return true;
         }
