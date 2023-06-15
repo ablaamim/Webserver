@@ -188,7 +188,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
         }
         if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error)
         {
-            this->request[curr_event->ident].print_params();
+            //this->request[curr_event->ident].print_params();
             change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
             delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
             entry_point(curr_event, this->request[curr_event->ident], _obj_location, env,server, _obj_server);
@@ -277,25 +277,6 @@ void check_uri_length(Request &request)
     }
 }
 
-void check_uri_allowed_characters(Request &request)
-{
-    std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
-    std::string::iterator it = request.path.begin();
-
-    std::cout << "CHECK ALLOWED CHARACTERS" << std::endl;
-
-    while (it != request.path.end())
-    {
-        if (allowed_characters.find(*it) == std::string::npos)
-        {
-            request.erro_msg = _CS_400_m;
-            request.error = std::stoi(_CS_400);
-            return;
-        }
-        it++;
-    }
-}
-
 void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
     check_methods(_obj_location, request);
@@ -303,7 +284,6 @@ void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_
     check_Transfer_Encoding(request);
     check_Content_Length(request, _obj_location);
     check_uri_length(request);
-    //check_uri_allowed_characters(request);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)

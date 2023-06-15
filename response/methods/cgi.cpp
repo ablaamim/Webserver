@@ -6,7 +6,7 @@ char    **getEnvs(Response& resp)
     char **env = NULL;
     std::vector<std::string> envs;
 
-    resp._req.print_params();
+    //resp._req.print_params();
     
     std::cout << std::endl << std::endl << std::endl;
     
