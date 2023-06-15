@@ -226,6 +226,8 @@ int Request::get_headers(std::string str)
     this->parse_headers(str);
     this->get_content_extension();
     this->headers_done = true;
+    if (this->method != POST)
+        return _PARSE_REQUEST_DONE;
     if (str1 != "")
         return (open_file_for_reponse(str1));
     return (check_readed_bytes());
