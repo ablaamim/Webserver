@@ -269,3 +269,82 @@ server
 | UNKNOWN requests should not result in a crash | Check request | Accurate error code | POSTMAN + [config_file](./TESTING/conf10.conf) | Abdessamad | :white_check_mark: |
 
 ---
+
+#### Correction Page :
+
+---
+
+<img src= "./Correction_page/Mandatory_part.png" width="800">
+
+---
+
+> Skip ask question part, only code check section is checked.
+
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
+|--- |--- |--- |--- | ---|--- |
+| The select() (or equivalent) should be in the main loop and should check file descriptors for read and write AT THE SAME
+TIME| Multiplexing | - | - | Zineb  | :white_check_mark: | 
+| There should be only one read or one write per client per select() (or equivalent). Ask the group to show you the code from the
+select() (or equivalent) to the read and write of a client| Program | - |  - |Team | :white_check_mark: |
+| Search for all read/recv/write/send and check if the returned value is correctly checked (checking only -1 or 0 values is not
+enough, both should be checked) | Program | - | - | Team | :white_check_mark: |
+| If errno is checked after read/recv/write/send, the grade is 0 and the evaluation process ends now | Program | - | - | Team | :white_check_mark: |
+| Writing or reading ANY file descriptor without going through the select() (or equivalent) is strictly FORBIDDEN. | Multiplexing | - | - | Zineb | :white_check_mark: |
+| The project must compile without any re-link issue. If not, use the 'Invalid compilation' flag | Program | - | - | Team | :white_check_mark: | 
+
+---
+
+<img src= "./Correction_page/configuration.png" width="800">
+
+---
+
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
+|--- |--- |--- |--- | ---|--- |
+
+---
+
+<img src= "./Correction_page/Basic_checks.png" width="800">
+
+---
+
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
+|--- |--- |--- |--- | ---|--- |
+
+---
+
+<img src= "./Correction_page/Check_cgi.png" width="800">
+
+---
+
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
+|--- |--- |--- |--- | ---|--- |
+
+---
+
+<img src= "./Correction_page/Check_with_a_browser.png" width="800">
+
+---
+
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
+|--- |--- |--- |--- | ---|--- |
+
+
+---
+
+<img src= "./Correction_page/Stress_test_port.png" width="800">
+
+---
+
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
+|--- |--- |--- |--- | ---|--- |
+
+---
+
+<img src= "./Correction_page/Bonus.png" width="800">
+
+---
+
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
+|--- |--- |--- |--- | ---|--- |
+
+---
