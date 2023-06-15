@@ -41,7 +41,6 @@ void    Response::init()
         this->isChunked = false;
 		this->customErrorFound = false;
 		this->indexChecked = false;
-		this->indexFound = false;
 		this->fs = NULL;
 		this->method = this->_req.method;
 		this->isCGI = false;
@@ -80,7 +79,8 @@ Response::Response(const Response &other)
     this->isChunked = other.isChunked;
 	this->customErrorFound = other.customErrorFound;
 	this->indexChecked = other.indexChecked;
-	this->indexFound = other.indexFound;
+	this->cleanURI = other.cleanURI;
+	this->queryParams = other.queryParams;
 	this->clientSocket = other.clientSocket;
     this->resourceSize = other.resourceSize;
     this->method = other.method;

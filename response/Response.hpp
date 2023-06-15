@@ -28,10 +28,11 @@ class Response
         bool                                                    isCompleted;
         bool                                                    isChunked;
         bool                                                    indexChecked;
-        bool                                                    indexFound;
         bool                                                    isCGI;
         bool                                                    customErrorFound;
 
+        std::string                                             cleanURI;
+        std::string                                             queryParams;
         std::string                                             host;
         std::string                                             resourceFullPath;
         std::string                                             httpVersion; 
