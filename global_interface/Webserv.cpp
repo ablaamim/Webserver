@@ -167,7 +167,8 @@ void Webserv::start_reading_from_client(struct kevent *curr_event,configurationS
     if (this->request[curr_event->ident].headers_done)
     {
         pair_contact = clients_list.find(curr_event->ident);
-        _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
+        _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), \
+        config.get_data(), this->request[curr_event->ident].params["Host"]);
         _obj_location = match_location(this->request[curr_event->ident].path, _obj_server); 
         check_before_get_chuncked_messages(_obj_location , this->request[curr_event->ident]);
     }
@@ -225,40 +226,40 @@ void    Webserv::check_methods(configurationSA::location &_obj_location, Request
         fill_request_err(_CS_400, _CS_400_m, request);
 }
 
-// void    Webserv::checkHTTP(Request & request)
-// {
-//     if (request.version.substr(0, 5) != "HTTP/")
-//         fill_request_err(_CS_505, _CS_505_m, request);
-//     if (request.version.substr(5) != "1.1")
-//         fill_request_err(_CS_400, _CS_400_m, request);
-// }
+void    Webserv::checkHTTP(Request & request)
+{
+    if (request.version.substr(0, 5) != "HTTP/")
+        fill_request_err(_CS_400, _CS_400_m, request);
+    if (request.version.substr(5) != "1.1")
+        fill_request_err(_CS_505, _CS_505_m, request);
+}
 
-// void    Webserv::check_Transfer_Encoding(Request & request)
-// {
-//     it_param transfer = request.params.find("Transfer-Encoding");
+void    Webserv::check_Transfer_Encoding(Request & request)
+{
+    it_param transfer = request.params.find("Transfer-Encoding");
 
-//     if (transfer != request.params.end() && transfer->second != "chunked")
-//     {
-//         std::cout << "HHHennanananludfhh" << std::endl;
-//         fill_request_err(_CS_501, _CS_501_m, request);
-//     }
-// }
+    if (transfer != request.params.end() && transfer->second != "chunked")
+    {
+        std::cout << "HHHennanananludfhh" << std::endl;
+        fill_request_err(_CS_501, _CS_501_m, request);
+    }
+}
 
-// void    Webserv::check_Content_Length(Request & request, configurationSA::location &_obj_location)
-// {
-//     it_param content = request.params.find("Content-Length");
+void    Webserv::check_Content_Length(Request & request, configurationSA::location &_obj_location)
+{
+    it_param content = request.params.find("Content-Length");
 
-//     if (request.method != POST)
-//     {
-//         if (content != request.params.end())
-//             fill_request_err(_CS_400, _CS_400_m, request);
-//         return;
-//     }
-//     if (content == request.params.end())
-//         fill_request_err(_CS_411, _CS_411_m, request);
-//     else if (std::atof(content->second.c_str()) > std::atof(_obj_location.UniqueKey["max_body_size"][0].c_str()))
-//         fill_request_err(_CS_413, _CS_413_m, request);
-// }
+    if (request.method != POST)
+    {
+        if (content != request.params.end())
+            fill_request_err(_CS_400, _CS_400_m, request);
+        return;
+    }
+    if (content == request.params.end())
+        fill_request_err(_CS_411, _CS_411_m, request);
+    else if (std::atof(content->second.c_str()) > std::atof(_obj_location.UniqueKey["max_body_size"][0].c_str()))
+        fill_request_err(_CS_413, _CS_413_m, request);
+}
 
 // void    Webserv::check_uri_length(Request &request)
 // {
@@ -287,9 +288,9 @@ void    Webserv::check_methods(configurationSA::location &_obj_location, Request
 void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
     check_methods(_obj_location, request);
-    // checkHTTP(request);
-    // check_Transfer_Encoding(request);
-    // check_Content_Length(request, _obj_location);
+    checkHTTP(request);
+    check_Transfer_Encoding(request);
+    check_Content_Length(request, _obj_location);
     // check_uri_length(request);
     //check_uri_allowed_characters(request);
 }
