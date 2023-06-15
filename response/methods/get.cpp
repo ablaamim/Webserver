@@ -84,8 +84,23 @@ void Response::serveDirectory(Response &resp)
       std::vector<std::string> list_of_files =
           resp.listing_directory(resp.resourceFullPath);
       resp.headers["Content-Type"] = "text/html";
-      resp.body += "<link rel=\"stylesheet\" href=\"../../font-awesome-4.7.0/css/font-awesome.min.css\">";
-      resp.body += "<link rel=\"stylesheet\" href=\"../../font-awesome-4.7.0/css/index.css\">";
+      resp.body = "<style>*{box-sizing: border-box;font-family: Arial, Helvetica, sans-serif;margin: 0;padding: 0;}\
+                     body{padding: 3%;background: #d1d1d1;}\
+                     table{background: #fff;max-width: 1366px;margin: 0 auto;border:none;border-collapse:collapse;table-layout: fixed;}\
+                     table th {font-size: 18px;color: #fff;line-height: 1.4;text-transform: uppercase;background-color: #36304a;padding-top: 24px;padding-bottom: 20px;padding-left: 20px;text-align: left;font-weight: 600;}\
+                     table td {padding-top: 18px;padding-bottom: 14px;padding-left: 15px;}\
+                     table tr:nth-child(even) {background-color: #f3f3f3;}\
+                     h1{text-align: center;padding-bottom: 50px;}\
+                     table a{color: #36304a;font-size: 16px;text-decoration: none;}\
+                     table a i{padding-right: 5px;}\
+                     table tr:nth-child(even) a{color: #000;}\
+                     table a:hover, table tr:nth-child(even) a:hover{color: #6c7ae0; font-weight: 500;}\
+                     table a:hover i.fa, table a:hover i.fa:before{background-color: #6c7ae0}\
+                     table tr:hover{background-color: #6c7ae02e; cursor: pointer;}\
+                     i.fa.fa-folder:before {content: '';width: 50%;height: 2px;border-radius: 0 10px 0 0;background-color: #36304a;position: absolute;top: -2px;left: 0px;}\
+                     i.fa.fa-folder {width: 20px;height: 14px;margin: 0 10px -2px 0;position: relative;background-color: #36304a;border-radius: 0 3px 3px 3px;display: inline-block;}\
+                     i.fa.fa-file-o {display: inline-block;width: 15px;height: 20px;background: #36304a;border-radius: 2px;margin: 0 10px -4px 0;border-top-right-radius: 7px;}\
+                     </style>";
       resp.body += "<h1> Index of " + resp.resourceFullPath + "</h1> ";
 
       // List directories on browser with some css
