@@ -89,26 +89,35 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     }
 }
 
-configurationSA::Server Webserv::Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname)
+configurationSA::Server Webserv::Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostName)
 {
+    std::cout << "HOST NAME : " << hostName << std::endl;
+    // Host name without port
     
-    configurationSA::data_type::iterator iter = Servers_vector.end();
+    if (hostName.find(':') != std::string::npos)
+        hostName = hostName.substr(0, hostName.find(':'));
     
-    for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
-    {
-        if (!it->listen.count(ip) || !it->listen[ip].count(port))
-            continue ;
-        else if (iter == Servers_vector.end())
-            iter = it;
-        if (iter == Servers_vector.end())
-        {
-            std::cout << "ip" << ip << std::endl
-            << "port" << port << std::endl
-            << "hostname" << hostname << std::endl;
-            throw Webserv::Webserv_err("Select_server : no server found");
-        }
-    }
-    return (*iter);
+    std::cout << "HOST NAME : " << hostName << std::endl;
+    configurationSA::data_type::iterator   firstOccu = Servers_vector.end();
+
+   	for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
+   	{
+        std::cout << "Server name : " << it->server_name.begin()->substr(0, it->server_name.begin()->find(':')) << std::endl;
+        std::cout << "Server port : " << it->listen.begin()->first << std::endl;
+          
+		if (it->server_name.count(hostName))
+			return (*it);
+		else if (firstOccu == Servers_vector.end())
+			firstOccu = it;
+   	}
+	if (firstOccu == Servers_vector.end())
+	{
+		std::cout << "ip : " << ip << std::endl
+				  << "port : " << port << std::endl
+				  << "hostname : " << hostName << std::endl;
+		throw Webserv::Webserv_err("No server found");
+	}
+   	return (*firstOccu);
 }
 
 void Webserv::change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
@@ -240,6 +249,11 @@ void    Webserv::check_Transfer_Encoding(Request & request)
     it_param content = request.params.find("Content-Length");
 
     if (transfer != request.params.end() && transfer->second != "chunked")
+<<<<<<< HEAD
+=======
+    {
+        //std::cout << "HHHennanananludfhh" << std::endl;
+>>>>>>> 65a7907706a70ed8789f935465ef00126e994fb9
         fill_request_err(_CS_501, _CS_501_m, request);
     if (transfer == request.params.end() && content == request.params.end() && request.method == POST)
         fill_request_err(_CS_400, _CS_400_m, request);
@@ -259,6 +273,7 @@ void    Webserv::check_Content_Length(Request & request, configurationSA::locati
 
 void    Webserv::check_uri_length(Request &request)
 {
+<<<<<<< HEAD
     if (request.path.length() > BUFFER_SIZE)
         fill_request_err(_CS_414, _CS_414_m, request);
 }
@@ -280,6 +295,29 @@ void    Webserv::check_uri_allowed_characters(Request &request)
         it++;
     }
 }
+=======
+    if (request.path.length() > 2048)
+        fill_request_err(_CS_414, _CS_414_m, request);
+}
+
+// void    Webserv::check_uri_allowed_characters(Request &request)
+// {
+//     std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
+//     std::string::iterator it = request.path.begin();
+
+//     std::cout << "CHECK ALLOWED CHARACTERS" << std::endl;
+
+//     while (it != request.path.end())
+//     {
+//         if (allowed_characters.find(*it) == std::string::npos)
+//         {
+//             fill_request_err(_CS_400, _CS_400_m, request);
+//             return;
+//         }
+//         it++;
+//     }
+// }
+>>>>>>> 65a7907706a70ed8789f935465ef00126e994fb9
 
 void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
@@ -288,7 +326,11 @@ void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_
     check_Transfer_Encoding(request);
     check_Content_Length(request, _obj_location);
     check_uri_length(request);
+<<<<<<< HEAD
     check_uri_allowed_characters(request);
+=======
+    //check_uri_allowed_characters(request);
+>>>>>>> 65a7907706a70ed8789f935465ef00126e994fb9
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)
@@ -365,7 +407,7 @@ Webserv::Webserv(configurationSA &config, char **env)
 {
     Servers         server(config);
     this->kq = server.kq;
-    this->log_fd = open("log.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    //this->log_fd = open("log.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     this->event_list = new struct kevent [Servers::fd_vector.size()];
     this->run(Servers::fd_vector, config, server, env);
 }
