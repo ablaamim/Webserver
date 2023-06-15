@@ -68,14 +68,14 @@ std::string getFileSize(std::string &path) {
 
    stat(path.c_str(), &st);
    if ((st.st_size / 1000000000) > 0)
-      size = std::to_string(st.st_size / 1000000000) + "Gb";
+      size = std::to_string((double)(st.st_size / 1000000000)) + " Gb";
    else if ((st.st_size / 1000000) > 0)
-      size = std::to_string(st.st_size / 1000000) + "Mb";
+      size = std::to_string(st.st_size / 1000000) + " Mb";
    else if ((st.st_size / 1000) > 0)
-      size = std::to_string(st.st_size / 1000) + "Kb";
+      size = std::to_string(st.st_size / 1000) + " Kb";
    else
-      size = std::to_string(st.st_size) + "Bytes";
-   return std::to_string(st.st_size);
+      size = std::to_string(st.st_size) + " Bytes";
+   return std::to_string(st.st_size) + " Bytes";
 }
 
 std::string getLastModified(std::string &path) {
@@ -128,7 +128,7 @@ void Response::serveDirectory(Response &resp)
             icon = "<i class=\"fa fa-file-o\" aria-hidden=\"true\"></i>";
             file_name += " ";
          }
-         std::string file_path = resp.resourceFullPath + "/" + file_name;
+         std::string file_path = resp.resourceFullPath + file_name;
          std::string file_type = getContentType(file_path);
          std::string file_size = getFileSize(file_path);
          std::string last_modified = getLastModified(file_path);

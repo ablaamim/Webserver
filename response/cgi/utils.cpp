@@ -124,15 +124,15 @@ void    CGIManager::parseOutput()
 {
     int rd = -1;
     char buffer[BUFFER_SIZE];
-    int  header = 0;
-    std::string str, str1;
-    size_t line;
+    //int  header = 0;
+    //std::string str, str1;
+    //size_t line;
 
 
     while((rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE - 1))) > 0)
     {
         buffer[rd] = '\0';
-        str = std::string(buffer, rd);
+        /*str = std::string(buffer, rd);
         if (!header)
         {
             if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
@@ -140,9 +140,9 @@ void    CGIManager::parseOutput()
                 str1 = str.substr(line + 4);
                 str = str.substr(0 ,line);
             }
-        }
+        }*/
         this->resp.body.append(buffer, rd);
-        std::cout << COLOR_BLUE << " : " << buffer << COLOR_RESET << std::endl;
+        //std::cout << COLOR_BLUE << " : " << buffer << COLOR_RESET << std::endl;
         //resp.headers["Content"]
     }
     runSystemCall(close(this->fd[0]));
@@ -168,7 +168,7 @@ void    CGIManager::execute()
         {
             runSystemCall(close(this->fd[1]));
             waitpid(this->pid, 0, 0);
-           // parseOutput();
+           parseOutput();
         }
     }
     catch(const std::exception& e)

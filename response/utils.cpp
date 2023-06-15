@@ -75,14 +75,15 @@ void lookForIndex(Response &resp)
                 return;
             }
         }
+        resp.isCGI = false;
         if (resp.kwargs["auto_index"][0] != "on")
             resp.serveERROR(_CS_403, _CS_403_m);
     }
     else
     {
+        resp.isCGI = false; /* since the resource is a directory, and none of index files were found, we will serve the directory or index.html no need for CGI, that is/ */
         if (resp.method == GET)
         {
-            resp.isCGI = false; /* since the resource is a directory, and none of index files were found, we will serve the directory or index.html no need for CGI, that is/ */
             index_path = pathJoin(resp.resourceFullPath, "index.html");
             if (fileExists(index_path.c_str()))
             {
