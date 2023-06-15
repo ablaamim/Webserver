@@ -299,11 +299,20 @@ server
 
 [Link for Status Code Table](https://blog.online-convert.com/wp-content/uploads/2022/03/Most-Common-HTTP-Error-Codes-Image.jpg)
 
-| Case  | Status Code | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
-|--- |--- |--- | ---|--- |
-| Request body larger than max_body_size in configuration file | 413 Payload too large | Zineb | :white_check_mark: |
-| Request Uri contains more than 2048 characters| 414 Request URI too long | [config_file](TESTING/conf00.conf) | Abdessamad | :white_check_mark: |
-| If request URI contains a not allowed character | 400 Bad Request | [config_file](TESTING/conf00.conf) | Abdessamad | :white_check_mark: | 
+| Case  | Status Code | CONFIG TO TEST WITH / Command | AUTHOR | STATUS | Level |
+|--- |--- |--- | ---|--- |--- |
+| If Transfer encoding exists and different than "chunked" | 501 Not implemented | [config_file](TESTING/conf00.conf) | Zineb | :white_check_mark: | 500 |
+| If method is POST and content-length does not exit | 411 length required | [config_file](TESTING/conf00.conf) | Zineb | :white_check_mark: | 400 |
+| If method is POST and Request body larger than max_body_size in configuration file | 413 Payload too large | [config_file](TESTING/conf00.conf) | Zineb | :white_check_mark: | 400 |
+| Request Uri contains more than 2048 characters| 414 Request URI too long | [config_file](TESTING/conf00.conf) | Zineb | :white_check_mark: | 400 |
+| if method is POST and Request does not have at least one of "Transfer encoding" or "content length" | 400 Bad request | [config_file](TESTING/conf00.conf) | Zineb | :white_check_mark: | 400 |
+| If method not allowed in location (config file) | 405 method not allowed | [config_file](TESTING/conf00.conf) | Zineb | :white_check_mark: | 400 |
+| If unsupported or invalid protocole | 400 Bad Request |  [config_file](TESTING/conf00.conf) | Zineb | :white_check_mark:  | 400 |
+| If method is DELETE and CGI is present in config file | 501  Not implemented | [config_file](TESTING/conf00.conf) | Abdessamad| :white_check_mark:  | 500 |
+| If method is POST and location supports upload | 201 Created | [config_file](TESTING/conf00.conf) | Achraf | :white_check_mark:  | 200 |
+| If method is GET and requested resource is not found | 404 not found | [config_file](TESTING/conf00.conf) | Achraf |  :white_check_mark: | 400 |
+| If method is GET and request resource is found | 200 ok | [config_file](TESTING/conf00.conf) | Achraf | :white_check_mark: | 400 |
+| If method is GET and file does not have right | 
 
 ---
 
