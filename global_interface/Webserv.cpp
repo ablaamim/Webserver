@@ -237,12 +237,12 @@ void    Webserv::checkHTTP(Request & request)
 void    Webserv::check_Transfer_Encoding(Request & request)
 {
     it_param transfer = request.params.find("Transfer-Encoding");
+    it_param content = request.params.find("Content-Length");
 
     if (transfer != request.params.end() && transfer->second != "chunked")
-    {
-        std::cout << "HHHennanananludfhh" << std::endl;
         fill_request_err(_CS_501, _CS_501_m, request);
-    }
+    if (transfer == request.params.end() && content == request.params.end() && request.method == POST)
+        fill_request_err(_CS_400, _CS_400_m, request);
 }
 
 void    Webserv::check_Content_Length(Request & request, configurationSA::location &_obj_location)
@@ -250,40 +250,36 @@ void    Webserv::check_Content_Length(Request & request, configurationSA::locati
     it_param content = request.params.find("Content-Length");
 
     if (request.method != POST)
-    {
-        if (content != request.params.end())
-            fill_request_err(_CS_400, _CS_400_m, request);
         return;
-    }
     if (content == request.params.end())
         fill_request_err(_CS_411, _CS_411_m, request);
     else if (std::atof(content->second.c_str()) > std::atof(_obj_location.UniqueKey["max_body_size"][0].c_str()))
         fill_request_err(_CS_413, _CS_413_m, request);
 }
 
-// void    Webserv::check_uri_length(Request &request)
-// {
-//     if (request.path.length() > 2048)
-//         fill_request_err(_CS_414, _CS_414_m, request);
-// }
+void    Webserv::check_uri_length(Request &request)
+{
+    if (request.path.length() > BUFFER_SIZE)
+        fill_request_err(_CS_414, _CS_414_m, request);
+}
 
-// void    Webserv::check_uri_allowed_characters(Request &request)
-// {
-//     std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
-//     std::string::iterator it = request.path.begin();
+void    Webserv::check_uri_allowed_characters(Request &request)
+{
+    std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
+    std::string::iterator it = request.path.begin();
 
-//     std::cout << "CHECK ALLOWED CHARACTERS" << std::endl;
+    std::cout << "CHECK ALLOWED CHARACTERS" << std::endl;
 
-//     while (it != request.path.end())
-//     {
-//         if (allowed_characters.find(*it) == std::string::npos)
-//         {
-//             fill_request_err(_CS_400, _CS_400_m, request);
-//             return;
-//         }
-//         it++;
-//     }
-// }
+    while (it != request.path.end())
+    {
+        if (allowed_characters.find(*it) == std::string::npos)
+        {
+            fill_request_err(_CS_400, _CS_400_m, request);
+            return;
+        }
+        it++;
+    }
+}
 
 void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
@@ -291,8 +287,8 @@ void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_
     checkHTTP(request);
     check_Transfer_Encoding(request);
     check_Content_Length(request, _obj_location);
-    // check_uri_length(request);
-    //check_uri_allowed_characters(request);
+    check_uri_length(request);
+    check_uri_allowed_characters(request);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)
