@@ -25,7 +25,8 @@ void Response::serveRedirect()
     std::vector<std::string> return_values = this->kwargs["return"];
     this->status.first = return_values[0];
     this->status.second = "";
-    if (this->status.first == "301" || this->status.first == "302" || this->status.first == "303" || this->status.first == "307")
+    if (this->status.first == _CS_301 || this->status.first == _CS_302 || \
+    this->status.first == _CS_303 || this->status.first == _CS_307)
     {
         this->headers["Location"] = return_values[1];
         this->sendResponse(HEADERS_ONLY);
@@ -45,7 +46,7 @@ void Response::serve()
             return ;
         if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
         {
-            std::cout << COLOR_RED << std::endl << "!!lookForIndex() needs a fix!!!" << std::endl << std::endl << COLOR_RESET;
+           // std::cout << COLOR_RED << std::endl << "!!lookForIndex() needs a fix!!!" << std::endl << std::endl << COLOR_RESET;
             lookForIndex(*this);
         }
         if (this->method == GET)

@@ -20,7 +20,7 @@ void configurationSA::configuration::initialize_data(void)
 {
     if (!_data.empty())
        return ;
-    std::string allowedMethods[] = {"GET", "POST", "DELETE"};
+    std::string allowedMethods[] = {GET, POST, DELETE};
     std::string autoindex[] = {"on", "off"};
     std::string ErrorPages[] = {}; 
     std::string returnCode[] = {};
@@ -49,7 +49,7 @@ void configurationSA::configuration::initialize_default_values(void)
     if (!_default_values.NoneUniqueKey.empty() && !_default_values.UniqueKey.empty())
         return ;
 
-    std::string allowed_methods[] = {"GET", "POST", "DELETE"};
+    std::string allowed_methods[] = {GET, POST, DELETE};
     
     std::pair <std::string, std::vector<std::string> > uniqueKey[] =
     {

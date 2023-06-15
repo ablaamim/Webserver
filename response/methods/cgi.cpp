@@ -78,7 +78,7 @@ void    executeCGI(Response &resp, const std::string& interpreter)
     char    **fullExecutable;
     childPID = fork();
     if (childPID == -1)
-        resp.serveERROR("500", "Internal Server Error");
+        resp.serveERROR(_CS_500, _CS_500_m);
     else if (childPID == 0)
     {
         char **env = getEnvs(resp);
@@ -122,14 +122,14 @@ void    Response::serveCGI()
         if (fileExtension != ".php" && fileExtension != ".py" && fileExtension != ".sh")
         {
             std::cout << "error" << std::endl;
-            this->serveERROR("501", "Not Implemented");
+            this->serveERROR(_CS_501, _CS_501_m);
         }
         else
         {
             interpreter = getInterpreter(*this, fileExtension);
             //std::cout << "interpreter: " << interpreter << std::endl;
             if (interpreter.empty())
-                this->serveERROR("501", "Not Implemented");
+                this->serveERROR(_CS_501, _CS_501_m);
             else
                 executeCGI(*this, interpreter);
         }

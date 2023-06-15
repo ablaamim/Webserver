@@ -1,10 +1,4 @@
-#include "Response.hpp"
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sstream>
-#include <iomanip>
+#include "../MainInc/main.hpp"
 
 
 std::string getContentType(std::string path)
@@ -37,7 +31,7 @@ void    Response::init()
     try
     {
         this->httpVersion = this->_req.version;
-        this->status = std::make_pair("200", "OK");
+        this->status = std::make_pair(_CS_200, _CS_200_m);
         this->headers["Server"] = "Webserver/1.0";
 		this->headers["Connection"] = "close";
         this->currentSize = 0;

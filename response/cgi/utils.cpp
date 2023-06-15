@@ -1,3 +1,4 @@
+#include "../../MainInc/main.hpp"
 #include "CGIManager.hpp"
 
 std::string CGIManager::getRequestParam(std::string key)
@@ -16,7 +17,7 @@ void    CGIManager::setCleanURI()
         cleanURI.erase(pos);
     this->cleanURI = cleanURI;
     if (fileExists(this->cleanURI.c_str()) == false)
-        this->resp.serveERROR("404", "Not Found");
+        this->resp.serveERROR(_CS_404, _CS_404_m);
 }
 
 void    CGIManager::setExtension()
@@ -28,7 +29,7 @@ void    CGIManager::setExtension()
     else
         this->extension = "";
     if (this->extension != ".py" && this->extension != ".php" && this->extension != ".sh")
-        this->resp.serveERROR("501", "Not Implemented");
+        this->resp.serveERROR(_CS_501, _CS_501_m);
 }
 
 void    CGIManager::setInterpreter()
@@ -39,7 +40,7 @@ void    CGIManager::setInterpreter()
     if (it != directiveValues.end())
         this->interpreter = *(it + 1);
     else
-        this->resp.serveERROR("501", "Not Implemented");
+        this->resp.serveERROR(_CS_501, _CS_501_m);
 }
 
 void    CGIManager::setQueryParams()
@@ -122,13 +123,28 @@ int    CGIManager::runSystemCall(int returnCode)
 
 void    CGIManager::parseOutput()
 {
-    /* read from this->fd[0] and parse the output (headers should be set accordingly */
     int rd = -1;
     char buffer[BUFFER_SIZE];
-    while(rd)
+    int  header = 0;
+    std::string str, str1;
+    size_t line;
+
+
+    while((rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE - 1))) > 0)
     {
-        rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE));
+        buffer[rd] = '\0';
+        str = std::string(buffer, rd);
+        if (!header)
+        {
+            if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
+            {
+                str1 = str.substr(line + 4);
+                str = str.substr(0 ,line);
+            }
+        }
         this->resp.body.append(buffer, rd);
+        std::cout << COLOR_BLUE << " : " << buffer << COLOR_RESET << std::endl;
+        //resp.headers["Content"]
     }
     runSystemCall(close(this->fd[0]));
 }
@@ -158,6 +174,6 @@ void    CGIManager::execute()
     }
     catch(const std::exception& e)
     {
-        this->resp.serveERROR("500", "Internal Server Error");
+        this->resp.serveERROR(_CS_500, _CS_500_m);
     }
 }

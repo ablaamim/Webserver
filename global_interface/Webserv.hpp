@@ -33,6 +33,10 @@ class Webserv
         configurationSA::location   match_location(std::string trgt, configurationSA::Server server);
         void                        client_cleanup(int client_fd);
         void                        check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request);
+        void                        checkHTTP(Request & request);
+        void                        check_Content_Length(Request & request, configurationSA::location &_obj_location);
+        void                        check_Transfer_Encoding(Request & request);
+        void                        check_methods(configurationSA::location &_obj_location, Request & request);
         class Webserv_err : public std::exception
         {
             private :

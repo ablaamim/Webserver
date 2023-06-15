@@ -217,7 +217,7 @@ int Request::get_headers(std::string str)
     size_t line;
     std::string str1 = "";
 
-    // std::cout << "Parsing headers " << std::endl;
+    //std::cout << "Parsing headers " << std::endl;
     if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
     {
         str1 = str.substr(line + 4);
@@ -241,6 +241,7 @@ int Request::get_chuncked_msg(std::string str)
     line = str.find("0\r\n\r\n");
     while (line != std::string::npos)
     {
+        //std::cout << "chuncek" <<std::endl;
         tmp_str = str.substr(0, line);
         if ((line = tmp_str.find("\r\n")) != std::string::npos)
         {
