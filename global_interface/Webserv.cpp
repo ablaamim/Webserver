@@ -268,12 +268,42 @@ void    Webserv::check_Content_Length(Request & request, configurationSA::locati
     }
 }
 
+void check_uri_length(Request &request)
+{
+    if (request.path.length() > 2048)
+    {
+        request.erro_msg = _CS_414_m;
+        request.error = std::stoi(_CS_414);
+    }
+}
+
+void check_uri_allowed_characters(Request &request)
+{
+    std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
+    std::string::iterator it = request.path.begin();
+
+    std::cout << "CHECK ALLOWED CHARACTERS" << std::endl;
+
+    while (it != request.path.end())
+    {
+        if (allowed_characters.find(*it) == std::string::npos)
+        {
+            request.erro_msg = _CS_400_m;
+            request.error = std::stoi(_CS_400);
+            return;
+        }
+        it++;
+    }
+}
+
 void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
     check_methods(_obj_location, request);
     checkHTTP(request);
     check_Transfer_Encoding(request);
     check_Content_Length(request, _obj_location);
+    check_uri_length(request);
+    //check_uri_allowed_characters(request);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)
