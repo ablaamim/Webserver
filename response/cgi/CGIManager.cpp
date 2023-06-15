@@ -23,6 +23,7 @@ void    CGIManager::init()
 {
     try
     {
+        std::cout << COLOR_YELLOW << "init()" << COLOR_RESET << std::endl;
         this->setCleanURI();
         std::cout << "cleanURI: " << cleanURI << std::endl;
         this->setExtension();

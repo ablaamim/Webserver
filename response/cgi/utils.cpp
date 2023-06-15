@@ -162,13 +162,13 @@ void    CGIManager::execute()
             if (this->resp._req.method == POST)
                 setInputFd();
             runSystemCall(execve(this->execveArgs[0], this->execveArgs, this->execveEnv));
-            exit(0);
+            exit(EXIT_FAILURE);
         }
         else
         {
             runSystemCall(close(this->fd[1]));
             waitpid(this->pid, 0, 0);
-            //parseOutput();
+           // parseOutput();
         }
     }
     catch(const std::exception& e)
