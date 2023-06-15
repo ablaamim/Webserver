@@ -184,7 +184,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
             pair_contact = clients_list.find(curr_event->ident);
             _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
             _obj_location = match_location(this->request[curr_event->ident].path, _obj_server); 
-            check_before_get_chuncked_messages(_obj_location , this->request[curr_event->ident]);
+            //check_before_get_chuncked_messages(_obj_location , this->request[curr_event->ident]);
         }
         if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error)
         {
