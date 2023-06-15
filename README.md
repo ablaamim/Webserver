@@ -282,9 +282,8 @@ server
 
 | TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
 |--- |--- |--- |--- | ---|--- |
-| The select() (or equivalent) should be in the main loop and should check file descriptors for read and write AT THE SAME TIME| Multiplexing | - | - | Zineb  | :white_check_mark: | 
-| There should be only one read or one write per client per select() (or equivalent). Ask the group to show you the code from the
-select() (or equivalent) to the read and write of a client| Program | - |  - |Team | :white_check_mark: |
+| The select() (or equivalent) should be in the main loop and should check file descriptors for read and write AT THE SAME TIME | Multiplexing | - | - | Zineb  | :white_check_mark: | 
+| There should be only one read or one write per client per select() (or equivalent). Ask the group to show you the code from the select() (or equivalent) to the read and write of a client | Program | - |  - | Team | :white_check_mark: |
 | Search for all read/recv/write/send and check if the returned value is correctly checked (checking only -1 or 0 values is not
 enough, both should be checked) | Program | - | - | Team | :white_check_mark: |
 | If errno is checked after read/recv/write/send, the grade is 0 and the evaluation process ends now | Program | - | - | Team | :white_check_mark: |
