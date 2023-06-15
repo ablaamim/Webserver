@@ -62,10 +62,11 @@ void Response::serveFile(Response &resp) {
    }
 }
 
-int getFileSize(std::string &path) {
+std::string getFileSize(std::string &path) {
    struct stat st;
    stat(path.c_str(), &st);
-   return st.st_size;
+   // if (st % 10000)
+   return std::to_string(st.st_size);
 }
 
 std::string getLastModified(std::string &path) {
@@ -120,7 +121,7 @@ void Response::serveDirectory(Response &resp)
          }
          std::string file_path = resp.resourceFullPath + "/" + file_name;
          std::string file_type = getContentType(file_path);
-         std::string file_size = std::to_string(getFileSize(file_path)) + " bytes";
+         std::string file_size = getFileSize(file_path);
          std::string last_modified = getLastModified(file_path);
 
          resp.body += "<tr> <td><a href=\"" + file_name + "\">" + icon + file_name + "</a></td> <td>" + file_type + "</td> <td>" + file_size + "</td> " + last_modified + "</tr>";
