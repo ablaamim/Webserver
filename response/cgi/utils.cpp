@@ -9,20 +9,9 @@ std::string CGIManager::getRequestParam(std::string key)
     return "";
 }
 
-void    CGIManager::setCleanURI()
-{
-    std::string cleanURI = resp.resourceFullPath;
-    std::string::size_type pos = cleanURI.find("?");
-    if (pos != std::string::npos)
-        cleanURI.erase(pos);
-    this->cleanURI = cleanURI;
-    if (fileExists(this->cleanURI.c_str()) == false)
-        this->resp.serveERROR(_CS_404, _CS_404_m);
-}
-
 void    CGIManager::setExtension()
 {
-    std::string extension = this->cleanURI;
+    std::string extension = this->resp.resourceFullPath;
     std::string::size_type pos = extension.find_last_of(".");
     if (pos != std::string::npos)
         this->extension = extension.substr(pos);
@@ -41,15 +30,6 @@ void    CGIManager::setInterpreter()
         this->interpreter = *(it + 1);
     else
         this->resp.serveERROR(_CS_501, _CS_501_m);
-}
-
-void    CGIManager::setQueryParams()
-{
-    this->queryParams = "";
-    std::string::size_type pos = this->resp.resourceFullPath.find("?");
-    std::cout << "pos: " << pos << std::endl;
-    if (pos != std::string::npos)
-        this->queryParams = this->resp.resourceFullPath.substr(pos + 1);
 }
 
 void    CGIManager::setEnv()
@@ -75,7 +55,7 @@ void    CGIManager::setEnv()
     this->env.push_back("HTTP_ACCEPT_ENCODING=" + getRequestParam("Accept-Encoding"));
     if (resp.method == GET)
     {
-        this->env.push_back("QUERY_STRING=" + this->queryParams);
+        this->env.push_back("QUERY_STRING=" + this->resp.queryParams);
     }
     else if (resp.method == POST)
     {
@@ -88,10 +68,10 @@ void    CGIManager::setExecveArgs()
 {
     this->execveArgs = new char *[3];
     this->execveArgs[0] = new char[this->interpreter.length() + 1];
-    this->execveArgs[1] = new char[this->cleanURI.length() + 1];
+    this->execveArgs[1] = new char[this->resp.resourceFullPath.length() + 1];
     this->execveArgs[2] = NULL;
     strcpy(this->execveArgs[0], this->interpreter.c_str());
-    strcpy(this->execveArgs[1], this->cleanURI.c_str());
+    strcpy(this->execveArgs[1], this->resp.resourceFullPath.c_str());
 }
 
 void    CGIManager::setExecveEnv()

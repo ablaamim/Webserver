@@ -11,8 +11,6 @@ class CGIManager
     Response                    &resp;
     std::string                 extension;
     std::string                 interpreter;
-    std::string                 cleanURI;
-    std::string                 queryParams;
     std::vector<std::string>    env;
     char                        **execveArgs;
     char                        **execveEnv;
@@ -28,8 +26,6 @@ class CGIManager
         void            setEnv();
         void            setExecveArgs();
         void            setInterpreter();
-        void            setCleanURI();
-        void            setQueryParams();
         void            setExecveEnv();
         void            setExtension();
         std::string     getRequestParam(std::string key);

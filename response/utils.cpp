@@ -44,15 +44,28 @@ int     Response::getResourceType()
     return FILE;
 }
 
+void    setQueryParams(Response& resp)
+{
+    resp.queryParams = "";
+    std::string::size_type pos = resp.resourceFullPath.find("?");
+    if (pos != std::string::npos)
+        resp.queryParams = resp.resourceFullPath.substr(pos + 1);
+}
+
+void    setCleanURI(Response& resp)
+{
+    std::string::size_type pos = resp.resourceFullPath.find("?");
+    if (pos != std::string::npos)
+        resp.resourceFullPath.erase(pos);
+}
+
 void    Response::setResourceInfo()
 {
     if (this->kwargs.find("root") == this->kwargs.end())
-    {
-        //std::cout << COLOR_BLUE << "root not found" << COLOR_RESET << std::endl;
         this->serveERROR(_CS_404, _CS_404_m);
-    }
-    // std::cout << "ROOT BEFORE CONCATENATION = " << this->kwargs["root"][0] << std::endl;
     this->resourceFullPath = pathJoin(this->kwargs["root"][0], _req.path);
+    setQueryParams(*this);
+    setCleanURI(*this);
     this->resourceType = getResourceType(); 
 }
 
