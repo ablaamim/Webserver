@@ -285,7 +285,7 @@ server
 | The select() (or equivalent) should be in the main loop and should check file descriptors for read and write AT THE SAME TIME | Multiplexing | - | - | Zineb  | :white_check_mark: | 
 | There should be only one read or one write per client per select() (or equivalent). Ask the group to show you the code from the select() (or equivalent) to the read and write of a client | Program | - |  - | Team | :white_check_mark: |
 | Search for all read/recv/write/send and check if the returned value is correctly checked (checking only -1 or 0 values is not enough, both should be checked) | Program | - | - | Team | :white_check_mark: |
-| If errno is checked after read/recv/write/send, the grade is 0 and the evaluation process ends now | Program | - | - | Team | :white_check_mark: |
+| If errno is checked after read/recv/write/send | Program | - | - | Team | :white_check_mark: |
 | Writing or reading ANY file descriptor without going through the select() (or equivalent) is strictly FORBIDDEN. | Multiplexing | - | - | Zineb | :white_check_mark: |
 | The project must compile without any re-link issue. If not, use the 'Invalid compilation' flag | Program | - | - | Team | :white_check_mark: | 
 
@@ -295,8 +295,15 @@ server
 
 ---
 
-| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
-|--- |--- |--- |--- | ---|--- |
+> Status code check, it should be accurate.
+
+[Link for Status Code Table](https://blog.online-convert.com/wp-content/uploads/2022/03/Most-Common-HTTP-Error-Codes-Image.jpg)
+
+| Case  | Status Code | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
+|--- |--- |--- | ---|--- |
+| Request body larger than max_body_size in configuration file | 413 Payload too large | Zineb | :white_check_mark: |
+| Request Uri contains more than 2048 characters| 414 Request URI too long | [config_file](TESTING/conf00.conf) | Abdessamad | :white_check_mark: |
+| If request URI contains a not allowed character | 400 Bad Request | [config_file](TESTING/conf00.conf) | Abdessamad | :white_check_mark: | 
 
 ---
 

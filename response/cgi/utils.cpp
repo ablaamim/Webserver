@@ -56,7 +56,7 @@ void    CGIManager::setEnv()
 {
     for (int i = 0; resp._env[i]; i++)
         this->env.push_back(resp._env[i]);
-    this->env.push_back("REQUEST_METHOD=" + resp.method);
+    this->env.push_back("REQUEST_METHOD=" + resp._req.params["Method"]);
     this->env.push_back("PATH_INFO=" + resp.resourceFullPath);
     this->env.push_back("HTTP_USER_AGENT=" + getRequestParam("User-Agent"));
     this->env.push_back("SERVER_PROTOCOL=" + resp.httpVersion);
@@ -80,7 +80,6 @@ void    CGIManager::setEnv()
     else if (resp.method == POST)
     {
         this->env.push_back("CONTENT_LENGTH=" + std::to_string(resp._req.content_length));
-        // std::cout << "CONTENT TYPE ./We   = " << resp._req.content_type << std::endl;
         this->env.push_back("CONTENT_TYPE=" + getRequestParam("Content-Type"));
     }
 }
@@ -116,7 +115,7 @@ void    CGIManager::setInputFd()
 int    CGIManager::runSystemCall(int returnCode)
 {
     if (returnCode == -1)
-        throw std::logic_error("System call failed");
+        throw CGI_exception("System call failed");
     return (returnCode);
 }
 

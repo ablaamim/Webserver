@@ -85,6 +85,7 @@
 # define _CS_501 "501"
 # define _CS_505 "505"
 # define _CS_520 "520"
+# define _CS_414 "414"
 
 // Server Code Status Messages
 # define _CS_200_m "OK"
@@ -101,5 +102,6 @@
 # define _CS_501_m "Not Implemented"
 # define _CS_505_m "HTTP Version Not Supporte"
 # define _CS_520_m "Web Server Returned an Unknown Error"
+# define _CS_414_m "Request URI Too Long"
 
 #endif
