@@ -23,6 +23,7 @@ class CGIManager
         void            init();
         void            execute();
         void            parseOutput();
+        void            parseHeader(std::string str1);
         void            setEnv();
         void            setExecveArgs();
         void            setInterpreter();

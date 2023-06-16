@@ -30,10 +30,14 @@ void    Response::init()
 {
     try
     {
+		time_t now = time(0);
+   		char* date_time = ctime(&now);
+
         this->httpVersion = this->_req.version;
         this->status = std::make_pair(_CS_200, _CS_200_m);
         this->headers["Server"] = "Webserver/1.0";
 		this->headers["Connection"] = "close";
+		this->headers["Date"] = std::string(date_time, strlen(date_time) - 1);
         this->currentSize = 0;
         this->resourceSize = 0;
         this->lastChunkSize = 0;

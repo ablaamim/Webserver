@@ -99,32 +99,62 @@ int    CGIManager::runSystemCall(int returnCode)
     return (returnCode);
 }
 
+void    CGIManager::parseHeader(std::string str)
+{
+    size_t line , indx;
+    std::string str1;
+    std::string del = "\r\n";
+
+
+    if (this->extension != ".php")
+            del = "\r\n\n";
+    while ((line = str.find(del)) != std::string::npos)
+    {
+        str1 = str.substr(0, line);
+        indx = str1.find(": ");
+        if (indx != std::string::npos)
+            resp.headers[str1.substr(0, indx)] = str1.substr(indx + del.length());
+        str = str.substr(line + del.length());
+    }
+    if (str != "")
+    {
+        indx = str.find(": ");
+        if (indx != std::string::npos)
+            resp.headers[str.substr(0, indx)] = str.substr(indx + del.length());
+    }
+    // for (std::map<std::string, std::string>::iterator it = resp.headers.begin(); it != resp.headers.end(); ++it)
+    //     std::cout << COLOR_GREEN << it->first << "  :  " << it->second << COLOR_RESET << std::endl;
+
+}
+
 
 void    CGIManager::parseOutput()
 {
     int rd = -1;
     char buffer[BUFFER_SIZE];
-    //int  header = 0;
-    //std::string str, str1;
-    //size_t line;
+    std::string str;
+    size_t line;
 
 
     while((rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE - 1))) > 0)
     {
+        std::string del = "\r\n\r\n";
         buffer[rd] = '\0';
-        /*str = std::string(buffer, rd);
-        if (!header)
+        str = std::string(buffer, rd);
+
+        if (this->extension != ".php")
+            del = "\r\n\r\n\n";
+        line = str.rfind(del);
+        if (line != std::string::npos)
         {
-            if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
-            {
-                str1 = str.substr(line + 4);
-                str = str.substr(0 ,line);
-            }
-        }*/
-        this->resp.body.append(buffer, rd);
-        std::cout << COLOR_BLUE << " : " << buffer << COLOR_RESET << std::endl;
-        //resp.headers["Content"]
+            //std::cout << "Parse cgi header her" << std::endl;
+            parseHeader(str.substr(0 ,line));
+            str = str.substr(line + del.length());
+        }
+        this->resp.body.append(str);
+       // std::cout << COLOR_BLUE << str.length() << " cgi output : " << str << COLOR_RESET << std::endl;
     }
+    this->resp.headers["Content-Length"] = std::to_string(this->resp.body.length());
     runSystemCall(close(this->fd[0]));
 }
 
