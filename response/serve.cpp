@@ -45,15 +45,6 @@ void Response::serve()
 {
     try
     {
-        std::cout << COLOR_YELLOW << "Response::serve()" << COLOR_RESET << std::endl;
-        std::cout << "resourcefullpath: " << this->resourceFullPath << std::endl;
-        if (needsRedirection(*this))
-            return ;
-        if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
-        {
-           // std::cout << COLOR_RED << std::endl << "!!lookForIndex() needs a fix!!!" << std::endl << std::endl << COLOR_RESET;
-            lookForIndex(*this);
-        }
         if (this->method == GET)
             this->serveGET();
         else if (this->method == POST)

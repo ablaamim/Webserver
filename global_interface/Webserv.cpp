@@ -178,7 +178,7 @@ void Webserv::start_reading_from_client(struct kevent *curr_event,configurationS
     }
     if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error)
     {
-        this->request[curr_event->ident].print_params();
+        //this->request[curr_event->ident].print_params();
         change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
         entry_point(curr_event, this->request[curr_event->ident], _obj_location, env,server, _obj_server);

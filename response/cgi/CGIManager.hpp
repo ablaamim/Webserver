@@ -9,8 +9,6 @@ class CGIManager
     int                         outputFd;
     int                         pid;
     Response                    &resp;
-    std::string                 extension;
-    std::string                 interpreter;
     std::vector<std::string>    env;
     char                        **execveArgs;
     char                        **execveEnv;
@@ -26,9 +24,7 @@ class CGIManager
         void            parseHeader(std::string str1);
         void            setEnv();
         void            setExecveArgs();
-        void            setInterpreter();
         void            setExecveEnv();
-        void            setExtension();
         std::string     getRequestParam(std::string key);
         void            setInputFd();
         int             runSystemCall(int returnCode);
