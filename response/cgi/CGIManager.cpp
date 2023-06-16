@@ -4,8 +4,6 @@ CGIManager::CGIManager(const CGIManager &src) : resp(src.resp)
 {
     this->fd[0] = src.fd[0];
     this->fd[1] = src.fd[1];
-    this->extension = src.extension;
-    this->interpreter = src.interpreter;
     this->env = src.env;
     this->execveArgs = src.execveArgs;
     this->execveEnv = src.execveEnv;
@@ -23,8 +21,6 @@ void CGIManager::init()
     {
         if (!fileExists(this->resp.resourceFullPath.c_str()))
             this->resp.serveERROR(_CS_404, _CS_404_m);
-        this->setExtension();
-        this->setInterpreter();
         this->setEnv();
         this->setExecveArgs();
         this->setExecveEnv();
