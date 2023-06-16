@@ -16,47 +16,11 @@ Response::Response(void) { /* DEFAULT CONSTRUCTOR */ };
 
 Response::Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location& location, char **env) : _location(location)
 {
-	/*That's for now, we will complete initialization in Response::init()*/
-	//std::cout << "IP AND PORT = " << clientIP << " " << clientPort << std::endl;
 	this->_req = req;
 	this->_env = env;
 	this->clientSocket = id;
 	this->ip = clientIP;
 	this->port = clientPort;
-
-}
-
-void    Response::init()
-{
-    try
-    {
-		time_t now = time(0);
-   		char* date_time = ctime(&now);
-
-        this->httpVersion = this->_req.version;
-        this->status = std::make_pair(_CS_200, _CS_200_m);
-        this->headers["Server"] = "Webserver/1.0";
-		this->headers["Connection"] = "close";
-		this->headers["Date"] = std::string(date_time, strlen(date_time) - 1);
-        this->currentSize = 0;
-        this->resourceSize = 0;
-        this->lastChunkSize = 0;
-        this->isCompleted = false;
-        this->isChunked = false;
-		this->customErrorFound = false;
-		this->indexChecked = false;
-		this->fs = NULL;
-		this->method = this->_req.method;
-		this->isCGI = false;
-		this->kwargsInsertion();
-        this->checkRequest();
-        this->setResourceInfo();
-
-    }
-    catch(const std::exception& e)
-    {
-        throw Response_err(e.what());
-    }
 }
 
 Response::~Response()
@@ -83,7 +47,7 @@ Response::Response(const Response &other)
     this->isChunked = other.isChunked;
 	this->customErrorFound = other.customErrorFound;
 	this->indexChecked = other.indexChecked;
-	this->cleanURI = other.cleanURI;
+	this->cleanPath = other.cleanPath;
 	this->queryParams = other.queryParams;
 	this->clientSocket = other.clientSocket;
     this->resourceSize = other.resourceSize;
@@ -92,6 +56,8 @@ Response::Response(const Response &other)
     this->_req = other._req;
 	this->kwargs = other.kwargs;
 	this->isCGI = other.isCGI;
+	this->fileExtension = other.fileExtension;
+	this->cgiInterpreter = other.cgiInterpreter;
     this->_location = other._location;
     this->fs = other.fs;
 	this->ip = other.ip;

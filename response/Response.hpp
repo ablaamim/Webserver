@@ -24,14 +24,21 @@ class Response
         std::string                                             port;
         std::string                                             ip;
 
-        
+        /* cgi  */
+
+
+        bool                                                    isCGI;
+        std::string                                             fileExtension;
+        std::string                                             cgiInterpreter;
+
+
         bool                                                    isCompleted;
         bool                                                    isChunked;
         bool                                                    indexChecked;
-        bool                                                    isCGI;
+        
         bool                                                    customErrorFound;
 
-        std::string                                             cleanURI;
+        std::string                                             cleanPath;
         std::string                                             queryParams;
         std::string                                             host;
         std::string                                             resourceFullPath;
@@ -104,4 +111,9 @@ std::string                                                     getFileExtension
 std::string                                                     getInterpreter(Response &resp, const std::string &fileExtension);
 std::string                                                     extractQueryParams(std::string &path);
 bool                                                            needsRedirection(Response& resp);
+std::string                                                     getTodayDate();
+void                                                            setQueryParams(Response& resp);
+void                                                            setCleanPath(Response& resp);
+void                                                            lookForCGI(Response& resp);
+
 #endif

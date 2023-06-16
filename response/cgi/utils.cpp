@@ -9,29 +9,6 @@ std::string CGIManager::getRequestParam(std::string key)
     return "";
 }
 
-void    CGIManager::setExtension()
-{
-    std::string extension = this->resp.resourceFullPath;
-    std::string::size_type pos = extension.find_last_of(".");
-    if (pos != std::string::npos)
-        this->extension = extension.substr(pos);
-    else
-        this->extension = "";
-    if (this->extension != ".py" && this->extension != ".php" && this->extension != ".sh")
-        this->resp.serveERROR(_CS_501, _CS_501_m);
-}
-
-void    CGIManager::setInterpreter()
-{
-    std::map<std::string, std::vector<std::string> >::iterator directive = resp.kwargs.find("cgi-bin");
-    std::vector<std::string> directiveValues = directive->second;
-    std::vector<std::string>::iterator it = std::find(directiveValues.begin(), directiveValues.end(), this->extension);
-    if (it != directiveValues.end())
-        this->interpreter = *(it + 1);
-    else
-        this->resp.serveERROR(_CS_501, _CS_501_m);
-}
-
 void    CGIManager::setEnv()
 {
     for (int i = 0; resp._env[i]; i++)
@@ -67,10 +44,10 @@ void    CGIManager::setEnv()
 void    CGIManager::setExecveArgs()
 {
     this->execveArgs = new char *[3];
-    this->execveArgs[0] = new char[this->interpreter.length() + 1];
+    this->execveArgs[0] = new char[this->resp.cgiInterpreter.length() + 1];
     this->execveArgs[1] = new char[this->resp.resourceFullPath.length() + 1];
     this->execveArgs[2] = NULL;
-    strcpy(this->execveArgs[0], this->interpreter.c_str());
+    strcpy(this->execveArgs[0], this->resp.cgiInterpreter.c_str());
     strcpy(this->execveArgs[1], this->resp.resourceFullPath.c_str());
 }
 
@@ -106,7 +83,7 @@ void    CGIManager::parseHeader(std::string str)
     std::string del = "\r\n";
 
 
-    if (this->extension != ".php")
+    if (this->resp.fileExtension != ".php")
             del = "\r\n\n";
     while ((line = str.find(del)) != std::string::npos)
     {
@@ -142,7 +119,7 @@ void    CGIManager::parseOutput()
         buffer[rd] = '\0';
         str = std::string(buffer, rd);
 
-        if (this->extension != ".php")
+        if (this->resp.fileExtension != ".php")
             del = "\r\n\r\n\n";
         line = str.rfind(del);
         if (line != std::string::npos)
