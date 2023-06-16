@@ -1,1 +1,1 @@
-<?php echo"php inde"; ?>
+<?php echo"php test"; ?>

@@ -3,8 +3,11 @@
 void Response::sendResponse(int mode)
 {
     std::string responseMessage;
+
     if (!isChunked)
     {
+        // if (this->resourceType == FILE && this->method == GET && !this->isCGI)
+        //     this->headers["Content-Length"] = std::to_string(this->resourceSize);
         responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
         for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
             responseMessage += it->first + ": " + it->second + "\r\n";
@@ -13,10 +16,10 @@ void Response::sendResponse(int mode)
     }
     if (mode == FULL)
         responseMessage += this->body;
-    if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
-        throw Response_err("send() failed");
     if (this->currentSize >= this->resourceSize)
         this->isCompleted = true;
+    if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
+        throw Response_err("send() failed");
     this->body.clear();
 }
 
@@ -42,15 +45,6 @@ void Response::serve()
 {
     try
     {
-        std::cout << COLOR_YELLOW << "Response::serve()" << COLOR_RESET << std::endl;
-        std::cout << "resourcefullpath: " << this->resourceFullPath << std::endl;
-        if (needsRedirection(*this))
-            return ;
-        if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
-        {
-           // std::cout << COLOR_RED << std::endl << "!!lookForIndex() needs a fix!!!" << std::endl << std::endl << COLOR_RESET;
-            lookForIndex(*this);
-        }
         if (this->method == GET)
             this->serveGET();
         else if (this->method == POST)

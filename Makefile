@@ -10,7 +10,7 @@ SRC = ./MainInc/main.cpp \
 	./global_interface/matchLocation.cpp \
 	./response/Response.cpp \
 	./response/utils.cpp \
-	./response/checkRequest.cpp \
+	./response/init.cpp \
 	./response/debug.cpp \
 	./response/error.cpp \
 	./response/serve.cpp \
