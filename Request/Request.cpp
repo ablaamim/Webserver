@@ -217,11 +217,12 @@ int Request::get_headers(std::string str)
     size_t line;
     std::string str1 = "";
 
-    //std::cout << "Parsing headers " << std::endl;
+    // std::cout << "Parsing headers " << std::endl;
     if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
     {
         str1 = str.substr(line + 4);
         str = str.substr(0 ,line);
+        std::cout << COLOR_BLUE << "limechta l header " << str << COLOR_RESET <<std::endl;
     }
     this->parse_headers(str);
     this->get_content_extension();
@@ -229,7 +230,10 @@ int Request::get_headers(std::string str)
     if (this->method != POST)
         return _PARSE_REQUEST_DONE;
     if (str1 != "")
+    {
+        std::cout << "limechta lemera lawla " << str1 <<std::endl;
         return (open_file_for_reponse(str1));
+    }
     return (check_readed_bytes());
 }
 
@@ -240,10 +244,10 @@ int Request::get_chuncked_msg(std::string str)
     std::stringstream   ss;
     int                 len;
 
-    line = str.find("0\r\n\r\n");
+    line = str.find("\r\n\r\n");
+    std::cout << "chuncek   " << str <<std::endl;
     while (line != std::string::npos)
     {
-        //std::cout << "chuncek" <<std::endl;
         tmp_str = str.substr(0, line);
         if ((line = tmp_str.find("\r\n")) != std::string::npos)
         {
