@@ -5,11 +5,11 @@ std::string getContentType(std::string path)
 {
 	size_t pos = path.find_last_of(".");
 	if (pos == std::string::npos)
-		return ("application/octet-stream");
+		return ("text/plain");
 	std::map<std::string, std::string>::iterator it = Response::mimeTypes.find(path.substr(pos));
 	if (it != Response::mimeTypes.end())
 		return (it->second);
-	return ("application/octet-stream");
+	return ("text/plain");
 }
 
 Response::Response(void) { /* DEFAULT CONSTRUCTOR */ };

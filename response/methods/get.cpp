@@ -87,6 +87,7 @@ std::string getLastModified(std::string &path) {
 
 void Response::serveDirectory(Response &resp)
 {
+   this->print_kwargs();
    if (this->kwargs["auto_index"][0] == "off")
       resp.serveERROR(_CS_403, _CS_403_m);
    else
