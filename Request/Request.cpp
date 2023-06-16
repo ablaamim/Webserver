@@ -222,7 +222,7 @@ int Request::get_headers(std::string str)
     {
         str1 = str.substr(line + 4);
         str = str.substr(0 ,line);
-        std::cout << COLOR_BLUE << "limechta l header " << str << COLOR_RESET <<std::endl;
+        //std::cout << COLOR_BLUE << "limechta l header " << str << COLOR_RESET <<std::endl;
     }
     this->parse_headers(str);
     this->get_content_extension();
@@ -231,7 +231,7 @@ int Request::get_headers(std::string str)
         return _PARSE_REQUEST_DONE;
     if (str1 != "")
     {
-        std::cout << "limechta lemera lawla " << str1 <<std::endl;
+        //std::cout << "limechta lemera lawla " << str1 <<std::endl;
         return (open_file_for_reponse(str1));
     }
     return (check_readed_bytes());
