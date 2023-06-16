@@ -249,11 +249,6 @@ void    Webserv::check_Transfer_Encoding(Request & request)
     it_param content = request.params.find("Content-Length");
 
     if (transfer != request.params.end() && transfer->second != "chunked")
-<<<<<<< HEAD
-=======
-    {
-        //std::cout << "HHHennanananludfhh" << std::endl;
->>>>>>> 65a7907706a70ed8789f935465ef00126e994fb9
         fill_request_err(_CS_501, _CS_501_m, request);
     if (transfer == request.params.end() && content == request.params.end() && request.method == POST)
         fill_request_err(_CS_400, _CS_400_m, request);
@@ -273,7 +268,6 @@ void    Webserv::check_Content_Length(Request & request, configurationSA::locati
 
 void    Webserv::check_uri_length(Request &request)
 {
-<<<<<<< HEAD
     if (request.path.length() > BUFFER_SIZE)
         fill_request_err(_CS_414, _CS_414_m, request);
 }
@@ -295,29 +289,6 @@ void    Webserv::check_uri_allowed_characters(Request &request)
         it++;
     }
 }
-=======
-    if (request.path.length() > 2048)
-        fill_request_err(_CS_414, _CS_414_m, request);
-}
-
-// void    Webserv::check_uri_allowed_characters(Request &request)
-// {
-//     std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
-//     std::string::iterator it = request.path.begin();
-
-//     std::cout << "CHECK ALLOWED CHARACTERS" << std::endl;
-
-//     while (it != request.path.end())
-//     {
-//         if (allowed_characters.find(*it) == std::string::npos)
-//         {
-//             fill_request_err(_CS_400, _CS_400_m, request);
-//             return;
-//         }
-//         it++;
-//     }
-// }
->>>>>>> 65a7907706a70ed8789f935465ef00126e994fb9
 
 void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
 {
@@ -326,11 +297,7 @@ void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_
     check_Transfer_Encoding(request);
     check_Content_Length(request, _obj_location);
     check_uri_length(request);
-<<<<<<< HEAD
     check_uri_allowed_characters(request);
-=======
-    //check_uri_allowed_characters(request);
->>>>>>> 65a7907706a70ed8789f935465ef00126e994fb9
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)

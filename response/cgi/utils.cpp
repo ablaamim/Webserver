@@ -122,7 +122,7 @@ void    CGIManager::parseOutput()
             }
         }*/
         this->resp.body.append(buffer, rd);
-        //std::cout << COLOR_BLUE << " : " << buffer << COLOR_RESET << std::endl;
+        std::cout << COLOR_BLUE << " : " << buffer << COLOR_RESET << std::endl;
         //resp.headers["Content"]
     }
     runSystemCall(close(this->fd[0]));
@@ -148,7 +148,7 @@ void    CGIManager::execute()
         {
             runSystemCall(close(this->fd[1]));
             waitpid(this->pid, 0, 0);
-           parseOutput();
+            parseOutput();
         }
     }
     catch(const std::exception& e)
