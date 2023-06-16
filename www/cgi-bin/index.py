@@ -7,15 +7,16 @@ import cgi, cgitb
 form = cgi.FieldStorage() 
 
 # Get data from fields
-first_name = form.getvalue('first_name')
-last_name  = form.getvalue('last_name')
+f = form.getvalue('f')
+l  = form.getvalue('l')
 
-print ("Content-type:text/html\r\n\r\n")
+print ("Set-Cookie: text/html\r\n")
+print ("Content-type: text/html; charset=utf-8\r\n\r\n")
 print ("<html>")
 print ("<head>")
 print ("<title>Hello - Second CGI Program</title>")
 print ("</head>")
 print ("<body>")
-print ("<h2>Hello %s %s</h2>"%(first_name, last_name))
+print ("<h2>Hello %s %s</h2>"%(f, l))
 print ("</body>")
 print ("</html>")

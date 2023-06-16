@@ -26,6 +26,8 @@
 #include <unistd.h>
 #include <vector>
 #include <stdlib.h>
+#include <ctime>
+
 
 # include "../defines/defines.hpp"
 # include "../tools/tools.hpp"
