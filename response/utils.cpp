@@ -107,24 +107,17 @@ void    setInterpreter(Response& resp)
 
 void    lookForCGI(Response& resp)
 {
-    try
+    if (resp.resourceType == FILE && resp.method != DELETE)
     {
-        if (resp.resourceType == FILE && resp.method != DELETE)
+        setExtension(resp);
+        setInterpreter(resp);
+        if (resp.cgiInterpreter.empty() == false)
         {
-            setExtension(resp);
-            setInterpreter(resp);
-            if (resp.cgiInterpreter.empty() == false)
-            {
-                if (resp.fileExtension == ".php" || resp.fileExtension == ".py" || resp.fileExtension == ".sh")
-                    resp.isCGI = true;
-                else
-                    throw std::runtime_error("CGI interpreter not supported");
-            }
+            if (resp.fileExtension == ".php" || resp.fileExtension == ".sh")
+                resp.isCGI = true;
+            else
+                resp.serveERROR(_CS_501, _CS_501_m);
         }
-    }
-    catch(const std::exception& e)
-    {
-        resp.serveERROR(_CS_501, _CS_501_m);
     }
 }
 
