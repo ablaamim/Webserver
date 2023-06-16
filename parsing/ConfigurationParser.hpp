@@ -113,13 +113,16 @@ class configurationSA
                     ~Server(){}
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
-                    typedef std::set<std::string>                         type_server_name; // set of server names
+                    typedef std::string                                   type_server_name; // set of server names
                     std::string                                           first_location_key;
                     std::string                                           root;
+                    std::string                                           port;
+                    std::string                                           ip;
                     
                     type_listen                                           listen;       // map of listen ports and interfaces (ip, set<port>)
                     type_server_name                                      server_name;  // set of server names
                     type_location                                         location;     // map of locations
+                    
                     void print_type_listen()
                     {
                         if (listen.empty())
@@ -174,12 +177,12 @@ class configurationSA
                     public :
                         enum KEYTYPE
                         {
-                            NONE_KEYTYPE,           // NONE_KEYTYPE is used to check if the key is defined in the configuration file
-                            SERVER_KEYTYPE,         // SERVER_KEYTYPE is used to check if the key is a server key
-                            UNIQUE_KEYTYPE,         // UNIQUE_KEYTYPE is used to check if the key is a unique key
-                            NONE_UNIQUE_KEYTYPE     // NONE_UNIQUE_KEYTYPE is used to check if the key is a none unique key
+                            NONE_KEYTYPE,           
+                            SERVER_KEYTYPE,         
+                            UNIQUE_KEYTYPE,         
+                            NONE_UNIQUE_KEYTYPE     
                         };
-                        class raw_configuration // FINAL CONTAINER
+                        class raw_configuration 
                         {
                             public :
 
@@ -211,6 +214,13 @@ class configurationSA
                 const static std::string               is_line_break;
                 const static std::string               is_comment;
                 const static std::string               is_scope;
+
+                static void print_default_values()
+                {
+                    std::cout << COLOR_BLUE << "Default values : " << COLOR_RESET << std::endl;
+                    _default_values.print_unique_key();
+                    _default_values.print_none_unique_key();
+                }
                 
                 static KEYTYPE                        get_keytype(const std::string &key)
                 {
