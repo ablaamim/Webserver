@@ -1,6 +1,5 @@
 #include "../MainInc/main.hpp"
 
-
 bool    startsWith(std::string str, std::string prefix)
 {
     if (str.length() < prefix.length())

@@ -49,10 +49,11 @@ void configurationSA::configuration::initialize_default_values(void)
     if (!_default_values.NoneUniqueKey.empty() && !_default_values.UniqueKey.empty())
         return ;
 
-    std::string allowed_methods[] = {GET, POST, DELETE};
+    std::string allowed_methods[] = {GET};
     
     std::pair <std::string, std::vector<std::string> > uniqueKey[] =
     {
+        std::make_pair("server_name", std::vector<std::string>(1, "localhost")),
         std::make_pair("auto_index", std::vector<std::string>(1, "off")),
         std::make_pair("max_body_size", std::vector<std::string>(1, "1000000000")),
         std::make_pair("allowed_methods", std::vector<std::string>(allowed_methods, allowed_methods + SIZEOF(allowed_methods))),
@@ -299,13 +300,13 @@ bool configurationSA::check_valid_parametters(std::vector<std::string> parameter
     return (errStatus);
 }
 
-void configurationSA::check_keyvalues(key_value_type &keyVals, const configuration::raw_configuration &keyConfig, size_t start_last_line,std::string &line)
+void configurationSA::check_keyvalues(key_value_type &keyVals, const configuration::raw_configuration &keyConfig, \
+size_t start_last_line,std::string &line)
 {
     std::set<std::string> sParameters(keyVals.second.begin(), keyVals.second.end());
     
     if (keyVals.second.empty())
         throw ParsingErr("Not enough parameters for key " + keyVals.first);
-    
     if (!keyConfig.validParametters.empty())
     {
         if (keyConfig.keyType == configuration::UNIQUE_KEYTYPE && check_valid_parametters(keyVals.second, keyConfig.validParametters, start_last_line, line))
@@ -344,7 +345,6 @@ void    configurationSA::insert_keyvalue_location(location &Location, key_value_
         throw ParsingErr(keyValueFirstCopy + " : " + e.what());
     }
     insertPoint[key_value.first] = key_value.second;
-    // insert default values of allowed methods
 }
 
 configurationSA::location configurationSA::new_location_creation(line_range_type &line_range, file_range_type &file_range)
@@ -364,22 +364,16 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
 
         else if (configuration::get_keytype(key_value.first) == configuration::SERVER_KEYTYPE)
             throw ParsingErr("Server context should not be in a location context ");
-        
         else
             throw ParsingErr("Unknown key " + key_value.first);
-
         go_to_next_word_in_file(line_range, file_range);
-        
         start_last_line = (size_t) (line_range.first - file_range.first->begin());
-        
         key_value = get_keyvalue(line_range);
     }
     if (*line_range.first == '{')
         throw ParsingErr("Location context should not be followed by a '{' ");
-    
     if (file_range.first == file_range.second)
         throw ParsingErr("Location context should be closed by a '}' ");
-
     line_range.first++;    
     go_to_next_word_in_file(line_range, file_range);
     return (result);
@@ -394,15 +388,15 @@ void  configurationSA::insert_keyvalue_server(Server &result, key_value_type &ke
         result.listen[key_value.second[0]].insert(key_value.second[1]);
     if (result.listen[key_value.second[0]].size() > 1)
         throw ParsingErr("More than one listen ");
+    
     else if (key_value.first == "server_name")
     {        
         if (key_value.second.size() > 1)
             throw ParsingErr("Too many parameters for key " + key_value.first);
+        if (key_value.second.empty())
+            throw ParsingErr("Not enough parameters for key " + key_value.first);
+        result.server_name = key_value.second[0];
         
-        result.server_name.insert(key_value.second.begin(), key_value.second.end());
-        
-        if (result.server_name.size() > 1)
-            throw ParsingErr("More than one server_name ");
     }
 }
 
@@ -422,17 +416,13 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         {
            if (result.location.count(key_value.second[0]))
                 throw ParsingErr("Location context already exists ");
-           
            go_to_next_word_in_file(line_range, file_range);
            line_range.first++;
-           if (key_value.second[0].size() > 1 && key_value.second[0][key_value.second[0].size() - 1] == '/')
-               key_value.second[0].erase(key_value.second[0].end() - 1);
             try
             {
                 if (result.first_location_key.empty())
                     result.first_location_key = key_value.second[0];
                 result.location.insert(std::make_pair(key_value.second[0], new_location_creation(line_range, file_range)));
-                // insert default values                
             }
             catch(ParsingErr &e)
             {
@@ -467,20 +457,17 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         start_last_line = (int) (line_range.first - file_range.first->begin());
         key_value = get_keyvalue(line_range);
     }
-
     if (*line_range.first == '{')
         throw ParsingErr("Server context should not be followed by a '{' ");
-    
     if (file_range.first == file_range.second)
         throw ParsingErr("Server context should be closed by a '}' ");
-
     line_range.first++;
     if(result.location.size() == 0)
     {
-        //std::cout << "INSERTING DEFAULT VALUES" << std::endl;
         result.location["/"].insert(server_location_config);
         result.location["/"].insert(configuration::_default_values);
     }
+    //result.location[result.first_location_key].print_unique_key();
     return (result);
 }
 
@@ -493,38 +480,13 @@ void configurationSA::skip_charset(line_range_type &line_range, const std::strin
         line_range.first = line_range.second;
 }
 
-
-void configurationSA::go_to_next_word_in_file(line_range_type &line_range, file_range_type &file_range)
-{    
-    if (file_range.first == file_range.second)
-        return ;
-    
-    skip_charset(line_range, configuration::is_white_space + configuration::is_line_break);
-    
-    while (file_range.first != file_range.second && line_range.first == line_range.second)
-    {
-        file_range.first++;
-        if (file_range.first == file_range.second)
-            break ;
-        line_range.first = file_range.first->begin();
-        line_range.second = file_range.first->end();
-        skip_charset(line_range, configuration::is_white_space + configuration::is_line_break);
-    }
-}
-
 std::string     configurationSA::get_word(line_range_type &line_range)
 {
     std::string result;
     
     while (line_range.first != line_range.second && (configuration::is_white_space + configuration::is_line_break \
     + configuration::is_comment + configuration::is_scope).find(*line_range.first) == std::string::npos)
-    {
-        if (*line_range.first == '\\')
-            line_range.first++;
-        if (line_range.first == line_range.second)
-           throw configurationSA::ParsingErr("Unexpected end of line ");         
-        result.push_back(*line_range.first++);
-    }
+            result.push_back(*line_range.first++);
     return (result);
 }
 
@@ -542,6 +504,26 @@ configurationSA::data_type configurationSA::get_data(void)
     return (_data);
 }
 
+void configurationSA::go_to_next_word_in_file(line_range_type &line_range, file_range_type &file_range)
+{    
+    if (file_range.first == file_range.second)
+        return ;
+    
+    skip_charset(line_range, configuration::is_white_space + configuration::is_line_break);
+    
+    while (file_range.first != file_range.second && line_range.first == line_range.second)
+    {
+        file_range.first++;
+        if (file_range.first == file_range.second)
+            break ;
+        line_range.first = file_range.first->begin();
+        line_range.second = file_range.first->end();
+        skip_charset(line_range, configuration::is_white_space + configuration::is_line_break);
+        //std::cout << "File range = " << *file_range.first << std::endl;
+        //std::cout << "Line range = " << *line_range.first << std::endl;
+    }
+}
+
 configurationSA::configurationSA(char *config_file)
 {
     std::ifstream            input(config_file);
@@ -549,14 +531,18 @@ configurationSA::configurationSA(char *config_file)
 
     configuration::initialize_data();
     configuration::initialize_default_values();
+
     if (!input.is_open())
        throw ParsingErr("File does not open : " + std::string(config_file));
+    if (input.peek() == std::ifstream::traits_type::eof())
+        throw ParsingErr("File is empty : " + std::string(config_file));
     for (std::string line; !input.eof();)
     {
         std::getline(input, line);
         fullFile.push_back(line);
     }
-    input.close();    
+    input.close();
+    // pair of iterator on line and iterator on file to know where we are    
     line_range_type line_range(fullFile.begin()->begin(), fullFile.begin()->end());
     file_range_type file_range(fullFile.begin(), fullFile.end());
     try
@@ -567,6 +553,7 @@ configurationSA::configurationSA(char *config_file)
             if(is_server_context(get_keyvalue(line_range), line_range, file_range))
             {
                 line_range.first++;
+                //std::cout << *line_range.first << std::endl;
                 go_to_next_word_in_file(line_range, file_range);
                 try
                 {

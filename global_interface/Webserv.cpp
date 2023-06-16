@@ -40,6 +40,7 @@ void print_client_list(std::map<int, int> clients_list)
 
 void Webserv::entry_point(struct kevent *curr_event, Request request, configurationSA::location &_obj_location, char **env, Servers &server, configurationSA::Server &_obj_server)
 {
+    (void) _obj_server;
     Request req = this->request[curr_event->ident];
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
     std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
@@ -71,10 +72,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
             }
             newResponse.kwargs.insert(std::make_pair(key, values));
         }
-        for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
-        {
-            newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
-        }
         newResponse.init();
         responsePool.insert(std::make_pair(curr_event->ident, newResponse));
     }
@@ -91,33 +88,31 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
 
 configurationSA::Server Webserv::Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostName)
 {
-    std::cout << "HOST NAME : " << hostName << std::endl;
-    // Host name without port
+    configurationSA::data_type::iterator   first_occurence = Servers_vector.end();
+
     
     if (hostName.find(':') != std::string::npos)
         hostName = hostName.substr(0, hostName.find(':'));
-    
-    std::cout << "HOST NAME : " << hostName << std::endl;
-    configurationSA::data_type::iterator   firstOccu = Servers_vector.end();
 
    	for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
    	{
-        std::cout << "Server name : " << it->server_name.begin()->substr(0, it->server_name.begin()->find(':')) << std::endl;
-        std::cout << "Server port : " << it->listen.begin()->first << std::endl;
-          
-		if (it->server_name.count(hostName))
-			return (*it);
-		else if (firstOccu == Servers_vector.end())
-			firstOccu = it;
+        if (it->server_name == "")
+            it->server_name = "localhost";
+		if (it->server_name == hostName)
+            return (*it);
+        else if (it->listen.begin()->first == port)
+            first_occurence = it;
+		else if (first_occurence == Servers_vector.end())
+			first_occurence = it;
    	}
-	if (firstOccu == Servers_vector.end())
+	if (first_occurence == Servers_vector.end())
 	{
 		std::cout << "ip : " << ip << std::endl
 				  << "port : " << port << std::endl
 				  << "hostname : " << hostName << std::endl;
 		throw Webserv::Webserv_err("No server found");
 	}
-   	return (*firstOccu);
+   	return (*first_occurence);
 }
 
 void Webserv::change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
@@ -187,9 +182,7 @@ void Webserv::start_reading_from_client(struct kevent *curr_event,configurationS
         change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
         delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
         entry_point(curr_event, this->request[curr_event->ident], _obj_location, env,server, _obj_server);
-        std::cout << COLOR_RED << "END of read" << COLOR_RESET <<std::endl;
     }          
-
 }
 
 
@@ -276,8 +269,6 @@ void    Webserv::check_uri_allowed_characters(Request &request)
 {
     std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
     std::string::iterator it = request.path.begin();
-
-    std::cout << "CHECK ALLOWED CHARACTERS" << std::endl;
 
     while (it != request.path.end())
     {
