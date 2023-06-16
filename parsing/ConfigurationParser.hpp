@@ -113,7 +113,7 @@ class configurationSA
                     ~Server(){}
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
-                    typedef std::string                                   type_server_name; // set of server names
+                    typedef std::string                                   type_server_name; 
                     std::string                                           first_location_key;
                     std::string                                           root;
                     std::string                                           port;

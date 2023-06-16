@@ -210,9 +210,10 @@ bool configurationSA::is_server_context(key_value_type key_value, line_range_typ
 {
     if (key_value.first != "server")
         return (false);
+    
     go_to_next_word_in_file(line_range, file_range);
     if (!key_value.second.empty())
-        throw ParsingErr(" : Does' take parameters");
+        throw ParsingErr(" : Does not take parameters");
     if (line_range.first != line_range.second && *line_range.first != '{')
     {
         throw ParsingErr(" : Server context should be followed by a '{'");
@@ -352,7 +353,6 @@ configurationSA::location configurationSA::new_location_creation(line_range_type
     location result;
 
     go_to_next_word_in_file(line_range, file_range);
-    
     size_t start_last_line = (size_t) (line_range.first - file_range.first->begin());
     key_value_type key_value = get_keyvalue(line_range);
     
@@ -388,15 +388,15 @@ void  configurationSA::insert_keyvalue_server(Server &result, key_value_type &ke
         result.listen[key_value.second[0]].insert(key_value.second[1]);
     if (result.listen[key_value.second[0]].size() > 1)
         throw ParsingErr("More than one listen ");
-    
     else if (key_value.first == "server_name")
     {        
         if (key_value.second.size() > 1)
             throw ParsingErr("Too many parameters for key " + key_value.first);
         if (key_value.second.empty())
             throw ParsingErr("Not enough parameters for key " + key_value.first);
+        if (result.server_name != "")
+            throw ParsingErr("More than one server_name ");
         result.server_name = key_value.second[0];
-        
     }
 }
 
@@ -467,7 +467,6 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         result.location["/"].insert(server_location_config);
         result.location["/"].insert(configuration::_default_values);
     }
-    //result.location[result.first_location_key].print_unique_key();
     return (result);
 }
 
@@ -475,7 +474,6 @@ void configurationSA::skip_charset(line_range_type &line_range, const std::strin
 {
     while (line_range.first != line_range.second && charSet.find(*line_range.first) != std::string::npos)
         line_range.first++;
-    
     if (line_range.first != line_range.second && configuration::is_comment.find(*line_range.first) != std::string::npos)
         line_range.first = line_range.second;
 }
@@ -510,7 +508,6 @@ void configurationSA::go_to_next_word_in_file(line_range_type &line_range, file_
         return ;
     
     skip_charset(line_range, configuration::is_white_space + configuration::is_line_break);
-    
     while (file_range.first != file_range.second && line_range.first == line_range.second)
     {
         file_range.first++;
@@ -519,8 +516,6 @@ void configurationSA::go_to_next_word_in_file(line_range_type &line_range, file_
         line_range.first = file_range.first->begin();
         line_range.second = file_range.first->end();
         skip_charset(line_range, configuration::is_white_space + configuration::is_line_break);
-        //std::cout << "File range = " << *file_range.first << std::endl;
-        //std::cout << "Line range = " << *line_range.first << std::endl;
     }
 }
 

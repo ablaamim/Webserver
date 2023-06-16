@@ -90,20 +90,24 @@ configurationSA::Server Webserv::Select_server(std::string ip, std::string port,
 {
     configurationSA::data_type::iterator   first_occurence = Servers_vector.end();
 
-    
+    std::cout <<  "HOSTNAME" << hostName << std::endl;
     if (hostName.find(':') != std::string::npos)
         hostName = hostName.substr(0, hostName.find(':'));
+
+    std::cout << port << std::endl;
 
    	for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
    	{
         if (it->server_name == "")
             it->server_name = "localhost";
 		if (it->server_name == hostName)
-            return (*it);
-        else if (it->listen.begin()->first == port)
+           return (*it);
+        if (it->listen.begin()->first == port)
             first_occurence = it;
 		else if (first_occurence == Servers_vector.end())
+        {
 			first_occurence = it;
+        }
    	}
 	if (first_occurence == Servers_vector.end())
 	{

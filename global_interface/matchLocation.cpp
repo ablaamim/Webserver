@@ -18,7 +18,6 @@ std::string getMaxLocation(std::vector<std::string>& matchedLocations)
     return (result);
 }
 
-
 configurationSA::location Webserv::match_location(std::string trgt, configurationSA::Server server)
 {
     typedef std::map<std::string, configurationSA::location>    type_location;
@@ -45,8 +44,5 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
         result.UniqueKey["max_body_size"].push_back("1000000000");
     if (result.UniqueKey["auto_index"].empty())
         result.UniqueKey["auto_index"].push_back("off");
-     //result.print_none_unique_key();
-     //result.print_unique_key();
-     //std::cout << std::endl;
     return (result);
 }
