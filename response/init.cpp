@@ -7,7 +7,7 @@ void    Response::init()
         this->httpVersion = this->_req.version;
         this->status = std::make_pair(_CS_200, _CS_200_m);
         this->headers["Server"] = "Webserver/1.0";
-		this->headers["Connection"] = "close";
+		//this->headers["Connection"] = "close";
 		this->headers["Date"] = getTodayDate();
         this->currentSize = 0;
         this->resourceSize = 0;
@@ -24,6 +24,7 @@ void    Response::init()
         this->kwargsInsertion();
         setQueryParams(*this);
         setCleanPath(*this);
+        std::cout << COLOR_GREEN << "Client " << this->clientSocket << " requested " << this->cleanPath << COLOR_RESET << std::endl;
         this->setResourceInfo();
         if (needsRedirection(*this))
             return ;

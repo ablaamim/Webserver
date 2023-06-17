@@ -85,8 +85,6 @@ void    setExtension(Response& resp)
 void    setInterpreter(Response& resp)
 {
     resp.cgiInterpreter = "";
-    std::cout << "setInterpreter" << std::endl;
-    resp.print_kwargs();
     std::map<std::string, std::vector<std::string> >::iterator directive = resp.kwargs.find("cgi-bin");
     if (directive == resp.kwargs.end())
         return ;
