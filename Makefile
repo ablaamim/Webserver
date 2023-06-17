@@ -11,6 +11,7 @@ SRC = ./MainInc/main.cpp \
 	./response/Response.cpp \
 	./response/utils.cpp \
 	./response/init.cpp \
+	./response/directory.cpp \
 	./response/debug.cpp \
 	./response/error.cpp \
 	./response/serve.cpp \
