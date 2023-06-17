@@ -48,6 +48,7 @@ void Response::serveFile(Response &resp) {
       if (resp.currentSize == 0) 
       {
          resp.headers["Content-Type"] = getContentType(resp.resourceFullPath);
+         resp.headers["Content-Length"] = std::to_string(this->resourceSize);
          openFile(resp);
       }
       resp.fs->seekg(resp.currentSize, std::ios::beg);
