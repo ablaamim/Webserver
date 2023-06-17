@@ -6,8 +6,6 @@ void Response::sendResponse(int mode)
 
     if (!isChunked)
     {
-        if (this->resourceType == FILE && this->method == GET && !this->isCGI)
-            this->headers["Content-Length"] = std::to_string(this->resourceSize);
         responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
         for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
             responseMessage += it->first + ": " + it->second + "\r\n";
