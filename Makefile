@@ -15,6 +15,7 @@ SRC = ./MainInc/main.cpp \
 	./response/debug.cpp \
 	./response/error.cpp \
 	./response/serve.cpp \
+	./response/redirection.cpp \
 	./response/mimeTypes.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \

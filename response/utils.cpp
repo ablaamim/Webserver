@@ -12,14 +12,6 @@ bool    isDirectory(std::string path)
         return false;
 }
 
-std::string getFileExtension(std::string path)
-{
-    std::string::size_type pos = path.rfind(".");
-    if (pos != std::string::npos)
-        return path.substr(pos);
-    return "";
-}
-
 std::string getTodayDate()
 {
     time_t now = time(0);
@@ -36,7 +28,6 @@ bool fileExists(const char *path)
     f.close();
     return exists;
 }
-
 
 std::string     pathJoin(std::string path1, std::string path2)
 {
@@ -126,7 +117,7 @@ void lookForIndex(Response &resp)
     resp.indexChecked = true;
     if (resp.resourceType == DIRECTORY && resp.method != DELETE)
     {
-        std::string                                                 index_path = "";
+        std::string                                                 index_path;
         std::map<std::string, std::vector<std::string> >::iterator  it = resp.kwargs.find("index");
         if (it != resp.kwargs.end())
         {
@@ -164,28 +155,3 @@ void lookForIndex(Response &resp)
     }
 }
 
-bool    needsRedirection(Response& resp)
-{
-    if (resp.resourceType == REDIRECT)
-    {
-        resp.serveRedirect();
-        return true;
-    }
-    else if (resp.resourceType == DIRECTORY)
-    {
-        if (resp.cleanPath[resp.cleanPath.length() - 1] != '/')
-        {
-            resp.cleanPath.append("/");
-            if (resp.queryParams.empty() == false)
-            {
-                resp.cleanPath.append("?");
-                resp.cleanPath.append(resp.queryParams);
-            }
-            resp.headers["Location"] = resp.cleanPath;
-            resp.status = std::make_pair(_CS_301, _CS_301_m);
-            resp.sendResponse(HEADERS_ONLY);
-            return true;
-        }
-    }
-    return false;
-}
