@@ -21,24 +21,6 @@ void Response::sendResponse(int mode)
     this->body.clear();
 }
 
-void Response::serveRedirect()
-{
-    std::vector<std::string> return_values = this->kwargs["return"];
-    this->status.first = return_values[0];
-    this->status.second = "";
-    if (this->status.first == _CS_301 || this->status.first == _CS_302 || \
-    this->status.first == _CS_303 || this->status.first == _CS_307)
-    {
-        this->headers["Location"] = return_values[1];
-        this->sendResponse(HEADERS_ONLY);
-    }
-    else
-    {
-        this->body = return_values[1];
-        this->sendResponse(FULL);
-    }
-}
-
 void Response::serve()
 {
     try
