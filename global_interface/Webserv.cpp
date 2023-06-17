@@ -90,11 +90,11 @@ configurationSA::Server Webserv::Select_server(std::string ip, std::string port,
 {
     configurationSA::data_type::iterator   first_occurence = Servers_vector.end();
 
-    std::cout <<  "HOSTNAME" << hostName << std::endl;
+    // std::cout <<  "HOSTNAME" << hostName << std::endl;
     if (hostName.find(':') != std::string::npos)
         hostName = hostName.substr(0, hostName.find(':'));
 
-    std::cout << port << std::endl;
+    //std::cout << port << std::endl;
 
    	for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
    	{
@@ -200,7 +200,7 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-        std::cout << COLOR_YELLOW << "Client Id : " << client_socket << COLOR_RESET << std::endl;
+        // std::cout << COLOR_YELLOW << "Client Id : " << client_socket << COLOR_RESET << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
