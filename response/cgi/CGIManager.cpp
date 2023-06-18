@@ -1,29 +1,39 @@
 #include "CGIManager.hpp"
 
-CGIManager::CGIManager(const CGIManager &src) : resp(src.resp)
+CGIManager::CGIManager(const CGIManager &src)
 {
     this->fd[0] = src.fd[0];
     this->fd[1] = src.fd[1];
     this->env = src.env;
     this->execveArgs = src.execveArgs;
     this->execveEnv = src.execveEnv;
+    this->pid = src.pid;
+    this->isExecuted = src.isExecuted;
+    this->status = src.status;
+    this->inputFd = src.inputFd;
+    this->outputFd = src.outputFd;
 }
 
-CGIManager::CGIManager(Response &resp) : resp(resp)
+CGIManager::CGIManager()
 {
     this->fd[0] = -1;
     this->fd[1] = -1;
+    this->pid = -1;
+    this->isExecuted = false;
+    this->status = NONE;
+    this->inputFd = -1;
+    this->outputFd = -1;
 }
 
-void CGIManager::init()
+void CGIManager::init(Response &resp)
 {
     try
     {
-        if (!fileExists(this->resp.resourceFullPath.c_str()))
-            this->resp.serveERROR(_CS_404, _CS_404_m);
-        this->setEnv();
-        this->setExecveArgs();
-        this->setExecveEnv();
+        if (!fileExists(resp.resourceFullPath.c_str()))
+            resp.serveERROR(_CS_404, _CS_404_m);
+        setEnv(resp);
+        setExecveArgs(resp);
+        setExecveEnv();
     }
     catch (const std::exception &e)
     {
@@ -44,10 +54,9 @@ void Response::serveCGI()
     try
     {
         std::cout << COLOR_YELLOW << "serveCGI()" << COLOR_RESET << std::endl;
-        CGIManager cgi(*this);
-        cgi.init();
-        cgi.execute();
-        this->sendResponse(FULL);
+        if (cgi.isExecuted == false)
+            cgi.init(*this);
+        cgi.execute(*this);
     }
     catch (const std::exception &e)
     {

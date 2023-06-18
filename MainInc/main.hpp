@@ -35,6 +35,7 @@
 # include "../parsing/ConfigurationParser.hpp"
 # include "../Servers/Servers.hpp"
 # include "../Request/Request.hpp"
+#include "../response/cgi/CGIManager.hpp"
 # include "../response/Response.hpp"
 # include "../global_interface/Webserv.hpp"
 

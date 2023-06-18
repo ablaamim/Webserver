@@ -80,9 +80,4 @@ void	Response::initMimeTypes()
 	mimeTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
 	mimeTypes.insert(std::pair<std::string, std::string>(".java", "text/x-java-source,java"));
 	mimeTypes.insert(std::pair<std::string, std::string>(".ico", "image/x-icon"));
-	mimeTypes.insert(std::pair<std::string, std::string>(".py", "text/x-python"));
-	mimeTypes.insert(std::pair<std::string, std::string>(".php", "text/x-php"));
-	mimeTypes.insert(std::pair<std::string, std::string>(".c", "text/x-csrc"));
-	mimeTypes.insert(std::pair<std::string, std::string>(".cpp", "text/x-c++src"));
-	mimeTypes.insert(std::pair<std::string, std::string>(".sh", "text/x-shellscript"));
 }

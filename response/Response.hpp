@@ -3,6 +3,50 @@
 
 #include "../MainInc/main.hpp"
 
+class Response;
+
+class CGIManager
+{
+public:
+    int fd[2];
+    int inputFd;
+    int outputFd;
+    int pid;
+    int isExecuted;
+    int status;
+    std::vector<std::string> env;
+    char **execveArgs;
+    char **execveEnv;
+
+    CGIManager(CGIManager const &src);
+    CGIManager();
+
+    void init(Response &resp);
+    void execute(Response &resp);
+    void parseOutput(Response &resp);
+    void parseHeader(std::string str, Response &resp);
+    void setEnv(Response &resp);
+    void setExecveArgs(Response &resp);
+    void setExecveEnv();
+    std::string getRequestParam(std::string key, Response &resp);
+    void setInputFd(Response &resp);
+    int runSystemCall(int returnCode);
+
+    ~CGIManager();
+
+    class CGI_exception : public std::exception
+    {
+    private:
+        std::string _msg;
+
+    public:
+        CGI_exception(std::string msg) : _msg(msg) {}
+        CGI_exception() : _msg("CGI exception") {}
+        virtual ~CGI_exception() throw() {}
+        virtual const char *what() const throw() { return _msg.c_str(); }
+    };
+};
+
 class Response
 {
     public:
@@ -23,10 +67,10 @@ class Response
         int                                                     resourceType;
         std::string                                             port;
         std::string                                             ip;
-
+        
         /* cgi  */
 
-
+        CGIManager                                              cgi;
         bool                                                    isCGI;
         std::string                                             fileExtension;
         std::string                                             cgiInterpreter;
