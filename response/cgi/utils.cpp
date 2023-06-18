@@ -153,10 +153,8 @@ void CGIManager::execute(Response &resp)
             sleep(1);
         }
         /* If WNOHANG was given, and if there is at least one process (usually a child) whose status information is not available, waitpid() returns 0. */
-        std::cout << COLOR_YELLOW << "CGI process status : " << this->status << COLOR_RESET << std::endl;
         if (waitpid(this->pid, &this->status, WNOHANG) != 0)
         {
-            std::cout << COLOR_RED << "CGI process exited with status : " << this->status << COLOR_RESET << std::endl;
             parseOutput(resp);
             resp.sendResponse(FULL);
         }
