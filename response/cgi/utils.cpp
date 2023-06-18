@@ -23,6 +23,8 @@ void CGIManager::setEnv(Response &resp)
     this->env.push_back("REMOTE_PORT=" + remote_port); // CLIENT PORT
     this->env.push_back("SERVER_SOFTWARE=" + getRequestParam("Server", resp));
     this->env.push_back("SERVER_NAME=" + resp.ip);
+    this->env.push_back("REDIRECT_STATUS=200");
+    this->env.push_back("SCRIPT_FILENAME=" + resp.resourceFullPath);
     this->env.push_back("SERVER_PORT=" + resp.port);
     this->env.push_back("GATEWAY_INTERFACE=CGI-DIALNA");
     this->env.push_back("HTTP_ACCEPT=" + getRequestParam("Accept", resp));
@@ -107,24 +109,10 @@ void CGIManager::parseOutput(Response &resp)
     int rd = -1;
     char buffer[BUFFER_SIZE];
     std::string str;
-    size_t line;
-    std::string del = "\r\n\r\n";
-
-    while ((rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE - 1))) > 0)
-    {
-        buffer[rd] = '\0';
-        str = std::string(buffer, rd);
-        line = str.rfind(del);
-        if (line != std::string::npos)
-        {
-            // std::cout << "Parse cgi header her" << std::endl;
-            parseHeader(str.substr(0, line), resp);
-            str = str.substr(line + del.length());
-        }
-        resp.body.append(str);
-        // std::cout << COLOR_BLUE << str.length() << " cgi output : " << str << COLOR_RESET << std::endl;
-    }
-    resp.headers["Content-Length"] = std::to_string(resp.body.length());
+    rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE - 1));
+    buffer[rd] = '\0';
+    str = std::string(buffer, rd);
+    resp.body.append(str);
     runSystemCall(close(this->fd[0]));
 }
 
@@ -162,7 +150,7 @@ void CGIManager::execute(Response &resp)
                     resp.serveERROR(_CS_500, _CS_500_m);
             }
             parseOutput(resp);
-            resp.sendResponse(FULL);
+            resp.sendCGIResponse();
         }
         /* else, No response will be sent for now, maybe later when write event of this client get triggered again */
     }

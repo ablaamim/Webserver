@@ -132,6 +132,7 @@ class Response
         /* Custom Send, which send the reponse whether the body content is generated or not */
 
         void            sendResponse(int mode);
+        void            sendCGIResponse();
 
         class  Response_err : public std::exception
         {
