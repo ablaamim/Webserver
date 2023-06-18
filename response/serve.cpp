@@ -1,5 +1,16 @@
 #include "Response.hpp"
 
+void    Response::sendCGIResponse()
+{
+    std::string responseMessage;
+    responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
+    responseMessage += this->body;
+    this->isCompleted = true;
+    if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
+        throw Response_err("send() failed");
+    this->body.clear();
+}
+
 void Response::sendResponse(int mode)
 {
     std::string responseMessage;
