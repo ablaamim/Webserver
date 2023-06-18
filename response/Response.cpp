@@ -1,5 +1,4 @@
-#include "../MainInc/main.hpp"
-
+#include "Response.hpp"
 
 std::string getContentType(std::string path)
 {
@@ -62,6 +61,7 @@ Response::Response(const Response &other)
     this->fs = other.fs;
 	this->ip = other.ip;
 	this->port = other.port;
+	this->cgi = other.cgi;
 }
 
 void Response::insert_Location_kwargs(std::string key, std::vector<std::string> value)

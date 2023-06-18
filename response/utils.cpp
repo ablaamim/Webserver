@@ -102,7 +102,7 @@ void    lookForCGI(Response& resp)
         setInterpreter(resp);
         if (resp.cgiInterpreter.empty() == false)
         {
-            if (resp.fileExtension == ".php" || resp.fileExtension == ".sh")
+            if (resp.fileExtension == ".php" || resp.fileExtension == ".py")
                 resp.isCGI = true;
             else
                 resp.serveERROR(_CS_501, _CS_501_m);
