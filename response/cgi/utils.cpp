@@ -1,5 +1,4 @@
-#include "../../MainInc/main.hpp"
-#include "CGIManager.hpp"
+# include "../Response.hpp"
 
 std::string CGIManager::getRequestParam(std::string key, Response &resp)
 {

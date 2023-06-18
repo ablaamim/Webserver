@@ -1,4 +1,6 @@
-#include "CGIManager.hpp"
+# include "../Response.hpp"
+
+class Response;
 
 CGIManager::CGIManager(const CGIManager &src)
 {
@@ -23,6 +25,8 @@ CGIManager::CGIManager()
     this->status = NONE;
     this->inputFd = -1;
     this->outputFd = -1;
+    this->execveArgs = NULL;
+    this->execveEnv = NULL;
 }
 
 void CGIManager::init(Response &resp)
@@ -47,6 +51,14 @@ CGIManager::~CGIManager()
         close(this->fd[0]);
     if (this->fd[1] != -1)
         close(this->fd[1]);
+    if (this->inputFd != -1)
+        close(this->inputFd);
+    if (this->outputFd != -1)
+        close(this->outputFd);
+    if (this->execveArgs != NULL)
+        delete[] this->execveArgs;
+    if (this->execveEnv != NULL)
+        delete[] this->execveEnv;
 }
 
 void Response::serveCGI()
