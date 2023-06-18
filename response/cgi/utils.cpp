@@ -17,7 +17,7 @@ void CGIManager::setEnv(Response &resp)
     this->env.push_back("PATH_INFO=" + resp.resourceFullPath);
     this->env.push_back("HTTP_USER_AGENT=" + getRequestParam("User-Agent", resp));
     this->env.push_back("SERVER_PROTOCOL=" + resp.httpVersion);
-    this->env.push_back("HTTP_COOKIE=");
+    this->env.push_back("HTTP_COOKIE=" + getRequestParam("Cookie", resp));
     this->env.push_back("REMOTE_ADDR=" + resp.ip); // CLIENT IP
     std::string remote_port = resp._req.params["Host"].substr(resp._req.params["Host"].find(":") + 1);
     this->env.push_back("REMOTE_PORT=" + remote_port); // CLIENT PORT
@@ -25,11 +25,13 @@ void CGIManager::setEnv(Response &resp)
     this->env.push_back("SERVER_NAME=" + resp.ip);
     this->env.push_back("SERVER_PORT=" + resp.port);
     this->env.push_back("GATEWAY_INTERFACE=CGI-DIALNA");
-    this->env.push_back("REDIRECT_STATUS=200");
     this->env.push_back("HTTP_ACCEPT=" + getRequestParam("Accept", resp));
     this->env.push_back("HTTP_CONNECTION=" + getRequestParam("Connection", resp));
     this->env.push_back("SCRIPT_NAME=" + getRequestParam("Url", resp));
     this->env.push_back("HTTP_ACCEPT_ENCODING=" + getRequestParam("Accept-Encoding", resp));
+    this->env.push_back("HTTP_ACCEPT_LANGUAGE=" + getRequestParam("Accept-Language", resp));
+    this->env.push_back("HTTP_HOST=" + getRequestParam("Host", resp));
+    this->env.push_back("HTTP_REFERER=" + getRequestParam("Referer", resp));
     if (resp.method == GET)
     {
         this->env.push_back("QUERY_STRING=" + resp.queryParams);
