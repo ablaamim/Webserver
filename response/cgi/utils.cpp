@@ -156,6 +156,11 @@ void CGIManager::execute(Response &resp)
         /* If WNOHANG was given, and if there is at least one process (usually a child) whose status information is not available, waitpid() returns 0. */
         if (waitpid(this->pid, &this->status, WNOHANG) != 0)
         {
+            if (WIFEXITED(this->status))
+            {
+                if (WEXITSTATUS(this->status) == EXIT_FAILURE)
+                    resp.serveERROR(_CS_500, _CS_500_m);
+            }
             parseOutput(resp);
             resp.sendResponse(FULL);
         }

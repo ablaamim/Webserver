@@ -3,5 +3,5 @@
   $name = $_SERVER;
 
   // Output a message with the value of the 'name' parameter
-   print_r($_SERVER);
+   printccc _r($_SERVER);
 ?>
