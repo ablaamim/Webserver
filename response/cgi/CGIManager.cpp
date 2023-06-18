@@ -56,9 +56,17 @@ CGIManager::~CGIManager()
     if (this->outputFd != -1)
         close(this->outputFd);
     if (this->execveArgs != NULL)
+    {
+        for (int i = 0; this->execveArgs[i] != NULL; i++)
+            delete[] this->execveArgs[i];
         delete[] this->execveArgs;
+    }
     if (this->execveEnv != NULL)
+    {
+        for (int i = 0; this->execveEnv[i] != NULL; i++)
+            delete[] this->execveEnv[i];
         delete[] this->execveEnv;
+    }
 }
 
 void Response::serveCGI()
