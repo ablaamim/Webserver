@@ -151,6 +151,12 @@ Here are additional features you can add:
 
 ---
 
+### Dependencies :
+
+> brew install php --with-cgi --with-debug
+
+---
+
 ### :repeat: Parsing Logic : DOCUMENTATION !
 
 ---

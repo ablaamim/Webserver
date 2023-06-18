@@ -65,7 +65,6 @@ void Response::serveCGI()
 {
     try
     {
-        std::cout << COLOR_YELLOW << "serveCGI()" << COLOR_RESET << std::endl;
         if (cgi.isExecuted == false)
             cgi.init(*this);
         cgi.execute(*this);
