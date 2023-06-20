@@ -49,7 +49,6 @@ void CGIManager::init(Response &resp)
 
 CGIManager::~CGIManager()
 {
-    std::cerr << "CGIManager destructor called of pid " << this->pid << std::endl;
     if (this->fd[0] != -1)
         close(this->fd[0]);
     if (this->fd[1] != -1)
@@ -69,7 +68,7 @@ CGIManager::~CGIManager()
         for (int i = 0; this->execveEnv[i] != NULL; i++)
             delete[] this->execveEnv[i];
         delete[] this->execveEnv;
-    } 
+    }
 }
 
 void Response::serveCGI()
