@@ -318,7 +318,6 @@ server
 | If method is POST and location supports upload | 201 Created | [config_file](TESTING/conf00.conf) | Achraf | :white_check_mark:  | 200 |
 | If method is GET and requested resource is not found | 404 not found | [config_file](TESTING/conf00.conf) | Achraf |  :white_check_mark: | 400 |
 | If method is GET and request resource is found | 200 ok | [config_file](TESTING/conf00.conf) | Achraf | :white_check_mark: | 400 |
-| If method is GET and file does not have right | 
 
 ---
 
