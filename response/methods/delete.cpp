@@ -11,11 +11,11 @@ bool isDirectoryEmpty(const std::string& folderPath)
         if (std::string(entry->d_name) != "." && std::string(entry->d_name) != "..")
         {
             closedir(dir);
-            return false;  // Directory is not empty
+            return false;
         }
     }
     closedir(dir);
-    return true;  // Directory is empty
+    return true;
 }
 
 bool deleteFiles(const std::string& path, Response& resp)
@@ -45,14 +45,8 @@ void    Response::serveDELETE()
 {
     try
     {
-        //std::cout << "DELETE" << std::endl;
-        //std::cout << this->_location.NoneUniqueKey["cgi-bin"][0] << std::endl;
         if (this->_location.NoneUniqueKey["cgi-bin"].size() > 0)
-        {
-            //std::cout << "CGI IS NOT EMPTY" << std::endl;
             this->serveERROR("501", "Not Implemented");
-        }
-        //std::cout << "END OF CHECK" << std::endl;
         else if (deleteFiles(this->resourceFullPath, *this))
             this->sendResponse(HEADERS_ONLY);
     }

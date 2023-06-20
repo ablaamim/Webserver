@@ -35,6 +35,7 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
 {
     std::string errorPage;
 
+    this->body.clear();
     this->status.first = errorCode;
     this->status.second = errorMsg;
     errorPage = getCustomErrorPage(*this);

@@ -16,7 +16,6 @@ void    servePostFile(Response& resp)
     if (in != std::string::npos)
         ex = resp._req.params["Content-Extension"].substr(in + 1);
     std::string full_path = resp.kwargs["upload_pass"][0] + resp._req.params["Url"] + "." + ex;
-    //std::cout << "full_path: " << full_path << std::endl;
     std::ifstream file(full_path.c_str(), std::ios::binary);
     if (file.good())
     {
@@ -42,7 +41,6 @@ void    Response::servePOST()
 {
     try
     {
-        //std::cout << "servePOST" << std::endl;
         if (this->isCGI)
             this->serveCGI();
         else if (uploadSupported(*this))

@@ -3,12 +3,21 @@
 void    Response::sendCGIResponse()
 {
     std::string responseMessage;
-    responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
+    // look if the body has Status in it before inserting the httpVersion and status
+    if (this->cgi.firstCall)
+    {
+        this->cgi.firstCall = false;
+        responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
+        for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+            responseMessage += it->first + ": " + it->second + "\r\n";
+    }
     responseMessage += this->body;
-    this->isCompleted = true;
-    if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
-        throw Response_err("send() failed");
     this->body.clear();
+    if (!this->isCompleted) 
+    {
+        if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
+            throw Response_err("send() failed here in sendCGIResponse()");
+    }
 }
 
 void Response::sendResponse(int mode)
@@ -26,9 +35,15 @@ void Response::sendResponse(int mode)
     if (mode == FULL)
         responseMessage += this->body;
     if (this->currentSize >= this->resourceSize)
+    {
+        std::cout << "completed" << std::endl;
         this->isCompleted = true;
-    if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
-        throw Response_err("send() failed");
+    }
+    if (responseMessage.length() > 0)
+    {
+        if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
+            throw Response_err("send() failed here in sendResponse()");
+    }
     this->body.clear();
 }
 

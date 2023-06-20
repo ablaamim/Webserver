@@ -128,6 +128,7 @@ int Request::check_readed_bytes()
             // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
             // std::cout << "_CONTENT_: " << this->file->tellp() << std::endl;
             this->is_chuncked = true;
+            std::cout << "LAST CHUNCK" << std::endl;
             return _CHUNCKED_REQUEST;
         }
         else
@@ -239,19 +240,19 @@ int Request::get_headers(std::string str)
 
 int Request::get_chuncked_msg(std::string str)
 {
-    size_t              line;
+    int              line;
     std::string         tmp_str;
     std::stringstream   ss;
     int                 len;
 
     line = str.find("\r\n\r\n");
-    std::cout << "chuncek   " << str <<std::endl;
-    while (line != std::string::npos)
+    std::cout << line << std::endl;
+    std::cout << "chuncked   " << str <<std::endl;
+    while (line != -1)
     {
         tmp_str = str.substr(0, line);
-        if ((line = tmp_str.find("\r\n")) != std::string::npos)
+        if ((line = tmp_str.find("\r\n")) != -1)
         {
-            std::cout << "here " << len << std::endl;
             tmp_str = str.substr(line + 2);
             try
             {
@@ -270,8 +271,10 @@ int Request::get_chuncked_msg(std::string str)
         str = str.substr(line + 5);
         line = str.find("0\r\n\r\n");
     }
-    if (line == std::string::npos)
+    if (line == -1)
+    {
         *this->file << str;
+    }
     return (check_readed_bytes());
 }
 

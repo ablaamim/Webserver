@@ -180,7 +180,7 @@ void Webserv::start_reading_from_client(struct kevent *curr_event,configurationS
         _obj_location = match_location(this->request[curr_event->ident].path, _obj_server); 
         check_before_get_chuncked_messages(_obj_location , this->request[curr_event->ident]);
     }
-    if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error)
+    if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error  || k == 2)
     {
         //this->request[curr_event->ident].print_params();
         change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
