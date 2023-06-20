@@ -7,7 +7,6 @@ void    Response::init()
         this->httpVersion = this->_req.version;
         this->status = std::make_pair(_CS_200, _CS_200_m);
         this->headers["Server"] = "Webserver/1.0";
-		this->headers["Connection"] = "close";
         this->headers["Content-Type"] = "text/html";
 		this->headers["Date"] = getTodayDate();
         this->currentSize = 0;

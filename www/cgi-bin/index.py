@@ -20,6 +20,3 @@ print ("<body>")
 print ("<h2>Hello %s %s</h2>"%(f, l))
 print ("</body>")
 print ("</html>")
-
-while True:
-    pass 

@@ -18,9 +18,9 @@ void CGIManager::setEnv(Response &resp)
     this->env.push_back("HTTP_USER_AGENT=" + getRequestParam("User-Agent", resp));
     this->env.push_back("SERVER_PROTOCOL=" + resp.httpVersion);
     this->env.push_back("HTTP_COOKIE=" + getRequestParam("Cookie", resp));
-    this->env.push_back("REMOTE_ADDR=" + resp.ip); // CLIENT IP
+    this->env.push_back("REMOTE_ADDR=" + resp.ip);
     std::string remote_port = resp._req.params["Host"].substr(resp._req.params["Host"].find(":") + 1);
-    this->env.push_back("REMOTE_PORT=" + remote_port); // CLIENT PORT
+    this->env.push_back("REMOTE_PORT=" + remote_port);
     this->env.push_back("SERVER_SOFTWARE=" + getRequestParam("Server", resp));
     this->env.push_back("SERVER_NAME=" + resp.ip);
     this->env.push_back("REDIRECT_STATUS=200");
@@ -29,16 +29,12 @@ void CGIManager::setEnv(Response &resp)
     this->env.push_back("GATEWAY_INTERFACE=CGI-DIALNA");
     this->env.push_back("HTTP_ACCEPT=" + getRequestParam("Accept", resp));
     this->env.push_back("HTTP_CONNECTION=" + getRequestParam("Connection", resp));
-    this->env.push_back("SCRIPT_NAME=" + getRequestParam("Url", resp));
     this->env.push_back("HTTP_ACCEPT_ENCODING=" + getRequestParam("Accept-Encoding", resp));
     this->env.push_back("HTTP_ACCEPT_LANGUAGE=" + getRequestParam("Accept-Language", resp));
     this->env.push_back("HTTP_HOST=" + getRequestParam("Host", resp));
     this->env.push_back("HTTP_REFERER=" + getRequestParam("Referer", resp));
-    if (resp.method == GET)
-    {
-        this->env.push_back("QUERY_STRING=" + resp.queryParams);
-    }
-    else if (resp.method == POST)
+    this->env.push_back("QUERY_STRING=" + resp.queryParams);
+    if (resp.method == POST)
     {
         this->env.push_back("CONTENT_LENGTH=" + std::to_string(resp._req.content_length));
         this->env.push_back("CONTENT_TYPE=" + getRequestParam("Content-Type", resp));
@@ -80,40 +76,19 @@ int CGIManager::runSystemCall(int returnCode)
     return (returnCode);
 }
 
-void CGIManager::parseHeader(std::string str, Response &resp)
-{
-    size_t line, indx;
-    std::string str1;
-    std::string del = "\r\n";
-
-    while ((line = str.find(del)) != std::string::npos)
-    {
-        str1 = str.substr(0, line);
-        indx = str1.find(": ");
-        if (indx != std::string::npos)
-            resp.headers[str1.substr(0, indx)] = str1.substr(indx + del.length());
-        str = str.substr(line + del.length());
-    }
-    if (str != "")
-    {
-        indx = str.find(": ");
-        if (indx != std::string::npos)
-            resp.headers[str.substr(0, indx)] = str.substr(indx + del.length());
-    }
-    // for (std::map<std::string, std::string>::iterator it = resp.headers.begin(); it != resp.headers.end(); ++it)
-    //     std::cout << COLOR_GREEN << it->first << "  :  " << it->second << COLOR_RESET << std::endl;
-}
 
 void CGIManager::parseOutput(Response &resp)
 {
     int rd = -1;
-    char buffer[BUFFER_SIZE];
+    char buffer[CHUNCK_SIZE];
     std::string str;
-    rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE - 1));
-    buffer[rd] = '\0';
-    str = std::string(buffer, rd);
-    resp.body.append(str);
-    runSystemCall(close(this->fd[0]));
+    rd = runSystemCall(read(this->fd[0], buffer, CHUNCK_SIZE));
+    resp.body.append(buffer, rd);
+    if (rd == 0)
+    {
+        resp.isCompleted = true;
+        runSystemCall(close(this->fd[0]));
+    }
 }
 
 void CGIManager::execute(Response &resp)
@@ -131,18 +106,22 @@ void CGIManager::execute(Response &resp)
                 runSystemCall(dup2(this->fd[1], 1));
                 runSystemCall(close(this->fd[1]));
                 if (resp._req.method == POST)
-                    setInputFd(resp);
-                if (execve(this->execveArgs[0], this->execveArgs, this->execveEnv) == -1)
                 {
-                    exit(EXIT_FAILURE);
-                    throw CGI_exception("Execve failed");
+                    std::string contentLength = getRequestParam("Content-Length", resp);
+                    if (!contentLength.empty())
+                    {
+                        int contentLengthInt = std::stoi(contentLength);
+                        if (contentLengthInt > 0)
+                            setInputFd(resp);
+                    }
                 }
+                if (execve(this->execveArgs[0], this->execveArgs, this->execveEnv) == -1)
+                    exit(EXIT_FAILURE);
             }
             runSystemCall(close(this->fd[1]));
-            sleep(1);
         }
         /* If WNOHANG was given, and if there is at least one process (usually a child) whose status information is not available, waitpid() returns 0. */
-        if (waitpid(this->pid, &this->status, WNOHANG) != 0)
+        if (waitpid(this->pid, &this->status, WNOHANG))
         {
             if (WIFEXITED(this->status))
             {

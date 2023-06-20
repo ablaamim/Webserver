@@ -11,6 +11,7 @@ CGIManager::CGIManager(const CGIManager &src)
     this->execveEnv = src.execveEnv;
     this->pid = src.pid;
     this->isExecuted = src.isExecuted;
+    this->firstCall = src.firstCall;
     this->status = src.status;
     this->inputFd = src.inputFd;
     this->outputFd = src.outputFd;
@@ -22,6 +23,7 @@ CGIManager::CGIManager()
     this->fd[1] = -1;
     this->pid = -1;
     this->isExecuted = false;
+    this->firstCall = true;
     this->status = NONE;
     this->inputFd = -1;
     this->outputFd = -1;
@@ -47,6 +49,7 @@ void CGIManager::init(Response &resp)
 
 CGIManager::~CGIManager()
 {
+    std::cerr << "CGIManager destructor called of pid " << this->pid << std::endl;
     if (this->fd[0] != -1)
         close(this->fd[0]);
     if (this->fd[1] != -1)
@@ -66,7 +69,7 @@ CGIManager::~CGIManager()
         for (int i = 0; this->execveEnv[i] != NULL; i++)
             delete[] this->execveEnv[i];
         delete[] this->execveEnv;
-    }
+    } 
 }
 
 void Response::serveCGI()

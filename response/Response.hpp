@@ -12,7 +12,8 @@ public:
     int inputFd;
     int outputFd;
     int pid;
-    int isExecuted;
+    bool isExecuted;
+    bool firstCall;
     int status;
     std::vector<std::string> env;
     char **execveArgs;
