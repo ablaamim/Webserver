@@ -1,14 +1,18 @@
 #include "../MainInc/main.hpp"
 #include "Response.hpp"
 
-void Response::list_directories_recursive(
-    std::string &path, std::vector<std::string> &directoryList) {
+void Response::list_directories_recursive(std::string &path, std::vector<std::string> &directoryList)
+{
    DIR *dir;
    struct dirent *ent;
 
-   if ((dir = opendir(path.c_str())) != NULL) {
-      while ((ent = readdir(dir)) != NULL) {
-         if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
+   if ((dir = opendir(path.c_str())) != NULL)
+   {
+      while ((ent = readdir(dir)) != NULL)
+      {
+         if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
+         {
+            std::cout << "entry name: " << ent->d_name << std::endl;
             std::string entryName = ent->d_name;
             directoryList.push_back(entryName);
          }
@@ -52,6 +56,29 @@ std::string getLastModified(std::string &path) {
    return last_modified;
 }
 
+std::string get_content_type(std::string file_path)
+{
+   //std::cout << "file_path: " << file_path << std::endl;
+   // if its a directory
+   if (file_path[file_path.length() - 1] == '/')
+      return "Directory";
+   // if its a file
+   std::string file_extension = file_path.substr(file_path.find_last_of(".") + 1);
+   //std::cout << "file_extension: " << file_extension << std::endl;
+
+   // file exention should be in lower case and without spaces and contain only letters
+   for (std::string::iterator it = file_extension.begin(); it != file_extension.end(); ++it)
+   {
+      if (*it >= 'A' && *it <= 'Z')
+         *it += 32;
+      if (*it == ' ')
+         *it = '_';
+      if (*it >= 'a' && *it <= 'z')
+         return file_extension;
+   }
+   return "text/html";
+}
+
 void Response::serveDirectory(Response &resp)
 {
    this->print_kwargs();
@@ -81,13 +108,13 @@ void Response::serveDirectory(Response &resp)
                      </style>";
       resp.body += "<h1> Index of " + resp.resourceFullPath + "</h1> ";
 
-      // List directories on browser with some css
-      //resp.body += "<style> table, th, td { border: 1px solid black; border-collapse: collapse; } </style>";
       resp.body += "<table style=\"width:100%\"> <tr> <th>Name</th> <th>Type</th> <th>Size</th> <th>Last Modified</th> </tr>";
       for (std::vector<std::string>::iterator it = list_of_files.begin();
            it != list_of_files.end(); ++it)
       {
          std::string file_name = *it;
+         if (file_name == "Webserv")
+            continue;
          std::string icon = "<i class=\"fa fa-folder\" aria-hidden=\"true\"></i>";
          if (file_name.find(".") == std::string::npos)
             file_name += "/";
@@ -97,7 +124,7 @@ void Response::serveDirectory(Response &resp)
             file_name += " ";
          }
          std::string file_path = resp.resourceFullPath + file_name;
-         std::string file_type = getContentType(file_path);
+         std::string file_type = get_content_type(file_path);
          std::string file_size = getFileSize(file_path);
          std::string last_modified = getLastModified(file_path);
 
