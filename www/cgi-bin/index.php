@@ -3,8 +3,8 @@
   $name = $_SERVER;
 
   // get from the query params name
-  // print_r($_SERVER);
-  $name = $_GET['name'];
-
-   while (1);
+  print_r($_SERVER);
+  //if ($name == 'POST')
+  //name = $_GET['name'];
+  echo "hello world";
 ?>

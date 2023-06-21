@@ -7,6 +7,7 @@ void    Response::sendCGIResponse()
     if (this->cgi.firstCall)
     {
         this->cgi.firstCall = false;
+        std::cout << this->body << std::endl;
         responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
         for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
             responseMessage += it->first + ": " + it->second + "\r\n";

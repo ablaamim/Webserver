@@ -72,7 +72,9 @@ void CGIManager::setInputFd(Response &resp)
 int CGIManager::runSystemCall(int returnCode)
 {
     if (returnCode == -1)
+    {
         throw CGI_exception("System call failed");
+    }
     return (returnCode);
 }
 
@@ -117,6 +119,7 @@ void CGIManager::execute(Response &resp)
                 }
                 if (execve(this->execveArgs[0], this->execveArgs, this->execveEnv) == -1)
                     exit(EXIT_FAILURE);
+                
             }
             runSystemCall(close(this->fd[1]));
         }
