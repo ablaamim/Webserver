@@ -65,6 +65,7 @@ void CGIManager::setExecveEnv()
 void CGIManager::setInputFd(Response &resp)
 {
     this->inputFd = runSystemCall(open(resp._req.file_body_name.c_str(), O_RDONLY));
+    std::cerr << "err file" << this->inputFd << std::endl;
     runSystemCall(dup2(this->inputFd, 0));
     runSystemCall(close(this->inputFd));
 }
@@ -124,27 +125,28 @@ void CGIManager::execute(Response &resp)
             runSystemCall(close(this->fd[1]));
         }
         /* If WNOHANG was given, and if there is at least one process (usually a child) whose status information is not available, waitpid() returns 0. */
-        sleep(1);
+        //sleep(1);
         if (waitpid(this->pid, &this->status, WNOHANG))
         {
             if (WIFEXITED(this->status))
             {
                 if (WEXITSTATUS(this->status) == EXIT_FAILURE)
-                    resp.serveERROR(_CS_500, _CS_500_m);
+                    resp.serveERROR(_CS_500, "wait error");
             }
             parseOutput(resp);
             resp.sendCGIResponse();
         }
-        if (this->pid != -1)
-        {
-            kill (this->pid, SIGKILL);
-            resp.serveERROR(_CS_504, _CS_504_m);
-        }
+        // if (this->pid != -1)
+        // {
+        //     kill (this->pid, SIGKILL);
+        //     resp.serveERROR(_CS_504, _CS_504_m);
+        // }
         
         /* else, No response will be sent for now, maybe later when write event of this client get triggered again */
     }
     catch (const std::exception &e)
     {
-        resp.serveERROR(_CS_500, _CS_500_m);
+        //resp.serveERROR(_CS_500, _CS_500_m);
+        resp.serveERROR(_CS_500, "execute cgi");
     }
 }

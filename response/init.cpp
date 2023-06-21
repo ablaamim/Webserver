@@ -31,6 +31,8 @@ void    Response::init()
             return ;
         lookForIndex(*this);
         lookForCGI(*this);
+        if (this->isCGI)
+            this->headers.erase("Content-Type");
     }
     catch(const std::exception& e)
     {
