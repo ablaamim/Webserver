@@ -1,8 +1,7 @@
 #include "../MainInc/main.hpp"
 
-std::map<int, int>                  clients_list;                // map of (client_socket, server_socket)
-std::map<int, Response>             responsePool;                // map of (client_socket, Response)
-
+std::map<int, int>                  clients_list;               
+std::map<int, Response>             responsePool;              
 
 void Webserv::print_request()
 {
@@ -43,7 +42,7 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     (void) _obj_server;
     Request req = this->request[curr_event->ident];
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
-    std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
+    std::map<std::string, std::vector<std::string> > newKwargs; 
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
     Response newResponse(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), request, curr_event->ident, _obj_location, env);
     
@@ -200,7 +199,6 @@ void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &f
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-        // std::cout << COLOR_YELLOW << "Client Id : " << client_socket << COLOR_RESET << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
@@ -369,7 +367,6 @@ Webserv::Webserv(configurationSA &config, char **env)
 {
     Servers         server(config);
     this->kq = server.kq;
-    //this->log_fd = open("log.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     this->event_list = new struct kevent [Servers::fd_vector.size()];
     this->run(Servers::fd_vector, config, server, env);
 }
