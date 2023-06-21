@@ -49,6 +49,7 @@ void CGIManager::init(Response &resp)
 
 CGIManager::~CGIManager()
 {
+    //std::cerr << "CGI DESTRUCTOR " << this->pid << std::endl;
     if (this->fd[0] != -1)
         close(this->fd[0]);
     if (this->fd[1] != -1)
