@@ -124,6 +124,7 @@ void CGIManager::execute(Response &resp)
             runSystemCall(close(this->fd[1]));
         }
         /* If WNOHANG was given, and if there is at least one process (usually a child) whose status information is not available, waitpid() returns 0. */
+        sleep(1);
         if (waitpid(this->pid, &this->status, WNOHANG))
         {
             if (WIFEXITED(this->status))
@@ -134,6 +135,12 @@ void CGIManager::execute(Response &resp)
             parseOutput(resp);
             resp.sendCGIResponse();
         }
+        if (this->pid != -1)
+        {
+            kill (this->pid, SIGKILL);
+            resp.serveERROR(_CS_504, _CS_504_m);
+        }
+        
         /* else, No response will be sent for now, maybe later when write event of this client get triggered again */
     }
     catch (const std::exception &e)
