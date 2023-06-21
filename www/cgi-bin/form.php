@@ -7,7 +7,7 @@ echo "Content-type: text/html\r\n\r\n"
  <p>Your l: <input type="text" name="f"></p>
  <p><input type="submit" value= "test"></p>
 </form> -->
-<form action="http://127.0.0.1:9090/www/cgi-bin/test-php.php" method="post">
+<form action="http://127.0.0.1:8080/www/cgi-bin/index.php" method="post">
  <p>Your id: <input type="text" name="id"></p>
  <p><input type="submit" value= "test"></p>
 </form>

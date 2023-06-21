@@ -70,11 +70,6 @@ CGIManager::~CGIManager()
             delete[] this->execveEnv[i];
         delete[] this->execveEnv;
     }
-    if (this->pid != -1)
-    {
-        //std::cout << "KILL PROC" << this->pid <<  std::endl;
-        kill(this->pid, SIGKILL);
-    }
 }
 
 void Response::serveCGI()

@@ -283,7 +283,6 @@ int Request::get_chuncked_msg(std::string str)
 
 int Request::parse_request(std::string str)
 {
-    std::cout << str << std::endl;
     if (!str.size())
         return _ERR_PARSE_REQUEST;
     else if (!this->headers_done)
