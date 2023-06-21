@@ -41,6 +41,7 @@
 # define SOCKET_OPTION_ERR "Failed setting socket options"
 # define SOCKET_LISTEN_ERR "Failed listening on socket"
 # define _ERR_PARSE_REQUEST 1
+# define _UKNOWN_PROTOCOL 3
 # define _PARSE_REQUEST_DONE 0
 # define _CHUNCKED_REQUEST 2
 # define _CONTENT_ "Content_body"
@@ -87,6 +88,7 @@
 # define _CS_501 "501"
 # define _CS_505 "505"
 # define _CS_520 "520"
+# define _CS_504 "504"
 
 // Server Code Status Messages
 # define _CS_200_m "OK"
@@ -105,5 +107,6 @@
 # define _CS_501_m "Not Implemented"
 # define _CS_505_m "HTTP Version Not Supported"
 # define _CS_520_m "Web Server Returned an Unknown Error"
+# define _CS_504_m "Gateway Timeout"
 
 #endif

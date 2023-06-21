@@ -128,7 +128,7 @@ int Request::check_readed_bytes()
             // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
             // std::cout << "_CONTENT_: " << this->file->tellp() << std::endl;
             this->is_chuncked = true;
-            std::cout << "LAST CHUNCK" << std::endl;
+            //std::cout << "LAST CHUNCK" << std::endl;
             return _CHUNCKED_REQUEST;
         }
         else
@@ -146,7 +146,7 @@ void Request::get_firstline(std::string line)
     std::stringstream   file(line);
     int                 i = 0;
 
-    // std::cout << "Parsing First line " << std::endl;
+    std::cout << "Parsing First line " << std::endl;
     while (std::getline(file, str, ' '))
     {
         switch (i)
@@ -168,12 +168,12 @@ void Request::get_firstline(std::string line)
 
 void Request::get_other_lines(std::string line)
 {
-    size_t  indx;
+    int  indx;
 
     // std::cout << COLOR_GREEN << "Parsing Other lines '" << line << "'" << COLOR_RESET << std::endl;
     // std::cout << COLOR_GREEN << "Parsing Other " << COLOR_RESET << std::endl;
     indx = line.find(": ");
-    if (indx != std::string::npos)
+    if (indx != -1)
         this->params[line.substr(0, indx)] = line.substr(indx + 2);
 }
 
@@ -186,9 +186,9 @@ int Request::open_file_for_reponse(std::string str)
 
 void Request::parse_headers(std::string str)
 {
-    size_t line;
+    int line;
 
-    while ((line = str.find("\r\n")) != std::string::npos)
+    while ((line = str.find("\r\n")) != -1)
     {
         if (!this->first_line)
             this->get_firstline(str.substr(0, line));
@@ -202,28 +202,34 @@ void Request::parse_headers(std::string str)
 
 void Request::get_content_extension(void)
 {
-    size_t      line;
+    int      line;
 
     if (this->params.find("Content-Type") != this->params.end())
     {
         this->params["Content-Extension"] = this->params["Content-Type"];
         this->content_type = this->params["Content-Type"];
-        if ((line = this->params["Content-Type"].rfind("/")) != std::string::npos)
+        if ((line = this->params["Content-Type"].rfind("/")) != -1)
             this->params["Content-Extension"] = this->params["Content-Type"].substr(line + 1);
     }
 }
 
 int Request::get_headers(std::string str)
 {
-    size_t line;
+    int line;
     std::string str1 = "";
 
-    // std::cout << "Parsing headers " << std::endl;
-    if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
+    //std::cout << "Parsing headers " << std::endl;
+    if ((line = str.rfind("\r\n\r\n")) != -1 || str.rfind("\r\n") != std::string::npos)
     {
         str1 = str.substr(line + 4);
         str = str.substr(0 ,line);
         //std::cout << COLOR_BLUE << "limechta l header " << str << COLOR_RESET <<std::endl;
+    }
+    else
+    {
+        this->error = std::stoi(_CS_400);
+        this->erro_msg = _CS_400_m;
+        return _UKNOWN_PROTOCOL;
     }
     this->parse_headers(str);
     this->get_content_extension();
@@ -231,10 +237,7 @@ int Request::get_headers(std::string str)
     if (this->method != POST)
         return _PARSE_REQUEST_DONE;
     if (str1 != "")
-    {
-        //std::cout << "limechta lemera lawla " << str1 <<std::endl;
         return (open_file_for_reponse(str1));
-    }
     return (check_readed_bytes());
 }
 
@@ -247,7 +250,7 @@ int Request::get_chuncked_msg(std::string str)
 
     line = str.find("\r\n\r\n");
     std::cout << line << std::endl;
-    std::cout << "chuncked   " << str <<std::endl;
+    //std::cout << "chuncked   " << str <<std::endl;
     while (line != -1)
     {
         tmp_str = str.substr(0, line);
@@ -258,7 +261,7 @@ int Request::get_chuncked_msg(std::string str)
             {
                 ss << std::hex << str.substr(0, line);
                 ss >> len;
-                std::cout << "to read " << len << std::endl;
+                //std::cout << "to read " << len << std::endl;
             }
             catch(const std::exception& e)
             {
