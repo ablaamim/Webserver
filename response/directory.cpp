@@ -39,14 +39,14 @@ std::string getFileSize(std::string &path) {
 
    stat(path.c_str(), &st);
    if ((st.st_size / 1000000000) > 0)
-      size = std::to_string((double)(st.st_size / 1000000000)) + " Gb";
+      size = std::to_string(st.st_size / 10000000000) + " Gb";
    else if ((st.st_size / 1000000) > 0)
       size = std::to_string(st.st_size / 1000000) + " Mb";
    else if ((st.st_size / 1000) > 0)
       size = std::to_string(st.st_size / 1000) + " Kb";
    else
       size = std::to_string(st.st_size) + " Bytes";
-   return std::to_string(st.st_size) + " Bytes";
+   return size;
 }
 
 std::string getLastModified(std::string &path) {
@@ -89,7 +89,8 @@ void Response::serveDirectory(Response &resp)
       std::vector<std::string> list_of_files =
           resp.listing_directory(resp.resourceFullPath);
       resp.headers["Content-Type"] = "text/html";
-      resp.body = "<style>*{box-sizing: border-box;font-family: Arial, Helvetica, sans-serif;margin: 0;padding: 0;}\
+      resp.body = "<style>@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');\
+                     *{box-sizing: border-box;font-family: 'Poppins', Arial, Helvetica, sans-serif;margin: 0;padding: 0;}\
                      body{padding: 3%;background: #d1d1d1;}\
                      table{background: #fff;max-width: 1366px;margin: 0 auto;border:none;border-collapse:collapse;table-layout: fixed;}\
                      table th {font-size: 18px;color: #fff;line-height: 1.4;text-transform: uppercase;background-color: #36304a;padding-top: 24px;padding-bottom: 20px;padding-left: 20px;text-align: left;font-weight: 600;}\
@@ -101,10 +102,11 @@ void Response::serveDirectory(Response &resp)
                      table tr:nth-child(even) a{color: #000;}\
                      table a:hover, table tr:nth-child(even) a:hover{color: #6c7ae0; font-weight: 500;}\
                      table a:hover i.fa, table a:hover i.fa:before{background-color: #6c7ae0}\
+                     table a:hover i.fa-file-o, table a:hover i.fa-file-o:before{background-color: #ffffff; border-color: #6c7ae0}\
                      table tr:hover{background-color: #6c7ae02e; cursor: pointer;}\
                      i.fa.fa-folder:before {content: '';width: 50%;height: 2px;border-radius: 0 10px 0 0;background-color: #36304a;position: absolute;top: -2px;left: 0px;}\
                      i.fa.fa-folder {width: 20px;height: 14px;margin: 0 10px -2px 0;position: relative;background-color: #36304a;border-radius: 0 3px 3px 3px;display: inline-block;}\
-                     i.fa.fa-file-o {display: inline-block;width: 15px;height: 20px;background: #36304a;border-radius: 2px;margin: 0 10px -4px 0;border-top-right-radius: 7px;}\
+                     i.fa.fa-file-o {display: inline-block;width: 15px;height: 20px;background: #ffffff;border-radius: 2px;margin: 0 10px -4px 0;border-top-right-radius: 7px;border:1px solid #36304a}\
                      </style>";
       resp.body += "<h1> Index of " + resp.resourceFullPath + "</h1> ";
 

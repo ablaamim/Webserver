@@ -219,7 +219,7 @@ int Request::get_headers(std::string str)
     std::string str1 = "";
 
     //std::cout << "Parsing headers " << std::endl;
-    if ((line = str.rfind("\r\n\r\n")) != -1 || str.rfind("\r\n") != std::string::npos)
+    if ((line = str.rfind("\r\n\r\n")) != -1 && str.rfind("\r\n") != std::string::npos)
     {
         str1 = str.substr(line + 4);
         str = str.substr(0 ,line);
