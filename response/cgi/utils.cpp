@@ -8,7 +8,6 @@ std::string CGIManager::getRequestParam(std::string key, Response &resp)
     return "";
 }
 
-
 void CGIManager::setEnv(Response &resp)
 {
     for (int i = 0; resp._env[i]; i++)
@@ -65,7 +64,6 @@ void CGIManager::setExecveEnv()
 void CGIManager::setInputFd(Response &resp)
 {
     this->inputFd = runSystemCall(open(resp._req.file_body_name.c_str(), O_RDONLY));
-    std::cerr << "err file" << this->inputFd << std::endl;
     runSystemCall(dup2(this->inputFd, 0));
     runSystemCall(close(this->inputFd));
 }
@@ -73,9 +71,7 @@ void CGIManager::setInputFd(Response &resp)
 int CGIManager::runSystemCall(int returnCode)
 {
     if (returnCode == -1)
-    {
         throw CGI_exception("System call failed");
-    }
     return (returnCode);
 }
 
@@ -105,9 +101,6 @@ void CGIManager::execute(Response &resp)
             this->isExecuted = true;
             if (this->pid == 0)
             {
-                runSystemCall(close(this->fd[0]));
-                runSystemCall(dup2(this->fd[1], 1));
-                runSystemCall(close(this->fd[1]));
                 if (resp._req.method == POST)
                 {
                     std::string contentLength = getRequestParam("Content-Length", resp);
@@ -118,14 +111,14 @@ void CGIManager::execute(Response &resp)
                             setInputFd(resp);
                     }
                 }
+                runSystemCall(close(this->fd[0]));
+                //runSystemCall(dup2(this->fd[1], 1));
+                runSystemCall(close(this->fd[1]));
                 if (execve(this->execveArgs[0], this->execveArgs, this->execveEnv) == -1)
                     exit(EXIT_FAILURE);
-                
             }
             runSystemCall(close(this->fd[1]));
         }
-        /* If WNOHANG was given, and if there is at least one process (usually a child) whose status information is not available, waitpid() returns 0. */
-        //sleep(1);
         if (waitpid(this->pid, &this->status, WNOHANG))
         {
             if (WIFEXITED(this->status))
@@ -136,17 +129,9 @@ void CGIManager::execute(Response &resp)
             parseOutput(resp);
             resp.sendCGIResponse();
         }
-        // if (this->pid != -1)
-        // {
-        //     kill (this->pid, SIGKILL);
-        //     resp.serveERROR(_CS_504, _CS_504_m);
-        // }
-        
-        /* else, No response will be sent for now, maybe later when write event of this client get triggered again */
     }
     catch (const std::exception &e)
     {
-        //resp.serveERROR(_CS_500, _CS_500_m);
         resp.serveERROR(_CS_500, "execute cgi");
     }
 }
