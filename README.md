@@ -20,6 +20,16 @@ In the mandatory part, we start the server by reading a [configuration file](htt
 
 ---
 
+---
+
+## grade :
+
+---
+
+<img src="score_minitalk.png"><br>
+
+---
+
 ### Ressources ###
 
 - [Configuration file structure](https://www.youtube.com/watch?v=3YkSpaqcDz8&ab_channel=JayDesai)
@@ -151,6 +161,12 @@ Here are additional features you can add:
 
 ---
 
+### Dependencies :
+
+> brew install php --with-cgi --with-debug
+
+---
+
 ### :repeat: Parsing Logic : DOCUMENTATION !
 
 ---
@@ -244,11 +260,27 @@ server
 
 ---
 
-| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH | AUTHOR | STATUS |
+| TEST TO RUN  | PART |  ERROR TYPE | CONFIG TO TEST WITH / Command | AUTHOR | STATUS |
 |--- |--- |--- |--- | ---|--- |
-| siege -b on an empty file | Multiplexing | No Error/Result 100% | - | Zineb | :white_check_mark: |
+| Makefile | Program | No relink | Makefile in root | Team | :white_check_mark: |
+| Take a configuration file as argument or use default path | Program | Should run with or without configuration file | None | Abdessamad | :white_check_mark: |
+| Siege & stress test | Multiplexing | Siege Result is 100% Also server never hangs (Always Available) | siege -b localhost:8080 | Zineb | :white_check_mark: |
+| You should be able to use siege indefinitely without having to restart the server (take a look at siege -b) | Multiplexing | Working | siege -b localhost:8080 | Zineb | :white_check_mark: |
 | Multiple Listen inside same server-context | Parsing | each server could bind more than one socket | [config_file](./TESTING/conf02.conf) | Abdessamad | :white_check_mark: |
-| No index and no auto_index provided in conf | Response | Segmentation fault | [config_file](./TESTING/conf00.conf) |  Achraf | :x: |
+| No index and no auto_index provided in conf | Response | Segmentation fault | [config_file](./TESTING/conf00.conf) |  Achraf | :white_check_mark:  |
 | No root in location context | Parsing | Unapropriate behavior | [config_file](./TESTING/conf01.conf) | Abdessamaad | :white_check_mark: |
-
----
+| Protection of all system calls | The whole program | Exceptions must be thrown | None needed | Team | :white_check_mark: |
+| HTTP Response Code 413 (Content too large) | Request check | Error code not accurate | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 411 (Content length required) | Request check | Error code not accurate  | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 400 (Bad Request) | Request check | Error code not accurate | POSTMAN + [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| HTTP Response Code 501 (Not implemented) for Transfert encoding not chuncked | Request check | Error code not accurate | [config_file](./TESTING/conf03.conf) | Zineb | :x: |
+| Setup multiple Servers with different ports | Socket creation and Parsing | Working | [config_file](./TESTING/conf04.conf) | Abdessamad | :white_check_mark: |
+| Setup multiple servers with different hostnames/server_names | Program | Working | [config_file](./TESTING/conf05.conf) + curl http://www.example.com --resolve www.example.com:8080:127.0.0.1 | team | :white_check_mark: |
+| Limit the client body | - | i didnt understand the test from the correction page | (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit") | - | :x: |
+| Setup routes in a server to different directories | Parsing/Response  | Working | [config_file](./TESTING/conf07.conf) | Abdessamad/Achraf | :white_check_mark: |
+| Setup a list of methods accepted for a certain route [GET] | Response | Get method on a video doesnt render it | [config_file](./TESTING/conf08.conf) | Achraf | :white_check_mark: |
+| Try to list a directory | Response | Working | [config_file](./TESTING/conf09.conf) | Abdessamad | :white_check_mark: |
+| Setup multiple Servers with same configuration, the first server must be the default to select | Parsing/Response | Working | [config_file](./TESTING/conf10.conf) | Achraf/Abdessamad | :white_check_mark: |
+| Verify there is no memory leak (Monitor the process memory usage. It should not go up indefinitely) | Program | - | [leaks.sh](./leaks.sh) + [config_file](./TESTING/conf00.conf) | Team | - |
+| Set one server_name per server, stop the program otherwise | Parsing | Need to throw an exception | [config_file](./TESTING/conf09.conf) | Abdessamad | :white_check_mark: |
+| UNKNOWN requests should not result in a crash | Check request | Accurate error code | POSTMAN + [config_file](./TESTING/conf10.conf) | Abdessamad | :white_check_mark: |

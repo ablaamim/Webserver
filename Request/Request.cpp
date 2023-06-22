@@ -125,6 +125,7 @@ int Request::check_readed_bytes()
         if (this->file && std::stoi(this->params["Content-Length"]) != this->file->tellp())
         {
             this->is_chuncked = true;
+            //std::cout << "LAST CHUNCK" << std::endl;
             return _CHUNCKED_REQUEST;
         }
         else
@@ -214,6 +215,7 @@ int Request::get_headers(std::string str)
     {
         str1 = str.substr(line + 4);
         str = str.substr(0 ,line);
+        //std::cout << COLOR_BLUE << "limechta l header " << str << COLOR_RESET <<std::endl;
     }
     else
     {
@@ -268,6 +270,7 @@ int Request::get_chuncked_msg(std::string str)
 
 int Request::parse_request(std::string str)
 {
+    //std::cout << str << std::endl;
     if (!str.size())
         return _ERR_PARSE_REQUEST;
     else if (!this->headers_done)
