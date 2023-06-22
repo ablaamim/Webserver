@@ -10,34 +10,27 @@ std::string CGIManager::getRequestParam(std::string key, Response &resp)
 
 void CGIManager::setEnv(Response &resp)
 {
-    for (int i = 0; resp._env[i]; i++)
-        this->env.push_back(resp._env[i]);
     this->env.push_back("REQUEST_METHOD=" + resp.method);
     this->env.push_back("PATH_INFO=" + resp.resourceFullPath);
     this->env.push_back("HTTP_USER_AGENT=" + getRequestParam("User-Agent", resp));
     this->env.push_back("SERVER_PROTOCOL=" + resp.httpVersion);
     this->env.push_back("HTTP_COOKIE=" + getRequestParam("Cookie", resp));
-    this->env.push_back("REMOTE_ADDR=" + resp.ip);
-    std::string remote_port = resp._req.params["Host"].substr(resp._req.params["Host"].find(":") + 1);
-    this->env.push_back("REMOTE_PORT=" + remote_port);
-    this->env.push_back("SERVER_SOFTWARE=" + getRequestParam("Server", resp));
-    this->env.push_back("SERVER_NAME=" + resp.ip);
     this->env.push_back("REDIRECT_STATUS=200");
     this->env.push_back("SCRIPT_FILENAME=" + resp.resourceFullPath);
     this->env.push_back("SERVER_PORT=" + resp.port);
-    this->env.push_back("GATEWAY_INTERFACE=CGI-DIALNA");
     this->env.push_back("HTTP_ACCEPT=" + getRequestParam("Accept", resp));
-    this->env.push_back("HTTP_CONNECTION=" + getRequestParam("Connection", resp));
-    this->env.push_back("HTTP_ACCEPT_ENCODING=" + getRequestParam("Accept-Encoding", resp));
-    this->env.push_back("HTTP_ACCEPT_LANGUAGE=" + getRequestParam("Accept-Language", resp));
     this->env.push_back("HTTP_HOST=" + getRequestParam("Host", resp));
-    this->env.push_back("HTTP_REFERER=" + getRequestParam("Referer", resp));
     this->env.push_back("QUERY_STRING=" + resp.queryParams);
     if (resp.method == POST)
     {
-        this->env.push_back("CONTENT_LENGTH=" + std::to_string(resp._req.content_length));
+        this->env.push_back("CONTENT_LENGTH=" + resp._req.params["Content-Length"]);
         this->env.push_back("CONTENT_TYPE=" + getRequestParam("Content-Type", resp));
     }
+
+    // print all of them
+    for (size_t i = 0; i < this->env.size(); i++)
+        std::cerr << this->env[i] << std::endl;
+    
 }
 
 void CGIManager::setExecveArgs(Response &resp)
@@ -86,7 +79,7 @@ void CGIManager::parseOutput(Response &resp)
     if (rd == 0)
     {
         resp.isCompleted = true;
-        runSystemCall(close(this->fd[0]));
+        //runSystemCall(close(this->fd[0]));
     }
 }
 
@@ -112,7 +105,7 @@ void CGIManager::execute(Response &resp)
                     }
                 }
                 runSystemCall(close(this->fd[0]));
-                //runSystemCall(dup2(this->fd[1], 1));
+                runSystemCall(dup2(this->fd[1], 1));
                 runSystemCall(close(this->fd[1]));
                 if (execve(this->execveArgs[0], this->execveArgs, this->execveEnv) == -1)
                     exit(EXIT_FAILURE);

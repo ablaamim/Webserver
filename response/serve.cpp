@@ -3,17 +3,23 @@
 void    Response::sendCGIResponse()
 {
     std::string responseMessage;
-    // look if the body has Status in it before inserting the httpVersion and status
     if (this->cgi.firstCall)
     {
         this->cgi.firstCall = false;
+        if(this->body.find("Status: ") == 0)
+        {
+            std::string status = this->body.substr(this->body.find("Status: ") + 8, 3);
+            this->status.first = status;
+            this->status.second = "";
+            //this->body.erase(0, this->body.find("\r\n\r\n") + 4);
+        }
         responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
         for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
             responseMessage += it->first + ": " + it->second + "\r\n";
     }
     responseMessage += this->body;
 
-    std::cerr << "responseMessage: " << responseMessage << std::endl;
+    //std::cerr << "responseMessage: " << responseMessage << std::endl;
     this->body.clear();
     if (!this->isCompleted) 
     {

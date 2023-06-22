@@ -11,7 +11,7 @@
 		// Check for errors
 		if ($fileError === UPLOAD_ERR_OK) {
 			// Specify the destination directory to save the uploaded file
-			$uploadDir = $_SERVER["UPLOAD_TMP_DIR"] . "/";
+			$uploadDir = $_SERVER["UPLOAD_TMP_DIR"] . "/Users/afaris/Desktop/web/upload/";
 	
 			// Generate a unique file name to avoid collisions
 			$uniqueFileName = uniqid() . '_' . $fileName;

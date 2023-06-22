@@ -6,9 +6,13 @@
   //print_r($_SERVER);
   if ($_SERVER['REQUEST_METHOD'] == 'POST')
   {
-    var_dump($_POST);
+    // print file_get_contents('php://input') contents
+    $data = file_get_contents('php://input');
+    var_dump($data);
+    // print_r($_POST);
+    // var_dump($_POST);
     if(isset($_POST['id']))
-      echo $_POST['id'];
+      echo $_POST['id']."<br>";
     else
       echo "ps de poste<br>";
   }
