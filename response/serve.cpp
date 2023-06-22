@@ -7,12 +7,13 @@ void    Response::sendCGIResponse()
     if (this->cgi.firstCall)
     {
         this->cgi.firstCall = false;
-        std::cout << this->body << std::endl;
         responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
         for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
             responseMessage += it->first + ": " + it->second + "\r\n";
     }
     responseMessage += this->body;
+
+    std::cerr << "responseMessage: " << responseMessage << std::endl;
     this->body.clear();
     if (!this->isCompleted) 
     {
@@ -36,10 +37,7 @@ void Response::sendResponse(int mode)
     if (mode == FULL)
         responseMessage += this->body;
     if (this->currentSize >= this->resourceSize)
-    {
-        std::cout << "completed" << std::endl;
         this->isCompleted = true;
-    }
     if (responseMessage.length() > 0)
     {
         if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)

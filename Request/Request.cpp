@@ -249,7 +249,6 @@ int Request::get_chuncked_msg(std::string str)
     int                 len;
 
     line = str.find("\r\n\r\n");
-    std::cout << line << std::endl;
     //std::cout << "chuncked   " << str <<std::endl;
     while (line != -1)
     {
@@ -283,6 +282,7 @@ int Request::get_chuncked_msg(std::string str)
 
 int Request::parse_request(std::string str)
 {
+    //std::cout << str << std::endl;
     if (!str.size())
         return _ERR_PARSE_REQUEST;
     else if (!this->headers_done)
