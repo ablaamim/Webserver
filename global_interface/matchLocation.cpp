@@ -1,6 +1,5 @@
 #include "../MainInc/main.hpp"
 
-
 bool    startsWith(std::string str, std::string prefix)
 {
     if (str.length() < prefix.length())
@@ -19,7 +18,6 @@ std::string getMaxLocation(std::vector<std::string>& matchedLocations)
     return (result);
 }
 
-
 configurationSA::location Webserv::match_location(std::string trgt, configurationSA::Server server)
 {
     typedef std::map<std::string, configurationSA::location>    type_location;
@@ -35,12 +33,16 @@ configurationSA::location Webserv::match_location(std::string trgt, configuratio
             matchedLocations.push_back(locationPath);
     }
     if (matchedLocations.size() == 0)
-    {
         result = location[server.first_location_key];
-    }
     else
         result = location[getMaxLocation(matchedLocations)];
     if (result.UniqueKey["root"].empty())
         result.UniqueKey["root"].push_back(server.root);
+    if (result.UniqueKey["allowed_methods"].empty())
+        result.UniqueKey["allowed_methods"].push_back(GET);
+    if (result.UniqueKey["max_body_size"].empty())
+        result.UniqueKey["max_body_size"].push_back("1000000000");
+    if (result.UniqueKey["auto_index"].empty())
+        result.UniqueKey["auto_index"].push_back("off");
     return (result);
 }

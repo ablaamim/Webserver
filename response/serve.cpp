@@ -1,8 +1,35 @@
 #include "Response.hpp"
 
+void    Response::sendCGIResponse()
+{
+    std::string responseMessage;
+    if (this->cgi.firstCall)
+    {
+        this->cgi.firstCall = false;
+        if(this->body.find("Status: ") == 0)
+        {
+            std::string status = this->body.substr(this->body.find("Status: ") + 8, 3);
+            this->status.first = status;
+            this->status.second = "";
+            //this->body.erase(0, this->body.find("\r\n\r\n") + 4);
+        }
+        responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
+        for (std::map<std::string, std::string>::iterator it = this->headers.begin(); it != this->headers.end(); it++)
+            responseMessage += it->first + ": " + it->second + "\r\n";
+    }
+    responseMessage += this->body;
+    this->body.clear();
+    if (!this->isCompleted) 
+    {
+        if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
+            throw Response_err("send failed");
+    }
+}
+
 void Response::sendResponse(int mode)
 {
     std::string responseMessage;
+
     if (!isChunked)
     {
         responseMessage += this->httpVersion + " " + this->status.first + " " + this->status.second + "\r\n";
@@ -13,41 +40,20 @@ void Response::sendResponse(int mode)
     }
     if (mode == FULL)
         responseMessage += this->body;
-    if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
-        throw Response_err("send() failed");
     if (this->currentSize >= this->resourceSize)
         this->isCompleted = true;
+    if (responseMessage.length() > 0)
+    {
+        if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
+            throw Response_err("Send failed");
+    }
     this->body.clear();
-}
-
-void Response::serveRedirect()
-{
-    std::vector<std::string> return_values = this->kwargs["return"];
-    this->status.first = return_values[0];
-    this->status.second = "";
-    if (this->status.first == "301" || this->status.first == "302" || this->status.first == "303" || this->status.first == "307")
-    {
-        this->headers["Location"] = return_values[1];
-        this->sendResponse(HEADERS_ONLY);
-    }
-    else
-    {
-        this->body = return_values[1];
-        this->sendResponse(FULL);
-    }
 }
 
 void Response::serve()
 {
     try
     {
-        if (needsRedirection(*this))
-            return ;
-        if (!this->indexChecked && this->resourceType == DIRECTORY && this->method != DELETE)
-        {
-            std::cout << COLOR_RED << std::endl << "!!lookForIndex() needs a fix!!!" << std::endl << std::endl << COLOR_RESET;
-            lookForIndex(*this);
-        }
         if (this->method == GET)
             this->serveGET();
         else if (this->method == POST)

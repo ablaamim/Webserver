@@ -9,9 +9,11 @@ Request::Request()
 {
     this->headers_done = false;
     this->content_length = 0;
+    this->error = 0;
     this->first_line = false;
     this->is_chuncked = false;
     this->file_body_name = "";
+    this->erro_msg = "";
     this->file = NULL;
 }
 
@@ -35,12 +37,10 @@ Request::~Request(){};
 
 Request & Request::operator=(Request const &ob)
 {
-    //std::cout << "Assignemnt operator" << std::endl;
     this->headers_done = ob.headers_done;
     this->first_line = ob.first_line;
     this->is_chuncked = ob.is_chuncked;
     this->params = ob.params;
-    this->fd_accept = ob.fd_accept;
     this->fd_server = ob.fd_server;
     this->method = ob.method;
     this->path = ob.path;
@@ -50,6 +50,8 @@ Request & Request::operator=(Request const &ob)
         std::remove(this->file_body_name.c_str());
     this->file_body_name = ob.file_body_name;
     this->file = ob.file;
+    this->erro_msg = ob.erro_msg;
+    this->error = ob.error;
     return *this;
 }
 
@@ -59,7 +61,7 @@ std::ostream & operator<<(std::ostream & o, Request const & ref)
 {
     param para =  ref.params;
     std::cout << std::endl << COLOR_GREEN << "Request :" << COLOR_RESET << std::endl;
-    std::cout << "Server fd :" << ref.fd_server <<  "  Client fd : " << ref.fd_accept << std::endl;
+    std::cout << "Server fd :" << ref.fd_server << std::endl;
     for(it_param it = para.begin(); it != para.end(); it++ )
         std::cout << it->first << " : '" << it->second << "'" << std::endl;
     return o;
@@ -103,10 +105,11 @@ void    Request::print_params()
 }
 void    Request::reset_request()
 {
-    //std::cout << COLOR_GREEN << "Reset request " << this->file_body_name << COLOR_RESET << std::endl;
     this->headers_done = false;
     this->first_line = false;
     this->is_chuncked = false;
+    this->error = 0;
+    this->erro_msg = "";
     this->params.clear();
     std::remove(this->file_body_name.c_str());
     if (this->file)
@@ -121,14 +124,11 @@ int Request::check_readed_bytes()
     {
         if (this->file && std::stoi(this->params["Content-Length"]) != this->file->tellp())
         {
-            // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
-            // std::cout << "_CONTENT_: " << this->file->tellp() << std::endl;
             this->is_chuncked = true;
             return _CHUNCKED_REQUEST;
         }
         else
         {
-            //this->file->close();
             this->is_chuncked = false;
         }
     }
@@ -141,7 +141,6 @@ void Request::get_firstline(std::string line)
     std::stringstream   file(line);
     int                 i = 0;
 
-    // std::cout << "Parsing First line " << std::endl;
     while (std::getline(file, str, ' '))
     {
         switch (i)
@@ -163,12 +162,10 @@ void Request::get_firstline(std::string line)
 
 void Request::get_other_lines(std::string line)
 {
-    size_t  indx;
+    int  indx;
 
-    // std::cout << COLOR_GREEN << "Parsing Other lines '" << line << "'" << COLOR_RESET << std::endl;
-    // std::cout << COLOR_GREEN << "Parsing Other " << COLOR_RESET << std::endl;
     indx = line.find(": ");
-    if (indx != std::string::npos)
+    if (indx != -1)
         this->params[line.substr(0, indx)] = line.substr(indx + 2);
 }
 
@@ -181,9 +178,9 @@ int Request::open_file_for_reponse(std::string str)
 
 void Request::parse_headers(std::string str)
 {
-    size_t line;
+    int line;
 
-    while ((line = str.find("\r\n")) != std::string::npos)
+    while ((line = str.find("\r\n")) != -1)
     {
         if (!this->first_line)
             this->get_firstline(str.substr(0, line));
@@ -194,33 +191,41 @@ void Request::parse_headers(std::string str)
     if (str != "")
         this->get_other_lines(str);
 }
+
 void Request::get_content_extension(void)
 {
-    size_t      line;
+    int      line;
 
     if (this->params.find("Content-Type") != this->params.end())
     {
         this->params["Content-Extension"] = this->params["Content-Type"];
         this->content_type = this->params["Content-Type"];
-        if ((line = this->params["Content-Type"].rfind("/")) != std::string::npos)
+        if ((line = this->params["Content-Type"].rfind("/")) != -1)
             this->params["Content-Extension"] = this->params["Content-Type"].substr(line + 1);
     }
 }
 
 int Request::get_headers(std::string str)
 {
-    size_t line;
+    int line;
     std::string str1 = "";
 
-    // std::cout << "Parsing headers " << std::endl;
-    if ((line = str.rfind("\r\n\r\n")) != std::string::npos)
+    if ((line = str.rfind("\r\n\r\n")) != -1 && str.rfind("\r\n") != std::string::npos)
     {
         str1 = str.substr(line + 4);
         str = str.substr(0 ,line);
     }
+    else
+    {
+        this->error = std::stoi(_CS_400);
+        this->erro_msg = _CS_400_m;
+        return _UKNOWN_PROTOCOL;
+    }
     this->parse_headers(str);
     this->get_content_extension();
     this->headers_done = true;
+    if (this->method != POST)
+        return _PARSE_REQUEST_DONE;
     if (str1 != "")
         return (open_file_for_reponse(str1));
     return (check_readed_bytes());
@@ -228,38 +233,36 @@ int Request::get_headers(std::string str)
 
 int Request::get_chuncked_msg(std::string str)
 {
-    size_t              line;
+    int              line;
     std::string         tmp_str;
     std::stringstream   ss;
     int                 len;
 
-    line = str.find("0\r\n\r\n");
-    while (line != std::string::npos)
+    line = str.find("\r\n\r\n");
+    while (line != -1)
     {
         tmp_str = str.substr(0, line);
-        if ((line = tmp_str.find("\r\n")) != std::string::npos)
+        if ((line = tmp_str.find("\r\n")) != -1)
         {
-            std::cout << "here " << len << std::endl;
             tmp_str = str.substr(line + 2);
             try
             {
                 ss << std::hex << str.substr(0, line);
                 ss >> len;
-                std::cout << "to read " << len << std::endl;
             }
             catch(const std::exception& e)
             {
                 std::cerr << e.what() << '\n';
             }
         }
-        else
-            std::cout << "pase de header" << len << std::endl;
         *this->file << tmp_str;
         str = str.substr(line + 5);
         line = str.find("0\r\n\r\n");
     }
-    if (line == std::string::npos)
+    if (line == -1)
+    {
         *this->file << str;
+    }
     return (check_readed_bytes());
 }
 

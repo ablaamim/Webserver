@@ -41,6 +41,7 @@
 # define SOCKET_OPTION_ERR "Failed setting socket options"
 # define SOCKET_LISTEN_ERR "Failed listening on socket"
 # define _ERR_PARSE_REQUEST 1
+# define _UKNOWN_PROTOCOL 3
 # define _PARSE_REQUEST_DONE 0
 # define _CHUNCKED_REQUEST 2
 # define _CONTENT_ "Content_body"
@@ -63,8 +64,43 @@
 # define POST "POST"
 # define DELETE "DELETE"
 
-# define DEFAULT_ROOT "/Users/afaris/Desktop/Webserver/www/html"
 
-/* end of Response defines */
+# define _CS_200 "200"
+# define _CS_201 "201"
+# define _CS_301 "301"
+# define _CS_302 "302"
+# define _CS_303 "303"
+# define _CS_307 "307"
+# define _CS_400 "400"
+# define _CS_403 "403"
+# define _CS_404 "404"
+# define _CS_405 "405"
+# define _CS_409 "409"
+# define _CS_411 "411"
+# define _CS_413 "413"
+# define _CS_414 "414"
+# define _CS_426 "426"
+# define _CS_500 "500"
+# define _CS_501 "501"
+# define _CS_505 "505"
+# define _CS_520 "520"
+# define _CS_504 "504"
+# define _CS_200_m "OK"
+# define _CS_201_m "Created"
+# define _CS_301_m "Moved Permanently"
+# define _CS_400_m "Bad Request"
+# define _CS_403_m "Forbidden"
+# define _CS_404_m "Not Found"
+# define _CS_405_m "Method not allowed"
+# define _CS_409_m "Conflict"
+# define _CS_411_m "Length Required"
+# define _CS_413_m "Payload Too Large"
+# define _CS_414_m "Request URI Too Long"
+# define _CS_426_m "Upgrade Required"
+# define _CS_500_m "Internal Server Error"
+# define _CS_501_m "Not Implemented"
+# define _CS_505_m "HTTP Version Not Supported"
+# define _CS_520_m "Web Server Returned an Unknown Error"
+# define _CS_504_m "Gateway Timeout"
 
 #endif

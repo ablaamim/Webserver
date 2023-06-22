@@ -1,64 +1,25 @@
 #include "Response.hpp"
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sstream>
-#include <iomanip>
-
 
 std::string getContentType(std::string path)
 {
 	size_t pos = path.find_last_of(".");
 	if (pos == std::string::npos)
-		return ("application/octet-stream");
+		return ("text/plain");
 	std::map<std::string, std::string>::iterator it = Response::mimeTypes.find(path.substr(pos));
 	if (it != Response::mimeTypes.end())
 		return (it->second);
-	return ("application/octet-stream");
+	return ("text/plain");
 }
 
 Response::Response(void) { /* DEFAULT CONSTRUCTOR */ };
 
-Response::Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location location, char **env)
+Response::Response(std::string clientIP, std::string clientPort, Request req, int id, configurationSA::location& location, char **env) : _location(location)
 {
-	/*That's for now, we will complete initialization in Response::init()*/
-	//std::cout << "IP AND PORT = " << clientIP << " " << clientPort << std::endl;
 	this->_req = req;
-	this->_location = location;
 	this->_env = env;
 	this->clientSocket = id;
 	this->ip = clientIP;
 	this->port = clientPort;
-
-}
-
-void    Response::init()
-{
-    try
-    {
-        this->httpVersion = this->_req.version;
-        this->status = std::make_pair("200", "OK");
-        this->headers["Server"] = "Webserver/1.0";
-        this->currentSize = 0;
-        this->resourceSize = 0;
-        this->lastChunkSize = 0;
-        this->isCompleted = false;
-        this->isChunked = false;
-		this->customErrorFound = false;
-		this->indexChecked = false;
-		this->fs = NULL;
-		this->method = this->_req.method;
-		this->isCGI = false;
-		this->kwargsInsertion();
-        this->checkRequest();
-        this->setResourceInfo();
-
-    }
-    catch(const std::exception& e)
-    {
-        throw Response_err(e.what());
-    }
 }
 
 Response::~Response()
@@ -85,6 +46,8 @@ Response::Response(const Response &other)
     this->isChunked = other.isChunked;
 	this->customErrorFound = other.customErrorFound;
 	this->indexChecked = other.indexChecked;
+	this->cleanPath = other.cleanPath;
+	this->queryParams = other.queryParams;
 	this->clientSocket = other.clientSocket;
     this->resourceSize = other.resourceSize;
     this->method = other.method;
@@ -92,10 +55,13 @@ Response::Response(const Response &other)
     this->_req = other._req;
 	this->kwargs = other.kwargs;
 	this->isCGI = other.isCGI;
+	this->fileExtension = other.fileExtension;
+	this->cgiInterpreter = other.cgiInterpreter;
     this->_location = other._location;
     this->fs = other.fs;
 	this->ip = other.ip;
 	this->port = other.port;
+	this->cgi = other.cgi;
 }
 
 void Response::insert_Location_kwargs(std::string key, std::vector<std::string> value)

@@ -1,8 +1,8 @@
-#include "../Response.hpp"
+#include "../../MainInc/main.hpp"
 
 bool    uploadSupported(Response& resp)
 {
-    std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("upload");
+    std::map<std::string, std::vector<std::string> >::iterator it = resp.kwargs.find("upload_pass");
     if (it == resp.kwargs.end())
         return false;
     return true;
@@ -10,13 +10,18 @@ bool    uploadSupported(Response& resp)
 
 void    servePostFile(Response& resp)
 {
-    std::string full_path = resp.kwargs["upload"][0] + resp._req.params["Url"] + "." + resp._req.params["Content-Extension"];
-    //std::cout << "full_path: " << full_path << std::endl;
+    size_t in = resp._req.params["Content-Extension"].rfind('-');
+    std::string ex = resp._req.params["Content-Extension"];
+
+    if (in != std::string::npos)
+        ex = resp._req.params["Content-Extension"].substr(in + 1);
+    std::string filename = resp._req.params["Url"] + "." + ex;
+    std::string full_path = pathJoin(resp.kwargs["upload_pass"][0], filename);
     std::ifstream file(full_path.c_str(), std::ios::binary);
     if (file.good())
     {
         file.close();
-        resp.serveERROR("409", "Conflict");
+        resp.serveERROR(_CS_409, _CS_409_m);
         return ;
     }
     std::ifstream source(resp._req.file_body_name, std::ios::binary);
@@ -26,10 +31,10 @@ void    servePostFile(Response& resp)
         destination << source.rdbuf();
         source.close();
         destination.close();
-        resp.status = std::make_pair("201", "Created");
+        resp.status = std::make_pair(_CS_201, _CS_201_m);
     }
     else
-        resp.status = std::make_pair("520", "Web Server Returned an Unknown Error");
+        resp.status = std::make_pair(_CS_520, _CS_520_m);
     resp.sendResponse(HEADERS_ONLY);
 }
 
@@ -37,18 +42,17 @@ void    Response::servePOST()
 {
     try
     {
-        std::cout << "servePOST" << std::endl;
         if (this->isCGI)
             this->serveCGI();
         else if (uploadSupported(*this))
         {
             if (this->resourceType == DIRECTORY)
-                this->serveERROR("409", "Conflict");
+                this->serveERROR(_CS_409, _CS_409_m);
             else
                 servePostFile(*this);
         }
         else
-            this->serveERROR("403", "Forbidden");
+            this->serveERROR(_CS_403, _CS_403_m);
     }
     catch(const std::exception& e)
     {

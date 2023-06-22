@@ -113,25 +113,27 @@ class configurationSA
                     ~Server(){}
                     typedef std::map<std::string, location>               type_location;     // map of locations
                     typedef std::map<std::string, std::set<std::string> > type_listen;       // map of listen ports and interfaces (ip, set<port>)
-                    typedef std::set<std::string>                         type_server_name; // set of server names
+                    typedef std::string                                   type_server_name; 
                     std::string                                           first_location_key;
                     std::string                                           root;
+                    std::string                                           port;
+                    std::string                                           ip;
                     
                     type_listen                                           listen;       // map of listen ports and interfaces (ip, set<port>)
                     type_server_name                                      server_name;  // set of server names
                     type_location                                         location;     // map of locations
+                    
                     void print_type_listen()
                     {
                         if (listen.empty())
                         {
                             std::cout << COLOR_RED << "listen is empty" << COLOR_RESET << std::endl;
-                            exit(EXIT_FAILURE);
+                            return ;
                         }
-                        for (type_listen::const_iterator it = listen.begin(); it != listen.end(); it++)
+                        for (type_listen::iterator it = listen.begin(); it != listen.end(); it++)
                         {
-                            std::cout << COLOR_BLUE << "IP / PORT     : " << COLOR_RESET << COLOR_YELLOW <<"[ "<< it->first << " : " << COLOR_RESET;
-                            for (std::set<std::string>::iterator iter = it->second.begin(); iter != it->second.end(); iter++)
-                                std::cout << COLOR_YELLOW << *iter << " ]" << COLOR_RESET;
+                            std::cout << COLOR_BLUE << "Listen : " << COLOR_RESET << COLOR_YELLOW << " [" << it->first << "]" << COLOR_RESET;
+                            
                             std::cout << std::endl;
                         }
                     };
@@ -141,7 +143,7 @@ class configurationSA
                         if (server_name.empty())
                         {
                             std::cout << COLOR_RED << "server_name is empty" << COLOR_RESET << std::endl;
-                            exit(EXIT_FAILURE);
+                            return ;
                         }
                         for (type_server_name::iterator it = server_name.begin(); it != server_name.end(); it++)
                             std::cout << COLOR_BLUE << "Server_name : " << COLOR_RESET << COLOR_YELLOW << " [" << *it << " ]" << COLOR_RESET;
@@ -175,12 +177,12 @@ class configurationSA
                     public :
                         enum KEYTYPE
                         {
-                            NONE_KEYTYPE,           // NONE_KEYTYPE is used to check if the key is defined in the configuration file
-                            SERVER_KEYTYPE,         // SERVER_KEYTYPE is used to check if the key is a server key
-                            UNIQUE_KEYTYPE,         // UNIQUE_KEYTYPE is used to check if the key is a unique key
-                            NONE_UNIQUE_KEYTYPE     // NONE_UNIQUE_KEYTYPE is used to check if the key is a none unique key
+                            NONE_KEYTYPE,           
+                            SERVER_KEYTYPE,         
+                            UNIQUE_KEYTYPE,         
+                            NONE_UNIQUE_KEYTYPE     
                         };
-                        class raw_configuration // FINAL CONTAINER
+                        class raw_configuration 
                         {
                             public :
 
@@ -212,6 +214,13 @@ class configurationSA
                 const static std::string               is_line_break;
                 const static std::string               is_comment;
                 const static std::string               is_scope;
+
+                static void print_default_values()
+                {
+                    std::cout << COLOR_BLUE << "Default values : " << COLOR_RESET << std::endl;
+                    _default_values.print_unique_key();
+                    _default_values.print_none_unique_key();
+                }
                 
                 static KEYTYPE                        get_keytype(const std::string &key)
                 {
@@ -223,7 +232,18 @@ class configurationSA
     public :
         
         typedef     std::vector<Server> data_type;    
-        data_type   _data;  
+        data_type   _data;
+
+        void print_data_type()
+        {
+            for (data_type::iterator it = _data.begin(); it != _data.end(); it++)
+            {
+                std::cout << COLOR_BLUE << "Server : " << COLOR_RESET << COLOR_YELLOW << " [" << it->first_location_key << " ]" << COLOR_RESET << std::endl;
+                it->print_type_listen();
+                it->print_server_name();
+                it->print_type_location();
+            }
+        }  
 
         static void     listen_format(key_value_type &key_value, size_t &start_last_line, std::string &line);
         static void     check_port(std::string str, size_t &start_last_line, std::string &line);

@@ -13,12 +13,12 @@ class Request
         bool                headers_done;
         bool                first_line;
         bool                is_chuncked;
-        int                 fd_accept;
         int                 fd_server;
-
+        int                 error;
         std::string         method;
         std::string         path;
         std::string         version;
+        std::string         erro_msg;
         size_t              content_length;
         std::string         content_type;
         std::string         file_body_name;

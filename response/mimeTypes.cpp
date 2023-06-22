@@ -77,4 +77,7 @@ void	Response::initMimeTypes()
 	mimeTypes.insert(std::pair<std::string, std::string>(".3gp", "video/3gpp"));
 	mimeTypes.insert(std::pair<std::string, std::string>(".3g2", "video/3gpp2"));
 	mimeTypes.insert(std::pair<std::string, std::string>(".7z", "application/x-7z-compressed"));
+	mimeTypes.insert(std::pair<std::string, std::string>(".mp4", "video/mp4"));
+	mimeTypes.insert(std::pair<std::string, std::string>(".java", "text/x-java-source,java"));
+	mimeTypes.insert(std::pair<std::string, std::string>(".ico", "image/x-icon"));
 }

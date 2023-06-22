@@ -1,8 +1,7 @@
 #include "../MainInc/main.hpp"
 
-std::map<int, int>                  clients_list;                // map of (client_socket, server_socket)
-std::map<int, Response>             responsePool;                // map of (client_socket, Response)
-
+std::map<int, int>                  clients_list;               
+std::map<int, Response>             responsePool;              
 
 void Webserv::print_request()
 {
@@ -16,7 +15,6 @@ void Webserv::print_request()
 
 void Webserv::client_cleanup(int client_fd)
 {
-    std::cout << COLOR_RED << "Client " << client_fd << " is being cleanup " << COLOR_RESET << std::endl;
     this->request[client_fd].reset_request();
     responsePool.erase(client_fd);
     clients_list.erase(client_fd);
@@ -38,21 +36,19 @@ void print_client_list(std::map<int, int> clients_list)
         std::cout << COLOR_YELLOW << "[ client_socket : " << iter->first << " , " << " Server Socket : " << iter->second << " ]" << COLOR_RESET << std::endl;
 }
 
-void Webserv::entry_point(struct kevent *curr_event, Request request, configurationSA &config, Servers &server, char **env)
+void Webserv::entry_point(struct kevent *curr_event, Request request, configurationSA::location &_obj_location, char **env, Servers &server, configurationSA::Server &_obj_server)
 {
+    (void) _obj_server;
     Request req = this->request[curr_event->ident];
     typedef std::map<std::string, std::map<std::string, std::vector<std::string> > > NoneUniqueKey_t; // map of none unique keys that have more than one value
-    std::map<std::string, std::vector<std::string> > newKwargs; // map of none unique keys that have more than one value
+    std::map<std::string, std::vector<std::string> > newKwargs; 
     std::map<int, int>::iterator pair_contact = clients_list.find(curr_event->ident);
-    configurationSA::Server     _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), config.get_data(), "127.0.0.1");
-    configurationSA::location   _obj_location = match_location(request.path, _obj_server);
     Response newResponse(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), request, curr_event->ident, _obj_location, env);
     
     try
     {   
         for (std::map<std::string, std::vector<std::string> >::iterator it = _obj_location.UniqueKey.begin(); it != _obj_location.UniqueKey.end(); it++)
         {
-            //newResponse.kwargs_alloc->insert(std::make_pair(it->first, it->second));
             newResponse.kwargs.insert(std::make_pair(it->first, it->second));
         }
         
@@ -73,11 +69,6 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
                 it_map++;
             }
             newResponse.kwargs.insert(std::make_pair(key, values));
-            //newResponse.kwargs_alloc->insert(std::make_pair(key, values));
-        }
-        for (std::set<std::string>::iterator it = _obj_server.server_name.begin(); it != _obj_server.server_name.end(); it++)
-        {
-            newResponse.kwargs.insert(std::make_pair("server_name", std::vector<std::string> (1, *it)));
         }
         newResponse.init();
         responsePool.insert(std::make_pair(curr_event->ident, newResponse));
@@ -86,33 +77,33 @@ void Webserv::entry_point(struct kevent *curr_event, Request request, configurat
     {
         if (newResponse.customErrorFound == false)
         {
-            std::cout << COLOR_RED << "Error : " << e.what() << COLOR_RESET << std::endl;
             client_cleanup(curr_event->ident);
         }
             
     }
 }
 
-configurationSA::Server Webserv::Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostname)
+configurationSA::Server Webserv::Select_server(std::string ip, std::string port, configurationSA::data_type Servers_vector, std::string hostName)
 {
-    
-    configurationSA::data_type::iterator iter = Servers_vector.end();
-    
-    for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
-    {
-        if (!it->listen.count(ip) || !it->listen[ip].count(port))
-            continue ;
-        else if (iter == Servers_vector.end())
-            iter = it;
-        if (iter == Servers_vector.end())
+    (void) ip;
+    configurationSA::data_type::iterator   first_occurence = Servers_vector.end();
+
+    if (hostName.find(':') != std::string::npos)
+        hostName = hostName.substr(0, hostName.find(':'));
+   	for (configurationSA::data_type::iterator it = Servers_vector.begin(); it != Servers_vector.end(); it++)
+   	{
+        if (it->server_name == "")
+            it->server_name = "localhost";
+		if (it->server_name == hostName)
+           return (*it);
+        if (it->listen.begin()->first == port)
+            first_occurence = it;
+		else if (first_occurence == Servers_vector.end())
         {
-            std::cout << "ip" << ip << std::endl
-            << "port" << port << std::endl
-            << "hostname" << hostname << std::endl;
-            throw Webserv::Webserv_err("Select_server : no server found");
+			first_occurence = it;
         }
-    }
-    return (*iter);
+   	}
+   	return (*first_occurence);
 }
 
 void Webserv::change_events(uintptr_t ident, int16_t filter, uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
@@ -126,7 +117,7 @@ void Webserv::change_events(uintptr_t ident, int16_t filter, uint16_t flags, uin
 
 void Webserv::disconnect_client(int client_fd, std::map<int, std::string>& clients, std::string str)
 {
-    std::cout << COLOR_RED << str << " : client disconnected: " << client_fd << COLOR_RESET << std::endl;
+    (void) str;
     close(client_fd);
     clients.erase(client_fd);
 }
@@ -142,51 +133,138 @@ void Webserv::delete_event(int fd, int16_t filter, std::string str)
         throw Webserv::Webserv_err(str + "kevent error delete event");
 }
 
-void print_env(char **env)
+void Webserv::start_reading_from_client(struct kevent *curr_event,configurationSA &config, Servers &server, char **env)
 {
-    std::cout << std::endl << std::endl << COLOR_BLUE << "Env list :" << COLOR_RESET;
-    for (int i = 0; env[i]; i++)
-        std::cout << COLOR_YELLOW << "[ " << env[i] << " ]" << COLOR_RESET << std::endl;
+    char buf[BUFFER_SIZE] = {0};
+    int n ,k;
+    std::map<int, int>::iterator pair_contact;
+    configurationSA::Server     _obj_server;
+    configurationSA::location   _obj_location ;
+
+    
+    n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
+    if (n <= 0)
+    {
+        disconnect_client(curr_event->ident, this->clients, "read error ");
+        this->request[curr_event->ident].reset_request();
+        return ;
+    }
+    buf[n] = '\0';
+    this->clients[curr_event->ident] = buf;
+    k = this->request[curr_event->ident].parse_request(std::string(buf,n));
+    if (this->request[curr_event->ident].headers_done)
+    {
+        pair_contact = clients_list.find(curr_event->ident);
+        _obj_server = Select_server(server.find_ip_by_fd(pair_contact->second), server.find_port_by_fd(pair_contact->second), \
+        config.get_data(), this->request[curr_event->ident].params["Host"]);
+        _obj_location = match_location(this->request[curr_event->ident].path, _obj_server); 
+       check_before_get_chuncked_messages(_obj_location , this->request[curr_event->ident]);
+    }
+    if (k == _PARSE_REQUEST_DONE || this->request[curr_event->ident].error)
+    {
+        change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+        delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
+        entry_point(curr_event, this->request[curr_event->ident], _obj_location, env,server, _obj_server);
+    }   
 }
+
 
 void Webserv::webserv_evfilt_read(struct kevent *curr_event, std::vector<int> &fds_s, configurationSA &config, Servers &server, char **env)
 {
     int client_socket;
-    char buf[BUFFER_SIZE] = {0};
-    int n = 0, k = 120;
+    int k = 0;
 
     (void)config; (void)server; (void)env;
     if(fds_s.end() != std::find(fds_s.begin(), fds_s.end(), curr_event->ident))
     {
         if((client_socket =  accept(curr_event->ident, NULL, NULL)) < 0)
             throw Webserv::Webserv_err("accept error");
-        std::cout << COLOR_YELLOW << "accept new client: " << client_socket << COLOR_RESET << std::endl;
         change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, &k, sizeof(int));
         this->clients[client_socket] = "";
-        this->request[client_socket].fd_accept = client_socket;
         this->request[client_socket].fd_server = curr_event->ident;
-        clients_list.insert(std::make_pair(client_socket, this->request[client_socket].fd_server));     
+        clients_list.insert(std::make_pair(client_socket, this->request[client_socket].fd_server));    
 
     }
     else if (this->clients.find(curr_event->ident)!= this->clients.end())
+        start_reading_from_client(curr_event, config, server, env);
+        
+}
+
+void    Webserv::fill_request_err(std::string err, std::string msg, Request & request)
+{
+    request.error = std::stoi(err);
+    request.erro_msg = msg;
+}
+
+
+void    Webserv::check_methods(configurationSA::location &_obj_location, Request & request)
+{
+    std::vector<std::string> allowedMethods = _obj_location.UniqueKey["allowed_methods"];
+    
+    if (std::find(allowedMethods.begin(), allowedMethods.end(), request.method) == allowedMethods.end())
+        fill_request_err(_CS_405, _CS_405_m, request);
+    else if (request.method != GET && request.method != POST && request.method != DELETE)
+        fill_request_err(_CS_501, _CS_501_m, request);
+    if (request.params.find("Host") == request.params.end())
+        fill_request_err(_CS_400, _CS_400_m, request);
+}
+
+void    Webserv::checkHTTP(Request & request)
+{
+    if (request.version.substr(0, 5) != "HTTP/")
+        fill_request_err(_CS_400, _CS_400_m, request);
+    if (request.version.substr(5) != "1.1")
+        fill_request_err(_CS_505, _CS_505_m, request);
+}
+
+void    Webserv::check_Transfer_Encoding(Request & request)
+{
+    it_param transfer = request.params.find("Transfer-Encoding");
+    it_param content = request.params.find("Content-Length");
+
+    if (transfer != request.params.end() && transfer->second != "chunked")
+        fill_request_err(_CS_501, _CS_501_m, request);
+    if (transfer == request.params.end() && content == request.params.end() && request.method == POST)
+        fill_request_err(_CS_400, _CS_400_m, request);
+}
+
+void    Webserv::check_Content_Length(Request & request, configurationSA::location &_obj_location)
+{
+    it_param content = request.params.find("Content-Length");
+
+    if (request.method != POST)
+        return;
+    if (content == request.params.end())
+        fill_request_err(_CS_411, _CS_411_m, request);
+    else if (std::atof(content->second.c_str()) > std::atof(_obj_location.UniqueKey["max_body_size"][0].c_str()))
+        fill_request_err(_CS_413, _CS_413_m, request);
+}
+
+
+void    Webserv::check_uri_allowed_characters(Request &request)
+{
+    std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
+    std::string::iterator it = request.path.begin();
+
+    while (it != request.path.end())
     {
-        n = recv(curr_event->ident, buf, BUFFER_SIZE - 1, 0);
-        if (n <= 0)
+        if (allowed_characters.find(*it) == std::string::npos)
         {
-            disconnect_client(curr_event->ident, this->clients, "read error ");
-            this->request[curr_event->ident].reset_request();
-            return ;
+            fill_request_err(_CS_400, _CS_400_m, request);
+            return;
         }
-        buf[n] = '\0';
-        this->clients[curr_event->ident] = buf;
-        if (this->request[curr_event->ident].parse_request(std::string(buf,n)) == _PARSE_REQUEST_DONE)
-        {
-            change_events(curr_event->ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-            delete_event(curr_event->ident, EVFILT_READ, "delete READ event");
-            entry_point(curr_event, this->request[curr_event->ident], config, server, env);
-        }          
+        it++;
     }
+}
+
+void    Webserv::check_before_get_chuncked_messages(configurationSA::location &_obj_location, Request & request)
+{
+    check_methods(_obj_location, request);
+    checkHTTP(request);
+    check_Transfer_Encoding(request);
+    check_Content_Length(request, _obj_location);
+    check_uri_allowed_characters(request);
 }
 
 void Webserv::webserv_evfilt_write(struct kevent *curr_event)
@@ -207,10 +285,8 @@ void Webserv::webserv_evfilt_write(struct kevent *curr_event)
             }
             catch(const std::exception& e)
             {
-                std::cout << COLOR_RED << "Error: " << e.what() << COLOR_RESET << std::endl;
                 if (it->second.customErrorFound == false)
                 {
-                    std::cout << "Error: " << e.what() << std::endl;
                     client_cleanup(curr_event->ident);
                 }
             }
@@ -247,7 +323,7 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
     
     Response::initMimeTypes();
     std::cout << std::endl << COLOR_GREEN << std::setfill(' ') << 
-    std::setw(40) << "Server is running size " << fds_socket.size() << COLOR_RESET << std::endl;
+    std::setw(40) << "Server is running\n" << COLOR_RESET << std::endl;
     while (1337)
     {
         new_events = kevent(this->kq, NULL, 0, this->event_list, fds_socket.size(), NULL);
@@ -255,6 +331,7 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
             throw Webserv::Webserv_err("kevent failed");
         else
             event_check(new_events, fds_socket, config, server, env);
+        //system("leaks Webserv");
     }
 }
 
@@ -262,17 +339,10 @@ Webserv::Webserv(configurationSA &config, char **env)
 {
     Servers         server(config);
     this->kq = server.kq;
-    this->log_fd = open("log.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     this->event_list = new struct kevent [Servers::fd_vector.size()];
     this->run(Servers::fd_vector, config, server, env);
 }
 
-Webserv::Webserv()
-{
-    return ;
-}
+Webserv::Webserv(){}
 
-Webserv::~Webserv()
-{   
-    delete [] this->event_list;
-}
+Webserv::~Webserv(){delete [] this->event_list;}

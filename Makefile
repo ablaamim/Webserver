@@ -10,10 +10,12 @@ SRC = ./MainInc/main.cpp \
 	./global_interface/matchLocation.cpp \
 	./response/Response.cpp \
 	./response/utils.cpp \
-	./response/checkRequest.cpp \
+	./response/init.cpp \
+	./response/directory.cpp \
 	./response/debug.cpp \
 	./response/error.cpp \
 	./response/serve.cpp \
+	./response/redirection.cpp \
 	./response/mimeTypes.cpp \
 	./response/methods/get.cpp \
 	./response/methods/post.cpp \
@@ -21,23 +23,24 @@ SRC = ./MainInc/main.cpp \
 	./response/cgi/CGIManager.cpp \
 	./response/cgi/utils.cpp \
 	
-CC = clang++
+CC = g++
 
-CFLAGS =  -std=c++98  -fsanitize=address  -g3 -Wall -Wextra -Werror 
+CPPFLAGS =  -std=c++98 -Wall -Wextra -Werror 
+
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+	@$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
 	@echo "\033[32m[Webserv] \033[0m\033[1;32mCompilation done\033[0m"
 
 clean:
-	rm -rf $(OBJ)
+	@rm -rf $(OBJ)
 	@echo "\033[32m[Webserv] \033[0m\033[1;32mObjects removed\033[0m"
 
 fclean: clean
-	rm -rf $(NAME)
+	@rm -rf $(NAME)
 	@echo "\033[32m[Webserv] \033[0m\033[1;32mExecutable removed\033[0m"
 
 re: fclean all

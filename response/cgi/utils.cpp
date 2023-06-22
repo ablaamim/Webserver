@@ -1,6 +1,6 @@
-#include "CGIManager.hpp"
+# include "../Response.hpp"
 
-std::string CGIManager::getRequestParam(std::string key)
+std::string CGIManager::getRequestParam(std::string key, Response &resp)
 {
     std::map<std::string, std::string>::iterator it = resp._req.params.find(key);
     if (it != resp._req.params.end())
@@ -8,96 +8,40 @@ std::string CGIManager::getRequestParam(std::string key)
     return "";
 }
 
-void    CGIManager::setCleanURI()
+void CGIManager::setEnv(Response &resp)
 {
-    std::string cleanURI = resp.resourceFullPath;
-    std::string::size_type pos = cleanURI.find("?");
-    if (pos != std::string::npos)
-        cleanURI.erase(pos);
-    this->cleanURI = cleanURI;
-    if (fileExists(this->cleanURI.c_str()) == false)
-        this->resp.serveERROR("404", "Not Found");
-}
-
-void    CGIManager::setExtension()
-{
-    std::string extension = this->cleanURI;
-    std::string::size_type pos = extension.find_last_of(".");
-    if (pos != std::string::npos)
-        this->extension = extension.substr(pos);
-    else
-        this->extension = "";
-    if (this->extension != ".py" && this->extension != ".php" && this->extension != ".sh")
-        this->resp.serveERROR("501", "Not Implemented");
-}
-
-void    CGIManager::setInterpreter()
-{
-    std::map<std::string, std::vector<std::string> >::iterator directive = resp.kwargs.find("cgi-bin");
-    std::vector<std::string> directiveValues = directive->second;
-    std::vector<std::string>::iterator it = std::find(directiveValues.begin(), directiveValues.end(), this->extension);
-    if (it != directiveValues.end())
-        this->interpreter = *(it + 1);
-    else
-        this->resp.serveERROR("501", "Not Implemented");
-}
-
-void    CGIManager::setQueryParams()
-{
-    this->queryParams = "";
-    std::string::size_type pos = this->resp.resourceFullPath.find("?");
-    std::cout << "pos: " << pos << std::endl;
-    if (pos != std::string::npos)
-        this->queryParams = this->resp.resourceFullPath.substr(pos + 1);
-}
-
-void    CGIManager::setEnv()
-{
-    for (int i = 0; resp._env[i]; i++)
-        this->env.push_back(resp._env[i]);
     this->env.push_back("REQUEST_METHOD=" + resp.method);
     this->env.push_back("PATH_INFO=" + resp.resourceFullPath);
-    this->env.push_back("HTTP_USER_AGENT=" + getRequestParam("User-Agent"));
+    this->env.push_back("HTTP_USER_AGENT=" + getRequestParam("User-Agent", resp));
     this->env.push_back("SERVER_PROTOCOL=" + resp.httpVersion);
-    this->env.push_back("HTTP_COOKIE=");
-    this->env.push_back("REMOTE_ADDR=" + resp.ip); // CLIENT IP
-    std::string remote_port = resp._req.params["Host"].substr(resp._req.params["Host"].find(":") + 1);
-    this->env.push_back("REMOTE_PORT=" + remote_port); // CLIENT PORT
-    this->env.push_back("SERVER_SOFTWARE=" + getRequestParam("Server"));
-    this->env.push_back("SERVER_NAME=" + resp.ip);
-    this->env.push_back("SERVER_PORT=" + resp.port);
-    this->env.push_back("GATEWAY_INTERFACE=CGI-DIALNA");
+    this->env.push_back("HTTP_COOKIE=" + getRequestParam("Cookie", resp));
     this->env.push_back("REDIRECT_STATUS=200");
-    this->env.push_back("HTTP_ACCEPT=" + getRequestParam("Accept"));
-    this->env.push_back("HTTP_CONNECTION=" + getRequestParam("Connection"));
-    this->env.push_back("SCRIPT_NAME=" + getRequestParam("Url"));
-    this->env.push_back("HTTP_ACCEPT_ENCODING=" + getRequestParam("Accept-Encoding"));
-    if (resp.method == GET)
+    this->env.push_back("SCRIPT_FILENAME=" + resp.resourceFullPath);
+    this->env.push_back("SERVER_PORT=" + resp.port);
+    this->env.push_back("HTTP_ACCEPT=" + getRequestParam("Accept", resp));
+    this->env.push_back("HTTP_HOST=" + getRequestParam("Host", resp));
+    this->env.push_back("QUERY_STRING=" + resp.queryParams);
+    if (resp.method == POST)
     {
-        this->env.push_back("QUERY_STRING=" + this->queryParams);
-    }
-    else if (resp.method == POST)
-    {
-        this->env.push_back("CONTENT_LENGTH=" + std::to_string(resp._req.content_length));
-        // std::cout << "CONTENT TYPE ./We   = " << resp._req.content_type << std::endl;
-        this->env.push_back("CONTENT_TYPE=" + getRequestParam("Content-Type"));
+        this->env.push_back("CONTENT_LENGTH=" + resp._req.params["Content-Length"]);
+        this->env.push_back("CONTENT_TYPE=" + getRequestParam("Content-Type", resp));
     }
 }
 
-void    CGIManager::setExecveArgs()
+void CGIManager::setExecveArgs(Response &resp)
 {
     this->execveArgs = new char *[3];
-    this->execveArgs[0] = new char[this->interpreter.length() + 1];
-    this->execveArgs[1] = new char[this->cleanURI.length() + 1];
+    this->execveArgs[0] = new char[resp.cgiInterpreter.length() + 1];
+    this->execveArgs[1] = new char[resp.resourceFullPath.length() + 1];
     this->execveArgs[2] = NULL;
-    strcpy(this->execveArgs[0], this->interpreter.c_str());
-    strcpy(this->execveArgs[1], this->cleanURI.c_str());
+    strcpy(this->execveArgs[0], resp.cgiInterpreter.c_str());
+    strcpy(this->execveArgs[1], resp.resourceFullPath.c_str());
 }
 
-void    CGIManager::setExecveEnv()
+void CGIManager::setExecveEnv()
 {
     this->execveEnv = new char *[this->env.size() + 1];
-    for (int i = 0; i < this->env.size(); i++)
+    for (size_t i = 0; i < this->env.size(); i++)
     {
         this->execveEnv[i] = new char[this->env[i].length() + 1];
         strcpy(this->execveEnv[i], this->env[i].c_str());
@@ -105,59 +49,76 @@ void    CGIManager::setExecveEnv()
     this->execveEnv[this->env.size()] = NULL;
 }
 
-void    CGIManager::setInputFd()
+void CGIManager::setInputFd(Response &resp)
 {
-    this->inputFd = runSystemCall(open(this->resp._req.file_body_name.c_str(), O_RDONLY));
+    this->inputFd = runSystemCall(open(resp._req.file_body_name.c_str(), O_RDONLY));
     runSystemCall(dup2(this->inputFd, 0));
     runSystemCall(close(this->inputFd));
 }
 
-int    CGIManager::runSystemCall(int returnCode)
+int CGIManager::runSystemCall(int returnCode)
 {
     if (returnCode == -1)
-        throw std::logic_error("System call failed");
+        throw CGI_exception("System call failed");
     return (returnCode);
 }
 
 
-void    CGIManager::parseOutput()
+void CGIManager::parseOutput(Response &resp)
 {
-    /* read from this->fd[0] and parse the output (headers should be set accordingly */
     int rd = -1;
-    char buffer[BUFFER_SIZE];
-    while(rd)
+    char buffer[CHUNCK_SIZE];
+    std::string str;
+    rd = runSystemCall(read(this->fd[0], buffer, CHUNCK_SIZE));
+    resp.body.append(buffer, rd);
+    if (rd == 0)
     {
-        rd = runSystemCall(read(this->fd[0], buffer, BUFFER_SIZE));
-        this->resp.body.append(buffer, rd);
+        resp.isCompleted = true;
     }
-    runSystemCall(close(this->fd[0]));
 }
 
-void    CGIManager::execute()
+void CGIManager::execute(Response &resp)
 {
     try
     {
-        runSystemCall(pipe(this->fd));
-        this->pid = runSystemCall(fork());
-        if (this->pid == 0)
+        if (this->isExecuted == false)
         {
-            runSystemCall(close(this->fd[0]));
-            runSystemCall(dup2(this->fd[1], 1));
+            runSystemCall(pipe(this->fd));
+            this->pid = runSystemCall(fork());
+            this->isExecuted = true;
+            if (this->pid == 0)
+            {
+                if (resp._req.method == POST)
+                {
+                    std::string contentLength = getRequestParam("Content-Length", resp);
+                    if (!contentLength.empty())
+                    {
+                        int contentLengthInt = std::stoi(contentLength);
+                        if (contentLengthInt > 0)
+                            setInputFd(resp);
+                    }
+                }
+                runSystemCall(close(this->fd[0]));
+                runSystemCall(dup2(this->fd[1], 1));
+                runSystemCall(close(this->fd[1]));
+                if (execve(this->execveArgs[0], this->execveArgs, this->execveEnv) == -1)
+                    exit(EXIT_FAILURE);
+            }
             runSystemCall(close(this->fd[1]));
-            if (this->resp._req.method == POST)
-                setInputFd();
-            runSystemCall(execve(this->execveArgs[0], this->execveArgs, this->execveEnv));
-            exit(0);
         }
-        else
+        if (waitpid(this->pid, &this->status, WNOHANG))
         {
-            runSystemCall(close(this->fd[1]));
-            waitpid(this->pid, 0, 0);
-            parseOutput();
+            if (WIFEXITED(this->status))
+            {
+                if (WEXITSTATUS(this->status) == EXIT_FAILURE)
+                    resp.serveERROR(_CS_500, _CS_500_m);
+            }
+            parseOutput(resp);
+            resp.sendCGIResponse();
         }
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
-        this->resp.serveERROR("500", "Internal Server Error");
+        resp.serveERROR(_CS_500, _CS_500_m);
     }
 }
