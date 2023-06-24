@@ -9,7 +9,7 @@ int main(int argc, char **argv, char **env)
         signal(SIGPIPE, SIG_IGN);
         // if no config file use default
         if (argc == 1)
-            argv[1] = (char *)"./configs/default.conf";
+            argv[1] = (char *)"./configs/afaris.conf";
         else if (argc > 2)
         {
             std::cerr << COLOR_RED << "Too many arguments" << COLOR_RESET << std::endl;
@@ -23,8 +23,5 @@ int main(int argc, char **argv, char **env)
         std::cerr << COLOR_RED << "Failed to init : " << e.what() << COLOR_RESET <<std::endl;
         return (EXIT_FAILURE);
     }
-
-    std::cout <<  COLOR_GREEN <<"~ B y e ~" << COLOR_RESET << std::endl;
-
     return (EXIT_SUCCESS);
 }

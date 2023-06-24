@@ -432,7 +432,9 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
         else
         {
             if (key_value.first == "cgi-bin")
-                throw ParsingErr("CGI should not be in a server context ");            
+                throw ParsingErr("CGI should not be in a server context ");   
+            else if (key_value.first == "max_body_size") 
+                throw ParsingErr("Max body size should not be in a server context ");        
             else if (key_value.first == "return")
                 throw ParsingErr("Return should not be in a server context ");
             else if (key_value.first == "index")
@@ -440,6 +442,8 @@ configurationSA::Server  configurationSA::new_server_creation(line_range_type &l
             else if (key_value.first == "root")
             {
                 result.root = key_value.second[0];
+                if (key_value.second.size() > 1)
+                    throw ParsingErr("Too many parameters for key " + key_value.first);
             }
             else if (key_value.first == "auto_index")
                 throw ParsingErr("Auto index should not be in server context ");
@@ -537,7 +541,6 @@ configurationSA::configurationSA(char *config_file)
         fullFile.push_back(line);
     }
     input.close();
-    // pair of iterator on line and iterator on file to know where we are    
     line_range_type line_range(fullFile.begin()->begin(), fullFile.begin()->end());
     file_range_type file_range(fullFile.begin(), fullFile.end());
     try
@@ -548,7 +551,6 @@ configurationSA::configurationSA(char *config_file)
             if(is_server_context(get_keyvalue(line_range), line_range, file_range))
             {
                 line_range.first++;
-                //std::cout << *line_range.first << std::endl;
                 go_to_next_word_in_file(line_range, file_range);
                 try
                 {

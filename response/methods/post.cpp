@@ -15,7 +15,8 @@ void    servePostFile(Response& resp)
 
     if (in != std::string::npos)
         ex = resp._req.params["Content-Extension"].substr(in + 1);
-    std::string full_path = resp.kwargs["upload_pass"][0] + resp._req.params["Url"] + "." + ex;
+    std::string filename = resp._req.params["Url"] + "." + ex;
+    std::string full_path = pathJoin(resp.kwargs["upload_pass"][0], filename);
     std::ifstream file(full_path.c_str(), std::ios::binary);
     if (file.good())
     {

@@ -26,11 +26,6 @@ void CGIManager::setEnv(Response &resp)
         this->env.push_back("CONTENT_LENGTH=" + resp._req.params["Content-Length"]);
         this->env.push_back("CONTENT_TYPE=" + getRequestParam("Content-Type", resp));
     }
-
-    // print all of them
-    for (size_t i = 0; i < this->env.size(); i++)
-        std::cerr << this->env[i] << std::endl;
-    
 }
 
 void CGIManager::setExecveArgs(Response &resp)
@@ -79,7 +74,6 @@ void CGIManager::parseOutput(Response &resp)
     if (rd == 0)
     {
         resp.isCompleted = true;
-        //runSystemCall(close(this->fd[0]));
     }
 }
 
@@ -117,7 +111,7 @@ void CGIManager::execute(Response &resp)
             if (WIFEXITED(this->status))
             {
                 if (WEXITSTATUS(this->status) == EXIT_FAILURE)
-                    resp.serveERROR(_CS_500, "wait error");
+                    resp.serveERROR(_CS_500, _CS_500_m);
             }
             parseOutput(resp);
             resp.sendCGIResponse();
@@ -125,6 +119,6 @@ void CGIManager::execute(Response &resp)
     }
     catch (const std::exception &e)
     {
-        resp.serveERROR(_CS_500, "execute cgi");
+        resp.serveERROR(_CS_500, _CS_500_m);
     }
 }

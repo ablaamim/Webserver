@@ -32,7 +32,6 @@ void    generateDefaultErrorPage(Response& resp)
     resp.body += "<body>\n";
     resp.body += "<div class=\"content\"><h1 style=\"text-align: center;\" class=\"title\" >" + resp.status.first + "</h1>\n";
     resp.body += "<div class=\"text\" >" + resp.status.second + "</div>\n";
-    //resp.body += "<hr>\n";
     resp.body += "<address style=\"text-align: center;\" >" + resp.headers["Server"] + "</address>\n";
     resp.body += "</div></body>\n";
     resp.body += "</html>\n";
@@ -51,7 +50,6 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
     errorPage = getCustomErrorPage(*this);
     if (errorPage.length() > 0 && this->customErrorFound == false)
     {
-        std::cout << "Custom error page found: " << errorPage << std::endl;
         this->resourceFullPath = pathJoin(this->kwargs["root"][0], errorPage);
         this->method = GET;
         this->customErrorFound = true;

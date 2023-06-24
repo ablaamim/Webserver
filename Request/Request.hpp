@@ -15,7 +15,6 @@ class Request
         bool                is_chuncked;
         int                 fd_server;
         int                 error;
-
         std::string         method;
         std::string         path;
         std::string         version;

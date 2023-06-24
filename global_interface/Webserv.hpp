@@ -38,7 +38,6 @@ class Webserv
         void                        checkHTTP(Request & request);
         void                        check_Content_Length(Request & request, configurationSA::location &_obj_location);
         void                        check_Transfer_Encoding(Request & request);
-        void                        check_uri_length(Request &request);
         void                        check_uri_allowed_characters(Request &request);
         void                        check_methods(configurationSA::location &_obj_location, Request & request);
         class Webserv_err : public std::exception

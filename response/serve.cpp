@@ -18,13 +18,11 @@ void    Response::sendCGIResponse()
             responseMessage += it->first + ": " + it->second + "\r\n";
     }
     responseMessage += this->body;
-
-    //std::cerr << "responseMessage: " << responseMessage << std::endl;
     this->body.clear();
     if (!this->isCompleted) 
     {
         if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
-            throw Response_err("send() failed here in sendCGIResponse()");
+            throw Response_err("send failed");
     }
 }
 
@@ -47,7 +45,7 @@ void Response::sendResponse(int mode)
     if (responseMessage.length() > 0)
     {
         if (send(this->clientSocket, responseMessage.c_str(), responseMessage.length(), 0) <= 0)
-            throw Response_err("send() failed here in sendResponse()");
+            throw Response_err("Send failed");
     }
     this->body.clear();
 }

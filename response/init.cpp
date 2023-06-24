@@ -25,7 +25,6 @@ void    Response::init()
         this->kwargsInsertion();
         setQueryParams(*this);
         setCleanPath(*this);
-        std::cout << COLOR_GREEN << "Client " << this->clientSocket << " requested " << this->cleanPath << COLOR_RESET << std::endl;
         this->setResourceInfo();
         if (needsRedirection(*this))
             return ;

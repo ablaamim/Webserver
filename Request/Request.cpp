@@ -105,7 +105,6 @@ void    Request::print_params()
 }
 void    Request::reset_request()
 {
-    //std::cout << COLOR_GREEN << "Reset request " << this->file_body_name << COLOR_RESET << std::endl;
     this->headers_done = false;
     this->first_line = false;
     this->is_chuncked = false;
@@ -125,15 +124,11 @@ int Request::check_readed_bytes()
     {
         if (this->file && std::stoi(this->params["Content-Length"]) != this->file->tellp())
         {
-            // std::cout << "check Content length: " << this->params["Content-Length"] << std::endl;
-            // std::cout << "_CONTENT_: " << this->file->tellp() << std::endl;
             this->is_chuncked = true;
-            //std::cout << "LAST CHUNCK" << std::endl;
             return _CHUNCKED_REQUEST;
         }
         else
         {
-            //this->file->close();
             this->is_chuncked = false;
         }
     }
@@ -146,7 +141,6 @@ void Request::get_firstline(std::string line)
     std::stringstream   file(line);
     int                 i = 0;
 
-    std::cout << "Parsing First line " << std::endl;
     while (std::getline(file, str, ' '))
     {
         switch (i)
@@ -170,8 +164,6 @@ void Request::get_other_lines(std::string line)
 {
     int  indx;
 
-    // std::cout << COLOR_GREEN << "Parsing Other lines '" << line << "'" << COLOR_RESET << std::endl;
-    // std::cout << COLOR_GREEN << "Parsing Other " << COLOR_RESET << std::endl;
     indx = line.find(": ");
     if (indx != -1)
         this->params[line.substr(0, indx)] = line.substr(indx + 2);
@@ -218,12 +210,10 @@ int Request::get_headers(std::string str)
     int line;
     std::string str1 = "";
 
-    //std::cout << "Parsing headers " << std::endl;
     if ((line = str.rfind("\r\n\r\n")) != -1 && str.rfind("\r\n") != std::string::npos)
     {
         str1 = str.substr(line + 4);
         str = str.substr(0 ,line);
-        //std::cout << COLOR_BLUE << "limechta l header " << str << COLOR_RESET <<std::endl;
     }
     else
     {
@@ -249,7 +239,6 @@ int Request::get_chuncked_msg(std::string str)
     int                 len;
 
     line = str.find("\r\n\r\n");
-    //std::cout << "chuncked   " << str <<std::endl;
     while (line != -1)
     {
         tmp_str = str.substr(0, line);
@@ -260,15 +249,12 @@ int Request::get_chuncked_msg(std::string str)
             {
                 ss << std::hex << str.substr(0, line);
                 ss >> len;
-                //std::cout << "to read " << len << std::endl;
             }
             catch(const std::exception& e)
             {
                 std::cerr << e.what() << '\n';
             }
         }
-        else
-            std::cout << "pase de header" << len << std::endl;
         *this->file << tmp_str;
         str = str.substr(line + 5);
         line = str.find("0\r\n\r\n");
@@ -282,7 +268,6 @@ int Request::get_chuncked_msg(std::string str)
 
 int Request::parse_request(std::string str)
 {
-    //std::cout << str << std::endl;
     if (!str.size())
         return _ERR_PARSE_REQUEST;
     else if (!this->headers_done)

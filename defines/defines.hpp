@@ -64,11 +64,7 @@
 # define POST "POST"
 # define DELETE "DELETE"
 
-# define DEFAULT_ROOT "/Users/ablaamim/Desktop/Webserver/www/html"
 
-/* end of Response defines */
-
-// Server Code Status 
 # define _CS_200 "200"
 # define _CS_201 "201"
 # define _CS_301 "301"
@@ -89,8 +85,6 @@
 # define _CS_505 "505"
 # define _CS_520 "520"
 # define _CS_504 "504"
-
-// Server Code Status Messages
 # define _CS_200_m "OK"
 # define _CS_201_m "Created"
 # define _CS_301_m "Moved Permanently"

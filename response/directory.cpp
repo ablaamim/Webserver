@@ -12,7 +12,6 @@ void Response::list_directories_recursive(std::string &path, std::vector<std::st
       {
          if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
          {
-            std::cout << "entry name: " << ent->d_name << std::endl;
             std::string entryName = ent->d_name;
             directoryList.push_back(entryName);
          }
@@ -58,15 +57,10 @@ std::string getLastModified(std::string &path) {
 
 std::string get_content_type(std::string file_path)
 {
-   //std::cout << "file_path: " << file_path << std::endl;
-   // if its a directory
+
    if (file_path[file_path.length() - 1] == '/')
       return "Directory";
-   // if its a file
    std::string file_extension = file_path.substr(file_path.find_last_of(".") + 1);
-   //std::cout << "file_extension: " << file_extension << std::endl;
-
-   // file exention should be in lower case and without spaces and contain only letters
    for (std::string::iterator it = file_extension.begin(); it != file_extension.end(); ++it)
    {
       if (*it >= 'A' && *it <= 'Z')
@@ -81,7 +75,6 @@ std::string get_content_type(std::string file_path)
 
 void Response::serveDirectory(Response &resp)
 {
-   this->print_kwargs();
    if (this->kwargs["auto_index"][0] == "off")
       resp.serveERROR(_CS_403, _CS_403_m);
    else
@@ -129,7 +122,6 @@ void Response::serveDirectory(Response &resp)
          std::string file_type = get_content_type(file_path);
          std::string file_size = getFileSize(file_path);
          std::string last_modified = getLastModified(file_path);
-
          resp.body += "<tr> <td><a href=\"" + file_name + "\">" + icon + file_name + "</a></td> <td>" + file_type + "</td> <td>" + file_size + "</td> " + last_modified + "</tr>";
       }
    }
