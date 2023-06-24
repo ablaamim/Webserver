@@ -1,4 +1,4 @@
-git filter-branch --commit-filter -f'
+git filter-branch -f --commit-filter'
         if [ "$GIT_COMMITTER_NAME" = "Achraf Faris" ];
         then
                 GIT_COMMITTER_NAME="Achraf Faris";
