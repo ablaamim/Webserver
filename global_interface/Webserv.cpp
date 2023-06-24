@@ -241,6 +241,7 @@ void    Webserv::check_Content_Length(Request & request, configurationSA::locati
         fill_request_err(_CS_413, _CS_413_m, request);
 }
 
+
 void    Webserv::check_uri_allowed_characters(Request &request)
 {
     std::string allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
@@ -330,6 +331,7 @@ void Webserv::run(std::vector<int> &fds_socket, configurationSA &config, Servers
             throw Webserv::Webserv_err("kevent failed");
         else
             event_check(new_events, fds_socket, config, server, env);
+        //system("leaks Webserv");
     }
 }
 

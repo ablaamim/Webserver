@@ -551,7 +551,6 @@ configurationSA::configurationSA(char *config_file)
             if(is_server_context(get_keyvalue(line_range), line_range, file_range))
             {
                 line_range.first++;
-                //std::cout << *line_range.first << std::endl;
                 go_to_next_word_in_file(line_range, file_range);
                 try
                 {

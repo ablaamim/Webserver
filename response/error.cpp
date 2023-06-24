@@ -50,7 +50,6 @@ void    Response::serveERROR(std::string errorCode, std::string errorMsg)
     errorPage = getCustomErrorPage(*this);
     if (errorPage.length() > 0 && this->customErrorFound == false)
     {
-        std::cout << "Custom error page found: " << errorPage << std::endl;
         this->resourceFullPath = pathJoin(this->kwargs["root"][0], errorPage);
         this->method = GET;
         this->customErrorFound = true;

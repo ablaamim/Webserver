@@ -26,11 +26,6 @@ void CGIManager::setEnv(Response &resp)
         this->env.push_back("CONTENT_LENGTH=" + resp._req.params["Content-Length"]);
         this->env.push_back("CONTENT_TYPE=" + getRequestParam("Content-Type", resp));
     }
-
-    // print all of them
-    for (size_t i = 0; i < this->env.size(); i++)
-        std::cerr << this->env[i] << std::endl;
-    
 }
 
 void CGIManager::setExecveArgs(Response &resp)
